@@ -23,7 +23,7 @@ const LandingSection = ({ onStart }: LandingSectionProps) => {
           className="flex items-center gap-3 mb-10 relative z-10"
         >
           <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center p-2 backdrop-blur-sm">
-            <img src="/layer-1.png" alt="Ednovate" className="w-full h-full object-contain" />
+            <img src="/ednovate-mark.svg" alt="Ednovate" className="w-full h-full object-contain" />
           </div>
           <div>
             <p className="text-white/70 text-sm font-medium">Free Career Assessment</p>
@@ -147,7 +147,7 @@ const LandingSection = ({ onStart }: LandingSectionProps) => {
         transition={{ delay: 0.05 }}
         className="flex items-center justify-center gap-2 py-3 bg-white/70 border-b border-blue-50"
       >
-        <img src="/layer-1.png" alt="Ednovate" className="w-5 h-5 object-contain" />
+        <img src="/ednovate-mark.svg" alt="Ednovate" className="w-5 h-5 object-contain" />
         <p className="text-[11px] font-semibold text-slate-500 tracking-wide">Powered by Ednovate</p>
       </motion.div>
 
