@@ -500,6 +500,19 @@ const clampText = (text: string, maxLen: number): string => {
     return text.length > maxLen ? text.slice(0, Math.max(0, maxLen - 1)).trimEnd() + '...' : text;
 };
 
+const tintHex = (hex: string, whiteMix = 0.9): string => {
+    const clampedMix = Math.max(0, Math.min(1, whiteMix));
+    const raw = String(hex || '').trim().replace('#', '');
+    if (!/^[0-9A-Fa-f]{6}$/.test(raw)) return hex;
+
+    const mix = (start: number) => {
+        const base = parseInt(raw.slice(start, start + 2), 16);
+        return Math.round(base + (255 - base) * clampedMix).toString(16).padStart(2, '0');
+    };
+
+    return '#' + mix(0) + mix(2) + mix(4);
+};
+
 // ─── Export ───────────────────────────────────────────────────────────────────
 export const generateReportPDF = (student: any): Promise<Buffer> =>
     new Promise((resolve, reject) => {
@@ -609,7 +622,7 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
             };
 
             const statBox = (x: number, y: number, bw: number, bh: number, val: string, lbl: string, col: string) => {
-                card(x, y, bw, bh, col + '18', col);
+                card(x, y, bw, bh, tintHex(col, 0.9), col);
                 doc.fillColor(col).font('Helvetica-Bold').fontSize(20).text(val, x, y + 8, { width: bw, align: 'center' });
                 doc.fillColor('#111827').font('Helvetica').fontSize(7).text(lbl, x, y + 34, { width: bw, align: 'center' });
             };
@@ -628,10 +641,10 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
             let y = Y0;
 
             // Welcome banner
-            doc.rect(M, y, CW, 44).fill(P.color + '22').strokeColor(P.color).lineWidth(0.6).stroke();
+            doc.rect(M, y, CW, 44).fill(tintHex(P.color, 0.87)).strokeColor(P.color).lineWidth(0.6).stroke();
             doc.roundedRect(M, y, 4, 44, 0).fill(P.color);
             doc.fillColor(P.darkColor).font('Helvetica-Bold').fontSize(10).text('YOUR PERSONALIZED CAREER ASSESSMENT REPORT', M + 14, y + 8, { width: CW - 20 });
-            doc.fillColor(P.color).font('Helvetica').fontSize(8).text(P.tagline, M + 14, y + 25, { width: CW - 20 });
+            doc.fillColor(P.darkColor).font('Helvetica').fontSize(8).text(P.tagline, M + 14, y + 25, { width: CW - 20 });
             y += 52;
 
             // Student name + details
@@ -650,14 +663,14 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
             // Stream result + match score
             const rcW = Math.round(CW * 0.64), scW = CW - rcW - 10;
             doc.roundedRect(M, y, rcW, 90, 6).fill(P.lightColor).strokeColor(P.color).lineWidth(0.7).stroke();
-            doc.fillColor(P.color).font('Helvetica-Bold').fontSize(7.5).text('RECOMMENDED STREAM', M + 14, y + 12);
+            doc.fillColor(P.darkColor).font('Helvetica-Bold').fontSize(7.5).text('RECOMMENDED STREAM', M + 14, y + 12);
             doc.fillColor(DARK).font('Helvetica-Bold').fontSize(22).text(P.title, M + 14, y + 27, { width: rcW - 28 });
             doc.fillColor(GRAY).font('Helvetica').fontSize(8.5).text(P.subtitle, M + 14, y + 60, { width: rcW - 28 });
             const scX = M + rcW + 10;
             doc.roundedRect(scX, y, scW, 90, 6).fill(P.color);
             doc.fillColor('#FFFFFF').font('Helvetica-Bold').fontSize(7.5).text('MATCH SCORE', scX, y + 12, { width: scW, align: 'center' });
             doc.fillColor('#FFFFFF').font('Helvetica-Bold').fontSize(38).text(String(matchPct) + '%', scX, y + 27, { width: scW, align: 'center' });
-            doc.fillColor(P.lightColor).font('Helvetica').fontSize(7).text('Based on ' + String(answered) + ' responses', scX, y + 73, { width: scW, align: 'center' });
+            doc.fillColor('#FFFFFF').font('Helvetica').fontSize(7).text('Based on ' + String(answered) + ' responses', scX, y + 73, { width: scW, align: 'center' });
             y += 98;
 
             // Stream score bars
@@ -916,7 +929,7 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
             ];
             examCal.forEach((ec, i) => {
                 if (y + 30 > YE) return;
-                doc.roundedRect(M, y, 130, 26, 4).fill(ec.color + '22').strokeColor(ec.color).lineWidth(0.5).stroke();
+                doc.roundedRect(M, y, 130, 26, 4).fill(tintHex(ec.color, 0.87)).strokeColor(ec.color).lineWidth(0.5).stroke();
                 doc.fillColor(ec.color).font('Helvetica-Bold').fontSize(7.5).text(ec.month, M + 8, y + 9, { width: 114 });
                 if (i < examCal.length - 1) {
                     doc.moveTo(M + 65, y + 26).lineTo(M + 65, y + 34).strokeColor(ec.color).lineWidth(1.5).stroke();
@@ -943,8 +956,8 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
                 doc.rect(M, y, 6, phaseH).fill(phase.color);
                 doc.roundedRect(M, y, 6, phaseH, 3).fill(phase.color);
                 // header
-                doc.roundedRect(M + 6, y, CW - 6, 30, 0).fill(phase.color + '18');
-                doc.rect(M + 6, y + 6, CW - 6, 24).fill(phase.color + '18');
+                doc.roundedRect(M + 6, y, CW - 6, 30, 0).fill(tintHex(phase.color, 0.9));
+                doc.rect(M + 6, y + 6, CW - 6, 24).fill(tintHex(phase.color, 0.9));
                 doc.fillColor(phase.color).font('Helvetica-Bold').fontSize(10).text(phase.period, M + 18, y + 9, { width: 380 });
                 doc.fillColor(GRAY).font('Helvetica-Bold').fontSize(8).text('Focus: ' + phase.focus, M + 18, y + 22, { width: 340 });
                 // badge
@@ -1080,8 +1093,8 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
                 const tx = M + (ti % 2) * (trendW + 8);
                 const ty = y + Math.floor(ti / 2) * (trendH + 6);
                 card(tx, ty, trendW, trendH, '#FFFFFF');
-                doc.roundedRect(tx, ty, trendW, 26, 6).fill(trend.color + '22');
-                doc.rect(tx, ty + 14, trendW, 12).fill(trend.color + '22');
+                doc.roundedRect(tx, ty, trendW, 26, 6).fill(tintHex(trend.color, 0.87));
+                doc.rect(tx, ty + 14, trendW, 12).fill(tintHex(trend.color, 0.87));
                 doc.rect(tx, ty, 5, trendH).fill(trend.color);
                 doc.roundedRect(tx, ty, 5, trendH, 3).fill(trend.color);
                 doc.fillColor(trend.color).font('Helvetica-Bold').fontSize(9).text(trend.area, tx + 14, ty + 8, { width: trendW - 110 });
@@ -1126,7 +1139,7 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
             const fsH = 72;
             P.futureStats.forEach((fs: FStat, fi: number) => {
                 const fx = M + fi * (fsW + 6);
-                card(fx, y, fsW, fsH, fs.color + '12', fs.color);
+                card(fx, y, fsW, fsH, tintHex(fs.color, 0.93), fs.color);
                 doc.rect(fx, y, fsW, 6).fill(fs.color);
                 doc.fillColor(fs.color).font('Helvetica-Bold').fontSize(18).text(fs.value, fx, y + 16, { width: fsW, align: 'center' });
                 doc.fillColor(GRAY).font('Helvetica').fontSize(6.5).text(fs.label, fx + 6, y + 48, { width: fsW - 12, align: 'center', lineGap: 1 });
@@ -1138,8 +1151,8 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
             P.indiaOpportunities.forEach((opp: string, oi: number) => {
                 const oColors = [P.color, '#2563EB', '#7C3AED', '#D97706', '#059669'];
                 const oc = oColors[oi % oColors.length];
-                card(M, y, CW, 34, oc + '10');
-                doc.roundedRect(M, y, CW, 34, 5).fill(oc + '10').strokeColor(oc).lineWidth(0.5).stroke();
+                card(M, y, CW, 34, tintHex(oc, 0.94));
+                doc.roundedRect(M, y, CW, 34, 5).fill(tintHex(oc, 0.94)).strokeColor(oc).lineWidth(0.5).stroke();
                 doc.roundedRect(M + 8, y + 9, 18, 18, 4).fill(oc);
                 doc.fillColor('#FFFFFF').font('Helvetica-Bold').fontSize(9).text(String(oi + 1), M + 8, y + 13, { width: 18, align: 'center' });
                 doc.fillColor(DARK).font('Helvetica').fontSize(8.5).text(opp, M + 34, y + 11, { width: CW - 44 });
@@ -1271,7 +1284,7 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
             programs.forEach((prog, pi) => {
                 const px = M + pi * (progW + 8);
                 const pH = 190;
-                doc.roundedRect(px, y, progW, pH, 7).fill(prog.color + '10').strokeColor(prog.color).lineWidth(0.8).stroke();
+                doc.roundedRect(px, y, progW, pH, 7).fill(tintHex(prog.color, 0.94)).strokeColor(prog.color).lineWidth(0.8).stroke();
                 doc.roundedRect(px, y, progW, 28, 7).fill(prog.color);
                 doc.rect(px, y + 14, progW, 14).fill(prog.color);
                 doc.fillColor('#FFFFFF').font('Helvetica-Bold').fontSize(8.5).text(prog.stream, px + 10, y + 9, { width: progW - 20, align: 'center' });
@@ -1301,7 +1314,7 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
             whyPoints.forEach((wp, wi) => {
                 const wx = M + (wi % 2) * (wyW + 8);
                 const wy = y + Math.floor(wi / 2) * (wyH + 6);
-                card(wx, wy, wyW, wyH, wp.color + '10');
+                card(wx, wy, wyW, wyH, tintHex(wp.color, 0.94));
                 doc.roundedRect(wx + 8, wy + 10, 26, 26, 5).fill(wp.color);
                 doc.fillColor('#FFFFFF').font('Helvetica-Bold').fontSize(8).text(wp.icon, wx + 8, wy + 19, { width: 26, align: 'center' });
                 doc.fillColor(DARK).font('Helvetica-Bold').fontSize(8.5).text(wp.title, wx + 42, wy + 9);
