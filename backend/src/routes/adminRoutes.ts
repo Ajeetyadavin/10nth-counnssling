@@ -36,6 +36,7 @@ const ensureTables = async () => {
 
   // Backward compatibility for already-created tables
   await pool.query('ALTER TABLE "Question" ADD COLUMN IF NOT EXISTS fixed BOOLEAN NOT NULL DEFAULT FALSE');
+  await pool.query('ALTER TABLE "Question" ADD COLUMN IF NOT EXISTS hidden BOOLEAN NOT NULL DEFAULT FALSE');
 
   // AdminSettings table
   await pool.query(`
@@ -128,6 +129,29 @@ export const setupAdminRoutes = (app: Express) => {
   });
 
   // Download individual PDF
+  // Generate report by mobile number (for user download) — must be BEFORE /:id route
+  app.get('/api/admin/report/generate', async (req, res) => {
+    try {
+      const { mobile } = req.query;
+      if (!mobile) return res.status(400).send('Mobile number is required');
+      const result = await pool.query(
+        'SELECT * FROM "Student" WHERE mobile = $1 ORDER BY "createdAt" DESC LIMIT 1',
+        [mobile]
+      );
+      const student = result.rows[0];
+      if (!student) return res.status(404).send('No completed test found for this mobile number');
+      if (student.status !== 'Completed' || !student.result)
+        return res.status(403).send('Test not completed yet');
+      const pdfBuffer = await generateReportPDF(student);
+      res.contentType('application/pdf');
+      res.attachment(`Report_${student.name}.pdf`);
+      res.send(pdfBuffer);
+    } catch (err) {
+      console.error('Error generating report:', err);
+      res.status(500).send('PDF Generation Error');
+    }
+  });
+
   app.get('/api/admin/report/:id', async (req, res) => {
     try {
       const result = await pool.query('SELECT * FROM "Student" WHERE id = $1', [req.params.id]);
@@ -144,26 +168,6 @@ export const setupAdminRoutes = (app: Express) => {
   });
 
   // Generate report by mobile number (for user download)
-  app.get('/api/admin/report/generate', async (req, res) => {
-    try {
-      const { mobile } = req.query;
-      if (!mobile) return res.status(400).send('Mobile number is required');
-
-      const result = await pool.query('SELECT * FROM "Student" WHERE mobile = $1 ORDER BY "createdAt" DESC LIMIT 1', [mobile]);
-      const student = result.rows[0];
-      
-      if (!student) return res.status(404).send('No completed test found for this mobile number');
-      if (student.status !== 'Completed' || !student.result) return res.status(403).send('Test not completed yet');
-      
-      const pdfBuffer = await generateReportPDF(student);
-      res.contentType('application/pdf');
-      res.attachment(`Report_${student.name}.pdf`);
-      res.send(pdfBuffer);
-    } catch (err) {
-      console.error('Error generating report:', err);
-    }
-  });
-
   // Questions Management
   app.get('/api/admin/questions', async (req, res) => {
     try {
@@ -352,7 +356,7 @@ export const setupAdminRoutes = (app: Express) => {
       }
 
       const result = await pool.query(
-        'UPDATE "Question" SET hidden = $1 WHERE id = ANY($2::uuid[]) RETURNING *',
+        'UPDATE "Question" SET hidden = $1 WHERE id = ANY($2::text[]) RETURNING *',
         [Boolean(hidden), sanitizedIds]
       );
 
@@ -377,7 +381,7 @@ export const setupAdminRoutes = (app: Express) => {
       }
 
       const result = await pool.query(
-        'UPDATE "Question" SET fixed = $1 WHERE id = ANY($2::uuid[]) RETURNING *',
+        'UPDATE "Question" SET fixed = $1 WHERE id = ANY($2::text[]) RETURNING *',
         [Boolean(fixed), sanitizedIds]
       );
 
