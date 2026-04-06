@@ -29,9 +29,13 @@ const ensureTables = async () => {
       category TEXT DEFAULT 'neutral',
       "order" INT NOT NULL DEFAULT 0,
       hidden BOOLEAN NOT NULL DEFAULT FALSE,
+      fixed BOOLEAN NOT NULL DEFAULT FALSE,
       "createdAt" TIMESTAMP NOT NULL DEFAULT NOW()
     )
   `);
+
+  // Backward compatibility for already-created tables
+  await pool.query('ALTER TABLE "Question" ADD COLUMN IF NOT EXISTS fixed BOOLEAN NOT NULL DEFAULT FALSE');
 
   // AdminSettings table
   await pool.query(`
@@ -177,13 +181,131 @@ export const setupAdminRoutes = (app: Express) => {
     }
   });
 
+  app.get('/api/admin/questions/export', async (_req, res) => {
+    try {
+      const result = await pool.query(
+        'SELECT text, options, category, hidden, fixed, "order" FROM "Question" ORDER BY "order" ASC, "createdAt" ASC'
+      );
+
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        count: result.rows.length,
+        questions: result.rows.map((q: any) => ({
+          text: q.text,
+          options: Array.isArray(q.options) ? q.options : JSON.parse(q.options || '[]'),
+          category: q.category || 'neutral',
+          hidden: Boolean(q.hidden),
+          fixed: Boolean(q.fixed),
+          order: Number(q.order) || 0
+        }))
+      };
+
+      res.header('Content-Type', 'application/json');
+      res.attachment(`questions_export_${Date.now()}.json`);
+      res.send(JSON.stringify(payload, null, 2));
+    } catch (err: any) {
+      console.error('Error exporting questions:', err);
+      res.status(500).json({ error: 'Failed to export questions' });
+    }
+  });
+
+  app.post('/api/admin/questions/import', async (req, res) => {
+    const client = await pool.connect();
+    try {
+      const mode = req.body?.mode === 'replace' ? 'replace' : 'merge';
+      const incoming = Array.isArray(req.body?.questions)
+        ? req.body.questions
+        : Array.isArray(req.body)
+          ? req.body
+          : [];
+
+      if (incoming.length === 0) {
+        return res.status(400).json({ error: 'questions array required' });
+      }
+
+      const normalized = incoming
+        .map((q: any, idx: number) => {
+          const text = String(q?.text || q?.question || '').trim();
+          const options = Array.isArray(q?.options) ? q.options : [];
+          const cleanedOptions = options
+            .map((o: any) => ({
+              text: String(o?.text || '').trim(),
+              stream: String(o?.stream || 'neutral').toLowerCase(),
+              weight: Number(o?.weight) || 1
+            }))
+            .filter((o: any) => o.text.length > 0);
+
+          return {
+            text,
+            options: cleanedOptions,
+            category: String(q?.category || 'neutral').toLowerCase(),
+            hidden: Boolean(q?.hidden),
+            fixed: Boolean(q?.fixed),
+            order: Number.isInteger(Number(q?.order)) ? Number(q.order) : idx
+          };
+        })
+        .filter((q: any) => q.text.length > 0 && q.options.length > 0);
+
+      if (normalized.length === 0) {
+        return res.status(400).json({ error: 'No valid questions to import' });
+      }
+
+      await client.query('BEGIN');
+
+      if (mode === 'replace') {
+        await client.query('DELETE FROM "Question"');
+      }
+
+      const existingRows = await client.query('SELECT id, text FROM "Question"');
+      const existingByText = new Map(
+        existingRows.rows.map((r: any) => [String(r.text).trim().toLowerCase(), r.id])
+      );
+
+      let inserted = 0;
+      let updated = 0;
+      let skipped = 0;
+
+      for (const q of normalized) {
+        const key = q.text.toLowerCase();
+        const existingId = existingByText.get(key);
+
+        if (existingId) {
+          await client.query(
+            'UPDATE "Question" SET options = $1, category = $2, hidden = $3, fixed = $4, "order" = $5 WHERE id = $6',
+            [JSON.stringify(q.options), q.category, q.hidden, q.fixed, q.order, existingId]
+          );
+          updated += 1;
+          continue;
+        }
+
+        await client.query(
+          'INSERT INTO "Question" (text, options, category, hidden, fixed, "order") VALUES ($1, $2, $3, $4, $5, $6)',
+          [q.text, JSON.stringify(q.options), q.category, q.hidden, q.fixed, q.order]
+        );
+        inserted += 1;
+        existingByText.set(key, true as any);
+      }
+
+      skipped = incoming.length - normalized.length;
+
+      await client.query('COMMIT');
+      res.json({ mode, received: incoming.length, imported: normalized.length, inserted, updated, skipped });
+    } catch (err: any) {
+      await client.query('ROLLBACK');
+      console.error('Error importing questions:', err);
+      res.status(500).json({ error: 'Failed to import questions' });
+    } finally {
+      client.release();
+    }
+  });
+
   app.post('/api/admin/questions', async (req, res) => {
     try {
-      const { text, options, category, hidden } = req.body;
+      const { text, options, category, hidden, fixed } = req.body;
       console.log('Adding new question:', text);
       const result = await pool.query(
-        'INSERT INTO "Question" (text, options, category, hidden) VALUES ($1, $2, $3, $4) RETURNING *',
-        [text, JSON.stringify(options), category, Boolean(hidden)]
+        'INSERT INTO "Question" (text, options, category, hidden, fixed) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+        [text, JSON.stringify(options), category, Boolean(hidden), Boolean(fixed)]
       );
       res.json(result.rows[0]);
     } catch (err: any) {
@@ -194,11 +316,11 @@ export const setupAdminRoutes = (app: Express) => {
 
   app.put('/api/admin/questions/:id', async (req, res) => {
     try {
-      const { text, options, category, hidden } = req.body;
+      const { text, options, category, hidden, fixed } = req.body;
       console.log('Updating question:', req.params.id);
       const result = await pool.query(
-        'UPDATE "Question" SET text = $1, options = $2, category = $3, hidden = $4 WHERE id = $5 RETURNING *',
-        [text, JSON.stringify(options), category, Boolean(hidden), req.params.id]
+        'UPDATE "Question" SET text = $1, options = $2, category = $3, hidden = $4, fixed = $5 WHERE id = $6 RETURNING *',
+        [text, JSON.stringify(options), category, Boolean(hidden), Boolean(fixed), req.params.id]
       );
       res.json(result.rows[0]);
     } catch (err: any) {
@@ -238,6 +360,31 @@ export const setupAdminRoutes = (app: Express) => {
     } catch (err: any) {
       console.error('Error bulk updating question visibility:', err);
       res.status(500).json({ error: 'Failed to update visibility' });
+    }
+  });
+
+  app.put('/api/admin/questions/fixed/bulk', async (req, res) => {
+    try {
+      const { ids, fixed } = req.body;
+
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ error: 'ids array is required' });
+      }
+
+      const sanitizedIds = ids.filter((id) => typeof id === 'string' && id.trim().length > 0);
+      if (sanitizedIds.length === 0) {
+        return res.status(400).json({ error: 'No valid ids provided' });
+      }
+
+      const result = await pool.query(
+        'UPDATE "Question" SET fixed = $1 WHERE id = ANY($2::uuid[]) RETURNING *',
+        [Boolean(fixed), sanitizedIds]
+      );
+
+      res.json({ updatedCount: result.rowCount, rows: result.rows });
+    } catch (err: any) {
+      console.error('Error bulk updating question fixed flag:', err);
+      res.status(500).json({ error: 'Failed to update fixed flag' });
     }
   });
 

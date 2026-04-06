@@ -39,9 +39,27 @@ const normalizeQuestionPool = (pool: any[]) => {
     .map((q, index) => ({
       id: Number(q?.id ?? index + 1),
       question: q?.question ?? q?.text ?? '',
-      options: Array.isArray(q?.options) ? q.options : []
+      options: Array.isArray(q?.options) ? q.options : [],
+      fixed: Boolean(q?.fixed)
     }))
     .filter((q) => q.question && q.options.length > 0);
+};
+
+const buildQuizPool = (pool: any[], limit: number) => {
+  if (!Array.isArray(pool) || pool.length === 0) return [];
+  const safeLimit = Math.max(1, Math.min(limit, pool.length));
+
+  const fixedQuestions = shuffleArray(pool.filter((q) => q.fixed));
+  const normalQuestions = shuffleArray(pool.filter((q) => !q.fixed));
+
+  let selected: any[] = [];
+  if (fixedQuestions.length >= safeLimit) {
+    selected = fixedQuestions.slice(0, safeLimit);
+  } else {
+    selected = [...fixedQuestions, ...normalQuestions.slice(0, safeLimit - fixedQuestions.length)];
+  }
+
+  return shuffleArray(selected);
 };
 
 function App() {
@@ -122,7 +140,6 @@ function App() {
         const pool = dynamicPool.length > 0 ? dynamicPool : questions;
         const requestedLimit = Number(settings?.questionLimit) || 45;
         const safeLimit = Math.max(1, Math.min(requestedLimit, pool.length));
-        const limitedPool = pool.slice(0, safeLimit);
         setQuestionLimit(safeLimit);
         
         // Refresh saved list if limit changed while user is not in active quiz flow.
@@ -132,14 +149,14 @@ function App() {
           ((savedState?.appState === 'landing' || savedState?.appState === 'form') && savedCount !== safeLimit);
 
         if (shouldRefreshSaved) {
-          setShuffledQuestions(shuffleArray(limitedPool));
+          setShuffledQuestions(buildQuizPool(pool, safeLimit));
         }
       } catch (err) {
         console.error('Failed to fetch dynamic questions, using static fallback');
         const fallbackLimit = Math.min(45, questions.length);
         setQuestionLimit(fallbackLimit);
         if (!savedState?.shuffledQuestions) {
-          setShuffledQuestions(shuffleArray(questions.slice(0, fallbackLimit)));
+          setShuffledQuestions(buildQuizPool(questions, fallbackLimit));
         }
       }
     };
@@ -284,11 +301,11 @@ function App() {
       const safeLimit = Math.max(1, Math.min(requestedLimit, pool.length));
 
       setQuestionLimit(safeLimit);
-      setShuffledQuestions(shuffleArray(pool.slice(0, safeLimit)));
+      setShuffledQuestions(buildQuizPool(pool, safeLimit));
     } catch (e) {
       const fallbackLimit = Math.min(45, questions.length);
       setQuestionLimit(fallbackLimit);
-      setShuffledQuestions(shuffleArray(questions.slice(0, fallbackLimit)));
+      setShuffledQuestions(buildQuizPool(questions, fallbackLimit));
     }
   };
 

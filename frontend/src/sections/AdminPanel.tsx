@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { ArrowLeft, Download, Pencil, Plus, RefreshCw, Search, Trash2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { ArrowLeft, Download, Pencil, Plus, RefreshCw, Search, Trash2, Upload } from 'lucide-react';
 
 type Tab = 'students' | 'questions' | 'settings';
 type StatusFilter = 'All' | 'Partial' | 'Completed';
@@ -26,6 +26,7 @@ type Question = {
   category?: string;
   options: QuestionOption[] | string;
   hidden?: boolean;
+  fixed?: boolean;
 };
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
@@ -41,6 +42,8 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
   const [questionLimit, setQuestionLimit] = useState<number>(45);
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [settingsMsg, setSettingsMsg] = useState('');
+  const [importingQuestions, setImportingQuestions] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [showAddQuestion, setShowAddQuestion] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<(Question & { options: QuestionOption[] }) | null>(null);
@@ -50,6 +53,7 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
     text: '',
     category: 'neutral',
     hidden: false,
+    fixed: false,
     options: [
       { text: '', stream: 'commerce', weight: 1 },
       { text: '', stream: 'science', weight: 1 },
@@ -73,6 +77,7 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
       text: '',
       category: 'neutral',
       hidden: false,
+      fixed: false,
       options: [
         { text: '', stream: 'commerce', weight: 1 },
         { text: '', stream: 'science', weight: 1 },
@@ -212,6 +217,30 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
     }
   };
 
+  const updateSelectedFixed = async (fixed: boolean) => {
+    if (selectedQuestionIds.length === 0) {
+      alert('Pehle questions select karo');
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/questions/fixed/bulk`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedQuestionIds, fixed })
+      });
+
+      if (!res.ok) throw new Error('Fixed update failed');
+      const data = await res.json();
+      const updatedIds = new Set((data?.rows || []).map((r: any) => r.id));
+
+      setQuestions((prev) => prev.map((q) => (updatedIds.has(q.id) ? { ...q, fixed } : q)));
+      setSelectedQuestionIds([]);
+    } catch {
+      alert('Fixed update failed');
+    }
+  };
+
   const updateSingleVisibility = async (id: string, hidden: boolean) => {
     try {
       const res = await fetch(`${API_BASE}/api/admin/questions/visibility/bulk`, {
@@ -224,6 +253,76 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
       setQuestions((prev) => prev.map((q) => (q.id === id ? { ...q, hidden } : q)));
     } catch {
       alert('Hide/Unhide update failed');
+    }
+  };
+
+  const updateSingleFixed = async (id: string, fixed: boolean) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/questions/fixed/bulk`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: [id], fixed })
+      });
+
+      if (!res.ok) throw new Error('Fixed update failed');
+      setQuestions((prev) => prev.map((q) => (q.id === id ? { ...q, fixed } : q)));
+    } catch {
+      alert('Fixed update failed');
+    }
+  };
+
+  const exportQuestionsJSON = () => {
+    const cleanQuestions = questions.map((q, index) => ({
+      text: q.text,
+      options: parseOptions(q.options),
+      category: q.category || 'neutral',
+      hidden: Boolean(q.hidden),
+      fixed: Boolean(q.fixed),
+      order: index
+    }));
+
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      count: cleanQuestions.length,
+      questions: cleanQuestions
+    };
+
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `questions_export_${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importQuestionsJSON = async (file: File) => {
+    setImportingQuestions(true);
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      const incoming = Array.isArray(parsed) ? parsed : (Array.isArray(parsed?.questions) ? parsed.questions : []);
+
+      if (!Array.isArray(incoming) || incoming.length === 0) {
+        alert('Invalid JSON format. questions array expected.');
+        return;
+      }
+
+      const res = await fetch(`${API_BASE}/api/admin/questions/import`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'merge', questions: incoming })
+      });
+
+      if (!res.ok) throw new Error('Import failed');
+      const data = await res.json();
+      await fetchQuestions();
+      alert(`Import done: inserted ${data.inserted}, updated ${data.updated}, skipped ${data.skipped}`);
+    } catch {
+      alert('Import failed. Valid JSON file upload karo.');
+    } finally {
+      setImportingQuestions(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -452,6 +551,43 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
                   Unhide Selected
                 </button>
                 <button
+                  onClick={() => updateSelectedFixed(true)}
+                  className="inline-flex items-center gap-1.5 border border-indigo-300 px-3 py-2 rounded-md text-sm text-indigo-700 hover:bg-indigo-50"
+                >
+                  Mark Fixed
+                </button>
+                <button
+                  onClick={() => updateSelectedFixed(false)}
+                  className="inline-flex items-center gap-1.5 border border-slate-300 px-3 py-2 rounded-md text-sm text-slate-700 hover:bg-slate-100"
+                >
+                  Unfix Selected
+                </button>
+                <button
+                  onClick={exportQuestionsJSON}
+                  className="inline-flex items-center gap-1.5 border border-slate-300 px-3 py-2 rounded-md text-sm text-slate-700 hover:bg-slate-100"
+                >
+                  <Download className="w-4 h-4" />
+                  Export JSON
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="application/json"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) importQuestionsJSON(f);
+                  }}
+                />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={importingQuestions}
+                  className="inline-flex items-center gap-1.5 border border-slate-300 px-3 py-2 rounded-md text-sm text-slate-700 hover:bg-slate-100 disabled:opacity-50"
+                >
+                  <Upload className="w-4 h-4" />
+                  {importingQuestions ? 'Importing...' : 'Import JSON'}
+                </button>
+                <button
                   onClick={() => {
                     setShowAddQuestion(true);
                     setEditingQuestion(null);
@@ -497,6 +633,25 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
                     >
                       <option value="visible">Visible (User test me dikhega)</option>
                       <option value="hidden">Hidden (User test me nahi dikhega)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Fixed Question</label>
+                    <select
+                      value={editingQuestion ? (editingQuestion.fixed ? 'fixed' : 'normal') : (newQ.fixed ? 'fixed' : 'normal')}
+                      onChange={(e) => {
+                        const isFixed = e.target.value === 'fixed';
+                        if (editingQuestion) {
+                          setEditingQuestion({ ...editingQuestion, fixed: isFixed });
+                        } else {
+                          setNewQ({ ...newQ, fixed: isFixed });
+                        }
+                      }}
+                      className="w-full border border-slate-300 rounded-md p-2.5 text-sm"
+                    >
+                      <option value="normal">Normal (Shuffle pool)</option>
+                      <option value="fixed">Fixed (Test me guaranteed aayega)</option>
                     </select>
                   </div>
 
@@ -583,6 +738,9 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
                         <span className={`text-[10px] px-2 py-0.5 rounded ${q.hidden ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
                           {q.hidden ? 'Hidden' : 'Visible'}
                         </span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded ${q.fixed ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600'}`}>
+                          {q.fixed ? 'Fixed' : 'Normal'}
+                        </span>
                       </div>
                       <h4 className="text-sm font-semibold text-slate-900">{q.text}</h4>
 
@@ -620,6 +778,12 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
                         className="inline-flex items-center gap-1 border border-slate-300 px-2 py-1 rounded text-xs text-slate-700 hover:bg-slate-100"
                       >
                         {q.hidden ? 'Unhide' : 'Hide'}
+                      </button>
+                      <button
+                        onClick={() => updateSingleFixed(q.id, !q.fixed)}
+                        className="inline-flex items-center gap-1 border border-indigo-300 px-2 py-1 rounded text-xs text-indigo-700 hover:bg-indigo-50"
+                      >
+                        {q.fixed ? 'Unfix' : 'Fix'}
                       </button>
                     </div>
                   </div>
