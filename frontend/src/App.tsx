@@ -33,6 +33,17 @@ const shuffleArray = <T,>(array: T[]): T[] => {
   return newArr;
 };
 
+const normalizeQuestionPool = (pool: any[]) => {
+  if (!Array.isArray(pool)) return [];
+  return pool
+    .map((q, index) => ({
+      id: Number(q?.id ?? index + 1),
+      question: q?.question ?? q?.text ?? '',
+      options: Array.isArray(q?.options) ? q.options : []
+    }))
+    .filter((q) => q.question && q.options.length > 0);
+};
+
 function App() {
   // Load state from localStorage on initialize
   const loadState = () => {
@@ -55,11 +66,16 @@ function App() {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
+        const normalizedSavedQuestions = normalizeQuestionPool(parsed?.shuffledQuestions || []);
+        const normalizedParsed = {
+          ...parsed,
+          shuffledQuestions: normalizedSavedQuestions
+        };
         // If they are on root '/', but state says admin, force landing
         if (window.location.pathname === '/' && (parsed.appState === 'admin' || parsed.appState === 'admin-login')) {
-          return { ...parsed, appState: 'landing' };
+          return { ...normalizedParsed, appState: 'landing' };
         }
-        return parsed;
+        return normalizedParsed;
       }
     } catch (e) {
       console.error("Failed to load state", e);
@@ -100,9 +116,10 @@ function App() {
         if (!qRes.ok) throw new Error('Question API error');
         const data = await qRes.json();
         const settings = settingsRes.ok ? await settingsRes.json() : { questionLimit: 45 };
+        const dynamicPool = normalizeQuestionPool(data);
         
         // If DB has questions, use them. Otherwise fallback to static.
-        const pool = data.length > 0 ? data : questions;
+        const pool = dynamicPool.length > 0 ? dynamicPool : questions;
         const requestedLimit = Number(settings?.questionLimit) || 45;
         const safeLimit = Math.max(1, Math.min(requestedLimit, pool.length));
         const limitedPool = pool.slice(0, safeLimit);
@@ -261,7 +278,8 @@ function App() {
 
       const data = qRes.ok ? await qRes.json() : [];
       const settings = settingsRes.ok ? await settingsRes.json() : { questionLimit: 45 };
-      const pool = data.length > 0 ? data : questions;
+  const dynamicPool = normalizeQuestionPool(data);
+  const pool = dynamicPool.length > 0 ? dynamicPool : questions;
       const requestedLimit = Number(settings?.questionLimit) || 45;
       const safeLimit = Math.max(1, Math.min(requestedLimit, pool.length));
 
