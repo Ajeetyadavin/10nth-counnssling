@@ -271,40 +271,128 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
     }
   };
 
-  const exportQuestionsJSON = () => {
-    const cleanQuestions = questions.map((q, index) => ({
-      text: q.text,
-      options: parseOptions(q.options),
-      category: q.category || 'neutral',
-      hidden: Boolean(q.hidden),
-      fixed: Boolean(q.fixed),
-      order: index
-    }));
+  const csvEscape = (value: unknown) => {
+    const str = String(value ?? '');
+    if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
+  };
 
-    const payload = {
-      exportedAt: new Date().toISOString(),
-      count: cleanQuestions.length,
-      questions: cleanQuestions
-    };
+  const parseCsvLine = (line: string) => {
+    const values: string[] = [];
+    let current = '';
+    let inQuotes = false;
 
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    for (let i = 0; i < line.length; i += 1) {
+      const ch = line[i];
+      const next = line[i + 1];
+
+      if (ch === '"') {
+        if (inQuotes && next === '"') {
+          current += '"';
+          i += 1;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (ch === ',' && !inQuotes) {
+        values.push(current.trim());
+        current = '';
+      } else {
+        current += ch;
+      }
+    }
+
+    values.push(current.trim());
+    return values;
+  };
+
+  const exportQuestionsCSV = () => {
+    const header = [
+      'text', 'category', 'hidden', 'fixed', 'order',
+      'opt1_text', 'opt1_stream', 'opt1_weight',
+      'opt2_text', 'opt2_stream', 'opt2_weight',
+      'opt3_text', 'opt3_stream', 'opt3_weight',
+      'opt4_text', 'opt4_stream', 'opt4_weight',
+      'opt5_text', 'opt5_stream', 'opt5_weight',
+      'opt6_text', 'opt6_stream', 'opt6_weight'
+    ];
+
+    const rows = questions.map((q, index) => {
+      const opts = parseOptions(q.options);
+      const row = [
+        q.text,
+        q.category || 'neutral',
+        Boolean(q.hidden),
+        Boolean(q.fixed),
+        index
+      ];
+
+      for (let i = 0; i < 6; i += 1) {
+        const opt = opts[i] || { text: '', stream: 'neutral', weight: 1 };
+        row.push(opt.text || '', opt.stream || 'neutral', Number(opt.weight) || 1);
+      }
+
+      return row.map(csvEscape).join(',');
+    });
+
+    const content = [header.join(','), ...rows].join('\n');
+    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `questions_export_${Date.now()}.json`;
+    a.download = `questions_excel_${Date.now()}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
-  const importQuestionsJSON = async (file: File) => {
+  const importQuestionsCSV = async (file: File) => {
     setImportingQuestions(true);
     try {
       const text = await file.text();
-      const parsed = JSON.parse(text);
-      const incoming = Array.isArray(parsed) ? parsed : (Array.isArray(parsed?.questions) ? parsed.questions : []);
+      const lines = text
+        .split(/\r?\n/)
+        .map((l) => l.trim())
+        .filter((l) => l.length > 0);
 
-      if (!Array.isArray(incoming) || incoming.length === 0) {
-        alert('Invalid JSON format. questions array expected.');
+      if (lines.length < 2) {
+        alert('CSV empty hai. Pehle questions add karo.');
+        return;
+      }
+
+      const headers = parseCsvLine(lines[0]).map((h) => h.toLowerCase());
+      const idx = (name: string) => headers.indexOf(name.toLowerCase());
+
+      const incoming = lines.slice(1).map((line, lineIndex) => {
+        const cols = parseCsvLine(line);
+        const get = (name: string) => {
+          const i = idx(name);
+          return i >= 0 ? (cols[i] || '') : '';
+        };
+
+        const options: QuestionOption[] = [];
+        for (let i = 1; i <= 6; i += 1) {
+          const t = get(`opt${i}_text`).trim();
+          if (!t) continue;
+          options.push({
+            text: t,
+            stream: (get(`opt${i}_stream`) || 'neutral') as any,
+            weight: Number(get(`opt${i}_weight`)) || 1
+          });
+        }
+
+        return {
+          text: get('text').trim(),
+          category: (get('category') || 'neutral').trim(),
+          hidden: String(get('hidden')).toLowerCase() === 'true',
+          fixed: String(get('fixed')).toLowerCase() === 'true',
+          order: Number(get('order')) || lineIndex,
+          options
+        };
+      }).filter((q) => q.text.length > 0 && q.options.length > 0);
+
+      if (incoming.length === 0) {
+        alert('Valid rows nahi mile. Template export karke usi format me import karo.');
         return;
       }
 
@@ -319,7 +407,7 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
       await fetchQuestions();
       alert(`Import done: inserted ${data.inserted}, updated ${data.updated}, skipped ${data.skipped}`);
     } catch {
-      alert('Import failed. Valid JSON file upload karo.');
+      alert('Import failed. CSV file format check karo.');
     } finally {
       setImportingQuestions(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -563,20 +651,20 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
                   Unfix Selected
                 </button>
                 <button
-                  onClick={exportQuestionsJSON}
+                  onClick={exportQuestionsCSV}
                   className="inline-flex items-center gap-1.5 border border-slate-300 px-3 py-2 rounded-md text-sm text-slate-700 hover:bg-slate-100"
                 >
                   <Download className="w-4 h-4" />
-                  Export JSON
+                  Export Excel (CSV)
                 </button>
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="application/json"
+                  accept=".csv,text/csv,application/vnd.ms-excel"
                   className="hidden"
                   onChange={(e) => {
                     const f = e.target.files?.[0];
-                    if (f) importQuestionsJSON(f);
+                    if (f) importQuestionsCSV(f);
                   }}
                 />
                 <button
@@ -585,7 +673,7 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
                   className="inline-flex items-center gap-1.5 border border-slate-300 px-3 py-2 rounded-md text-sm text-slate-700 hover:bg-slate-100 disabled:opacity-50"
                 >
                   <Upload className="w-4 h-4" />
-                  {importingQuestions ? 'Importing...' : 'Import JSON'}
+                  {importingQuestions ? 'Importing...' : 'Import Excel (CSV)'}
                 </button>
                 <button
                   onClick={() => {
