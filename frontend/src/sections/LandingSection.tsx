@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Sparkles, Users, Award, ChevronRight, Star, CheckCircle, Zap } from 'lucide-react';
+import { Sparkles, Users, Award, ChevronRight, Star, CheckCircle, Zap, Target, BookOpen, TrendingUp, Brain } from 'lucide-react';
 
 interface LandingSectionProps {
   onStart: () => void;
@@ -7,12 +7,130 @@ interface LandingSectionProps {
 
 const LandingSection = ({ onStart }: LandingSectionProps) => {
   return (
-    <div className="h-full flex flex-col bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/30">
+    <div className="h-full flex flex-col md:flex-row overflow-hidden">
+
+      {/* ===== LEFT PANEL — Desktop Only ===== */}
+      <div className="hidden md:flex flex-1 flex-col justify-center bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 p-12 xl:p-16 relative overflow-hidden">
+        {/* Decorative background circles */}
+        <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full -translate-y-1/3 translate-x-1/3 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-white/5 rounded-full translate-y-1/3 -translate-x-1/3 pointer-events-none" />
+        <div className="absolute top-1/2 right-1/4 w-40 h-40 bg-white/5 rounded-full pointer-events-none" />
+
+        {/* Brand header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-3 mb-10 relative z-10"
+        >
+          <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+            <Brain className="w-7 h-7 text-white" />
+          </div>
+          <div>
+            <p className="text-white/70 text-sm font-medium">Free Career Assessment</p>
+            <p className="text-white font-bold text-xl">CareerCompass</p>
+          </div>
+        </motion.div>
+
+        {/* Headline */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="mb-8 relative z-10"
+        >
+          <h2 className="text-4xl xl:text-5xl font-extrabold text-white leading-tight mb-4">
+            10th ke baad <br />
+            <span className="text-yellow-300">sahi raah</span> chuno
+          </h2>
+          <p className="text-blue-100 text-lg leading-relaxed max-w-md">
+            Science, Commerce ya Arts? AI-powered analysis se jaano apke liye best career path konsa hai.
+          </p>
+        </motion.div>
+
+        {/* Benefits list */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="space-y-4 mb-10 relative z-10 max-w-md"
+        >
+          {[
+            { icon: Target, text: 'Personalized stream: Science, Commerce ya Arts' },
+            { icon: BookOpen, text: 'Detailed career path breakdown for your stream' },
+            { icon: TrendingUp, text: 'Top colleges & courses aligned with your interests' },
+            { icon: Award, text: 'Expert-curated FREE career report in 5 minutes' },
+          ].map((item, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.15 + i * 0.07 }}
+              className="flex items-center gap-3"
+            >
+              <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0">
+                <item.icon className="w-5 h-5 text-white" />
+              </div>
+              <p className="text-blue-50 text-sm font-medium">{item.text}</p>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Testimonial card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 relative z-10 max-w-md border border-white/20 mb-8"
+        >
+          <div className="flex gap-1 mb-2">
+            {[...Array(5)].map((_, i) => (
+              <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+            ))}
+          </div>
+          <p className="text-white/90 text-sm italic mb-3">
+            "Is test ki wajah se mujhe pata chala ki mujhe Commerce lena chahiye tha. Abhi CA ki taiyari kar raha hu!"
+          </p>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white font-bold text-sm">R</div>
+            <div>
+              <p className="text-white text-sm font-semibold">Rahul Sharma</p>
+              <p className="text-blue-200 text-xs">Class 11, Delhi</p>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Stats row */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="flex items-center gap-8 relative z-10"
+        >
+          <div>
+            <p className="text-2xl font-extrabold text-white">10K+</p>
+            <p className="text-blue-200 text-xs">Students Helped</p>
+          </div>
+          <div className="w-px h-10 bg-white/20" />
+          <div>
+            <p className="text-2xl font-extrabold text-white">98%</p>
+            <p className="text-blue-200 text-xs">Satisfaction Rate</p>
+          </div>
+          <div className="w-px h-10 bg-white/20" />
+          <div>
+            <p className="text-2xl font-extrabold text-white">5 min</p>
+            <p className="text-blue-200 text-xs">To Complete</p>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* ===== RIGHT PANEL — Mobile full / Desktop card ===== */}
+      <div className="flex-1 md:flex-none md:w-[460px] xl:w-[500px] flex flex-col bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/30 md:shadow-2xl md:shadow-slate-400/30 overflow-hidden">
+
       {/* Top Urgency Bar */}
       <motion.div
         initial={{ y: -30, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="bg-gradient-to-r from-rose-500 to-pink-500 py-2 px-3"
+        className="bg-gradient-to-r from-rose-500 to-pink-500 py-2 px-3 flex-shrink-0"
       >
         <div className="flex items-center justify-center gap-2 text-white text-xs font-semibold">
           <Zap className="w-3 h-3 fill-white" />
@@ -156,6 +274,7 @@ const LandingSection = ({ onStart }: LandingSectionProps) => {
             Takes ~5 mins • Trusted by 10,000+ Students
           </p>
         </motion.div>
+      </div>
       </div>
     </div>
   );

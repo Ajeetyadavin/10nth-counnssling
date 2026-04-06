@@ -73,9 +73,79 @@ const QuizCard = ({ question, currentIndex, totalQuestions, onAnswer, timeLeft }
   };
 
   return (
-    <div className="h-full flex flex-col bg-white">
+    <div className="h-full flex flex-col md:flex-row bg-white overflow-hidden">
+
+      {/* ===== LEFT SIDEBAR — Desktop Only ===== */}
+      <div className="hidden md:flex md:w-72 xl:w-80 flex-col bg-gradient-to-b from-blue-700 to-indigo-800 p-8 text-white relative overflow-hidden flex-shrink-0">
+        {/* Decorative circles */}
+        <div className="absolute bottom-0 right-0 w-48 h-48 bg-white/5 rounded-full translate-x-1/3 translate-y-1/3 pointer-events-none" />
+        <div className="absolute top-1/3 -left-8 w-32 h-32 bg-white/5 rounded-full pointer-events-none" />
+
+        {/* Brand */}
+        <div className="flex items-center gap-2 mb-10 relative z-10">
+          <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center">
+            <span className="text-white font-bold text-sm">CC</span>
+          </div>
+          <span className="text-white/80 text-sm font-semibold">CareerCompass</span>
+        </div>
+
+        {/* Progress ring + Q counter */}
+        <div className="flex flex-col items-center mb-8 relative z-10">
+          <div className="relative w-36 h-36 mb-4">
+            <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="6" />
+              <circle
+                cx="50" cy="50" r="42" fill="none"
+                stroke="white" strokeWidth="6"
+                strokeLinecap="round"
+                strokeDasharray={`${2 * Math.PI * 42}`}
+                strokeDashoffset={`${2 * Math.PI * 42 * (1 - progress / 100)}`}
+                style={{ transition: 'stroke-dashoffset 0.35s ease' }}
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-3xl font-extrabold text-white leading-none">{currentIndex + 1}</span>
+              <span className="text-blue-200 text-xs font-medium">of {totalQuestions}</span>
+            </div>
+          </div>
+          <p className="text-white/70 text-xs font-medium tracking-wide uppercase">Questions Done</p>
+        </div>
+
+        {/* Timer */}
+        <div className={`flex items-center gap-3 bg-white/10 rounded-2xl px-4 py-3 mb-6 relative z-10 ${timeLeft < 300 ? 'ring-2 ring-rose-400 animate-pulse' : ''}`}>
+          <Clock className="w-5 h-5 text-white flex-shrink-0" />
+          <div>
+            <p className="text-white/60 text-[10px] uppercase font-semibold tracking-wide">Time Left</p>
+            <p className={`text-xl font-extrabold ${timeLeft < 300 ? 'text-rose-300' : 'text-white'}`}>
+              {formatTime(timeLeft)}
+            </p>
+          </div>
+        </div>
+
+        {/* Funny status */}
+        <motion.div
+          key={funnyStatus}
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="bg-white/10 rounded-2xl px-4 py-3 mb-4 relative z-10"
+        >
+          <p className="text-blue-100 text-xs font-bold leading-snug">{funnyStatus}</p>
+        </motion.div>
+
+        {/* Live count */}
+        <div className="mt-auto flex items-center gap-2 relative z-10">
+          <div className="relative flex items-center">
+            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="absolute inset-0 w-2 h-2 rounded-full bg-emerald-400 animate-ping opacity-50" />
+          </div>
+          <span className="text-white/70 text-xs font-semibold">{liveCount.toLocaleString()} students online</span>
+        </div>
+      </div>
+
+      {/* ===== MAIN CONTENT AREA ===== */}
+      <div className="flex-1 flex flex-col overflow-hidden">
       {/* Progress Header */}
-      <div className="bg-slate-50 p-4 border-b border-slate-100">
+      <div className="bg-slate-50 p-4 border-b border-slate-100 md:hidden">
         <div className="max-w-md mx-auto">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-1.5">
@@ -100,7 +170,7 @@ const QuizCard = ({ question, currentIndex, totalQuestions, onAnswer, timeLeft }
       </div>
 
       {/* Question Content */}
-      <div className="flex-1 flex flex-col px-4 py-4 max-w-md mx-auto w-full">
+      <div className="flex-1 flex flex-col px-4 py-4 md:py-8 md:px-10 max-w-md md:max-w-2xl mx-auto w-full overflow-y-auto no-scrollbar">
         <AnimatePresence mode="wait">
           <motion.div
             key={question.id}
@@ -124,7 +194,7 @@ const QuizCard = ({ question, currentIndex, totalQuestions, onAnswer, timeLeft }
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="text-lg font-bold text-slate-900 leading-snug"
+                className="text-lg md:text-xl font-bold text-slate-900 leading-snug"
               >
                 {question.question}
               </motion.h2>
@@ -147,7 +217,7 @@ const QuizCard = ({ question, currentIndex, totalQuestions, onAnswer, timeLeft }
                     handleOptionClick(index, option.stream, option.weight);
                   }}
                   style={{ WebkitTapHighlightColor: 'transparent' }}
-                  className={`w-full select-none touch-none outline-none border-2 rounded-xl p-3.5 text-left transition-all duration-200 ${
+                  className={`w-full select-none touch-none outline-none border-2 rounded-xl p-3.5 md:p-4 text-left transition-all duration-200 ${
                     selectedOption === index 
                     ? 'border-blue-500 bg-blue-50/30' 
                     : 'border-slate-100 bg-white'
@@ -183,16 +253,17 @@ const QuizCard = ({ question, currentIndex, totalQuestions, onAnswer, timeLeft }
               transition={{ delay: 0.4 }}
               className="mt-8 flex items-center justify-center gap-3 px-2"
             >
+              {/* Mobile: funny status + live count (hidden on desktop — showing in sidebar) */}
               <motion.div 
                 key={funnyStatus}
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="bg-blue-50/50 text-blue-600 px-3 py-1.5 rounded-xl text-[11px] font-bold whitespace-nowrap"
+                className="md:hidden bg-blue-50/50 text-blue-600 px-3 py-1.5 rounded-xl text-[11px] font-bold whitespace-nowrap"
               >
                 {funnyStatus}
               </motion.div>
 
-              <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
+              <div className="md:hidden flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
                 <div className="relative flex items-center">
                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
                   <div className="absolute inset-0 w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping opacity-50"></div>
@@ -204,6 +275,7 @@ const QuizCard = ({ question, currentIndex, totalQuestions, onAnswer, timeLeft }
             </motion.div>
           </motion.div>
         </AnimatePresence>
+      </div>
       </div>
     </div>
   );
