@@ -495,6 +495,11 @@ const parseJSON = <T>(v: unknown, fb: T): T => {
     return fb;
 };
 
+const clampText = (text: string, maxLen: number): string => {
+    if (!text) return '';
+    return text.length > maxLen ? text.slice(0, Math.max(0, maxLen - 1)).trimEnd() + '...' : text;
+};
+
 // ─── Export ───────────────────────────────────────────────────────────────────
 export const generateReportPDF = (student: any): Promise<Buffer> =>
     new Promise((resolve, reject) => {
@@ -606,7 +611,7 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
             const statBox = (x: number, y: number, bw: number, bh: number, val: string, lbl: string, col: string) => {
                 card(x, y, bw, bh, col + '18', col);
                 doc.fillColor(col).font('Helvetica-Bold').fontSize(20).text(val, x, y + 8, { width: bw, align: 'center' });
-                doc.fillColor(GRAY).font('Helvetica').fontSize(7).text(lbl, x, y + 34, { width: bw, align: 'center' });
+                doc.fillColor('#111827').font('Helvetica').fontSize(7).text(lbl, x, y + 34, { width: bw, align: 'center' });
             };
 
             const diffBar = (x: number, y: number, diff: number, maxD = 5) => {
@@ -814,7 +819,7 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
 
             y = st(y, 'Top 6 Career Paths  —  Detailed Pros & Cons Analysis With Salary Data');
             const ccW = (CW - 8) / 2;
-            const ccH = 120;
+            const ccH = 126;
             P.careers.forEach((career: Career, idx: number) => {
                 const cx = M + (idx % 2) * (ccW + 8);
                 const cy = y + Math.floor(idx / 2) * (ccH + 6);
@@ -827,21 +832,23 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
                 // salary + growth
                 doc.fillColor(P.color).font('Helvetica-Bold').fontSize(7.5).text('SALARY', cx + 10, cy + 33);
                 doc.fillColor(DARK).font('Helvetica-Bold').fontSize(8.5).text(career.salary, cx + 10, cy + 43);
-                doc.fillColor(LGRAY).font('Helvetica').fontSize(7).text(career.growth, cx + 10, cy + 54);
+                doc.fillColor('#374151').font('Helvetica').fontSize(7).text(career.growth, cx + 10, cy + 54);
                 // rating dots
-                doc.fillColor(LGRAY).font('Helvetica-Bold').fontSize(6.5).text('RATING', cx + ccW - 82, cy + 33);
+                doc.fillColor('#374151').font('Helvetica-Bold').fontSize(6.5).text('RATING', cx + ccW - 82, cy + 33);
                 dots(cx + ccW - 76, cy + 48, career.rating);
                 // pros/cons divider
                 doc.moveTo(cx + 10, cy + 65).lineTo(cx + ccW - 10, cy + 65).strokeColor(BORD).lineWidth(0.4).stroke();
                 // pros (2 shown)
                 doc.fillColor('#059669').font('Helvetica-Bold').fontSize(7).text('+ PROS', cx + 10, cy + 70);
                 career.pros.slice(0, 2).forEach((p, pi) => {
-                    doc.fillColor('#374151').font('Helvetica').fontSize(7).text('+ ' + p, cx + 10, cy + 80 + pi * 11, { width: (ccW / 2) - 14 });
+                    doc.fillColor('#111827').font('Helvetica').fontSize(6.8)
+                       .text('+ ' + clampText(p, 58), cx + 10, cy + 80 + pi * 15, { width: (ccW / 2) - 14, lineBreak: false });
                 });
                 // cons
                 doc.fillColor('#DC2626').font('Helvetica-Bold').fontSize(7).text('- CONS', cx + ccW / 2 + 4, cy + 70);
                 career.cons.slice(0, 2).forEach((c, ci) => {
-                    doc.fillColor('#374151').font('Helvetica').fontSize(7).text('- ' + c, cx + ccW / 2 + 4, cy + 80 + ci * 11, { width: (ccW / 2) - 14 });
+                    doc.fillColor('#111827').font('Helvetica').fontSize(6.8)
+                       .text('- ' + clampText(c, 58), cx + ccW / 2 + 4, cy + 80 + ci * 15, { width: (ccW / 2) - 14, lineBreak: false });
                 });
             });
             y += Math.ceil(P.careers.length / 2) * (ccH + 6) + 8;
@@ -870,7 +877,7 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
             y = Y0;
 
             y = st(y, 'Recommended Courses  —  With Exam, Difficulty, Fees, Colleges and Our Rating');
-            const entryH = 112;
+            const entryH = 82;
             P.courses.forEach((course: Course, i: number) => {
                 card(M, y, CW, entryH, i % 2 === 0 ? '#FFFFFF' : '#FAFAFA');
                 // Number badge
@@ -894,13 +901,11 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
                 // Rating
                 doc.fillColor('#6B7280').font('Helvetica-Bold').fontSize(7).text('OUR RATING', M + CW - 82, y + 10);
                 dots(M + CW - 76, y + 26, course.rating);
-                // Colleges
-                doc.fillColor('#6B7280').font('Helvetica-Bold').fontSize(7.5).text('TOP COLLEGES / INSTITUTES', M + 50, y + 84);
-                doc.fillColor('#374151').font('Helvetica').fontSize(7.5).text(course.colleges, M + 50, y + 96, { width: CW - 80 });
-                y += entryH + 8;
+                y += entryH + 6;
             });
 
             // Exam Calendar
+            y += 2;
             y = st(y, 'Key Entrance Exam Preparation Timeline');
             const examCal = [
                 { month: 'Class 11 (Full Year)', task: 'NCERT foundation + coaching enrollment + basics',  color: '#059669' },
@@ -910,6 +915,7 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
                 { month: 'Class 12 (Apr-Jun)',   task: 'Entrance exams: JEE/NEET/CLAT/CUET all held here', color: BRAND   },
             ];
             examCal.forEach((ec, i) => {
+                if (y + 30 > YE) return;
                 doc.roundedRect(M, y, 130, 26, 4).fill(ec.color + '22').strokeColor(ec.color).lineWidth(0.5).stroke();
                 doc.fillColor(ec.color).font('Helvetica-Bold').fontSize(7.5).text(ec.month, M + 8, y + 9, { width: 114 });
                 if (i < examCal.length - 1) {
@@ -1214,50 +1220,50 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
 
             // About section
             y = st(y, 'About Ednovate');
-            const aboutText = 'Ednovate is India\'s leading AI-powered career counseling platform built specifically for Class 10 students. We use intelligent psychometric assessments and stream aptitude analysis to generate personalized career roadmaps for each student. Our expert counselors have helped 10,000+ students across India make confident, data-backed stream selection decisions. We believe every student deserves professional career guidance — not just those in Tier 1 cities.';
+            const aboutText = 'Ednovate is a premier Mumbai-based coaching institute founded in 2020, specializing in Chartered Accountancy (CA) and commerce education. Led by experienced faculty, it is known for high pass percentages and multiple All India Ranks (AIRs). The institute offers conceptual, test-based learning via face-to-face classroom programs, live interactive sessions, and recorded lectures, with personalized mentorship, 24x7 doubt support, and rigorous writing practice. Ednovate also runs a KYM (Know Your Mistake) reporting system and student events like Edno Fest, Edno Raas, and Edno Run.';
             doc.fillColor(GRAY).font('Helvetica').fontSize(8.5).text(aboutText, M, y, { width: CW, lineGap: 2, align: 'justify' });
             y = doc.y + 12;
 
             // Programs in 3 columns
-            y = st(y, 'Our Complete Program Portfolio  —  Stream-Wise Course Offerings');
+            y = st(y, 'Our Complete Commerce Program Portfolio');
             const progW = (CW - 16) / 3;
             const programs = [
                 {
-                    stream: 'SCIENCE STREAM',
-                    color: '#059669',
-                    courses: [
-                        'JEE Main & Advanced Roadmap',
-                        'NEET-UG Preparation Plan',
-                        'IIT/NIT College Selection Guide',
-                        'Data Science Career Pathway',
-                        'Research Career Counseling',
-                        'Biotech & Medical Roadmap',
-                    ],
-                    price: 'Starting INR 999',
-                },
-                {
-                    stream: 'COMMERCE STREAM',
+                    stream: 'CA TRACK',
                     color: '#2563EB',
                     courses: [
-                        'CA Foundation Roadmap',
-                        'BBA / IPMAT Preparation',
-                        'MBA & IIM Career Guide',
-                        'Financial Analyst Pathway',
-                        'Entrepreneurship Mentoring',
-                        'Banking & Finance Careers',
+                        'CA Foundation',
+                        'CA Intermediate',
+                        'CA Final',
+                        'FYJC / SYJC Commerce',
+                        'KYM Report Tracking',
+                        'AIR-Focused Test Series',
                     ],
                     price: 'Starting INR 999',
                 },
                 {
-                    stream: 'ARTS & HUMANITIES',
+                    stream: 'GLOBAL FINANCE CERTS',
                     color: '#7C3AED',
                     courses: [
-                        'CLAT Law Entrance Roadmap',
-                        'UPSC Civil Services Pathway',
-                        'BA College Selection Guide',
-                        'UX Design Career Entry',
-                        'Psychology Career Counseling',
-                        'Journalism & Media Pathway',
+                        'CFA',
+                        'ACCA',
+                        'CMA-US',
+                        'FRM',
+                        'FMAA',
+                        'Career Mentorship for Finance Roles',
+                    ],
+                    price: 'Starting INR 999',
+                },
+                {
+                    stream: 'MENTORSHIP & SUPPORT',
+                    color: '#059669',
+                    courses: [
+                        '24x7 Doubt Support',
+                        'Personal Mentorship',
+                        'Concept + Writing Practice',
+                        'Live + Recorded Hybrid Learning',
+                        'Mumbai Classroom Programs',
+                        'Performance Analytics Dashboard',
                     ],
                     price: 'Starting INR 999',
                 },
@@ -1284,11 +1290,11 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
             // Why choose Ednovate
             y = st(y, 'Why 10,000+ Students Trust Ednovate');
             const whyPoints = [
-                { icon: 'AI', title: 'AI-Powered Assessment',   desc: 'Our psychometric engine analyzes 45+ questions to map your true aptitude — not just what you prefer.',           color: BRAND },
-                { icon: '1:1', title: '1-on-1 Expert Counseling', desc: 'Every student gets a dedicated session with a certified career counselor with 10+ years of experience.',        color: '#059669' },
-                { icon: 'IN', title: 'India-First Approach',    desc: 'Built for Indian students, exams, and colleges — not Western frameworks. JEE, NEET, CLAT, CUET all covered.',    color: '#2563EB' },
-                { icon: 'RD', title: 'Detailed Career Roadmaps', desc: 'Personalized 10-page reports like this one delivered within minutes. Every recommendation is backed by data.',    color: '#7C3AED' },
-                { icon: '10', title: 'Affordable for Every Family', desc: 'Professional career counseling starting at INR 999. No student should miss guidance due to financial barriers.', color: '#D97706' },
+                { icon: 'AIR', title: 'Rank-Focused Training', desc: 'Ednovate has produced 51+ AIRs with structured exam-focused preparation and rigorous testing.', color: BRAND },
+                { icon: 'CA', title: 'Specialized Commerce Focus', desc: 'Deep specialization in CA and commerce education with high-result classroom and online systems.', color: '#2563EB' },
+                { icon: 'KYM', title: 'KYM Report System', desc: 'Know Your Mistake reports help students track weak areas and improve in every test cycle.', color: '#7C3AED' },
+                { icon: '24x7', title: 'Mentorship + Doubt Support', desc: 'Personal mentorship, 24x7 doubt support, and writing practice ensure consistent progress.', color: '#059669' },
+                { icon: 'HYB', title: 'Hybrid Learning Formats', desc: 'Face-to-face Mumbai classes, live sessions, and recorded lectures in one ecosystem.', color: '#D97706' },
             ];
             const wyW = (CW - 8) / 2;
             const wyH = 44;
