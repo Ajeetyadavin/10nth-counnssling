@@ -268,8 +268,8 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
   }, [activeTab, filter]);
 
   return (
-    <div className="min-h-screen w-full bg-slate-50 p-4 md:p-6">
-      <div className="max-w-6xl mx-auto bg-white border border-slate-200 rounded-lg p-4 md:p-6 space-y-4">
+    <div className="h-full w-full overflow-y-auto bg-slate-50 p-4 md:p-6">
+      <div className="max-w-6xl mx-auto bg-white border border-slate-200 rounded-lg p-4 md:p-6 space-y-4 min-h-full">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
             <h1 className="text-xl font-semibold text-slate-900">Admin Panel</h1>
@@ -329,7 +329,7 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
         </div>
 
         {activeTab === 'students' ? (
-          <div className="space-y-4">
+          <div className="space-y-4 min-h-0">
             <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
               <div className="relative md:max-w-sm w-full">
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -360,7 +360,7 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
               </div>
             </div>
 
-            <div className="border border-slate-200 rounded-md overflow-auto">
+            <div className="border border-slate-200 rounded-md overflow-auto max-h-[70vh]">
               <table className="w-full text-sm">
                 <thead className="bg-slate-100">
                   <tr>
