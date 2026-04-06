@@ -1,5 +1,6 @@
 import pool from '../db.js';
 import { generateReportPDF } from '../utils/pdfGenerator.js';
+import { seedQuestionsIfEmpty } from '../seeds.js';
 import type { Express } from 'express';
 
 const ensureTables = async () => {
@@ -57,7 +58,9 @@ const csvEscape = (value: unknown) => {
 };
 
 export const setupAdminRoutes = (app: Express) => {
-  ensureTables().catch((err) => console.error('Failed to initialize tables:', err));
+  ensureTables()
+    .then(() => seedQuestionsIfEmpty())
+    .catch((err) => console.error('Failed to initialize tables/seed:', err));
 
   // Get all students
   app.get('/api/admin/students', async (req, res) => {
