@@ -2,24 +2,50 @@ import pool from '../db.js';
 import { generateReportPDF } from '../utils/pdfGenerator.js';
 import type { Express } from 'express';
 
-const ensureAdminSettings = async () => {
-  await pool.query(
-    `CREATE TABLE IF NOT EXISTS "AdminSettings" (
+const ensureTables = async () => {
+  // Student table
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS "Student" (
+      id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+      name TEXT NOT NULL,
+      mobile TEXT NOT NULL,
+      email TEXT NOT NULL,
+      location TEXT NOT NULL,
+      answers JSONB NOT NULL DEFAULT '[]',
+      result JSONB,
+      status TEXT NOT NULL DEFAULT 'Partial',
+      "createdAt" TIMESTAMP NOT NULL DEFAULT NOW(),
+      "updatedAt" TIMESTAMP NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  // Question table
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS "Question" (
+      id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+      text TEXT NOT NULL,
+      options JSONB NOT NULL,
+      category TEXT DEFAULT 'neutral',
+      "order" INT NOT NULL DEFAULT 0,
+      hidden BOOLEAN NOT NULL DEFAULT FALSE,
+      "createdAt" TIMESTAMP NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  // AdminSettings table
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS "AdminSettings" (
       id INT PRIMARY KEY,
       "questionLimit" INT NOT NULL DEFAULT 45,
       "updatedAt" TIMESTAMP DEFAULT NOW()
-    )`
-  );
+    )
+  `);
 
-  await pool.query(
-    `INSERT INTO "AdminSettings" (id, "questionLimit", "updatedAt")
-     VALUES (1, 45, NOW())
-     ON CONFLICT (id) DO NOTHING`
-  );
-};
-
-const ensureQuestionHiddenColumn = async () => {
-  await pool.query('ALTER TABLE "Question" ADD COLUMN IF NOT EXISTS "hidden" BOOLEAN NOT NULL DEFAULT FALSE');
+  await pool.query(`
+    INSERT INTO "AdminSettings" (id, "questionLimit", "updatedAt")
+    VALUES (1, 45, NOW())
+    ON CONFLICT (id) DO NOTHING
+  `);
 };
 
 const csvEscape = (value: unknown) => {
@@ -31,8 +57,7 @@ const csvEscape = (value: unknown) => {
 };
 
 export const setupAdminRoutes = (app: Express) => {
-  ensureAdminSettings().catch((err) => console.error('Failed to initialize AdminSettings:', err));
-  ensureQuestionHiddenColumn().catch((err) => console.error('Failed to initialize Question.hidden column:', err));
+  ensureTables().catch((err) => console.error('Failed to initialize tables:', err));
 
   // Get all students
   app.get('/api/admin/students', async (req, res) => {
@@ -216,7 +241,6 @@ export const setupAdminRoutes = (app: Express) => {
   // Settings: question count for test
   app.get('/api/admin/settings', async (_req, res) => {
     try {
-      await ensureAdminSettings();
       const result = await pool.query('SELECT "questionLimit", "updatedAt" FROM "AdminSettings" WHERE id = 1');
       const row = result.rows[0] || { questionLimit: 45 };
       res.json({ questionLimit: row.questionLimit, updatedAt: row.updatedAt });
@@ -232,8 +256,6 @@ export const setupAdminRoutes = (app: Express) => {
       if (!Number.isInteger(rawLimit) || rawLimit < 1 || rawLimit > 200) {
         return res.status(400).json({ error: 'questionLimit must be an integer between 1 and 200' });
       }
-
-      await ensureAdminSettings();
       const result = await pool.query(
         `UPDATE "AdminSettings"
          SET "questionLimit" = $1, "updatedAt" = NOW()
