@@ -1,4 +1,6 @@
 import PDFDocument from 'pdfkit';
+import https from 'node:https';
+import SVGtoPDF from 'svg-to-pdfkit';
 
 type StreamKey = 'science' | 'commerce' | 'arts';
 
@@ -194,6 +196,45 @@ const parseJSON = <T>(v: unknown, fb: T): T => {
     return fb;
 };
 
+const LOGO_URL = 'https://letsednovate.com/images/ednovate-logo.svg';
+let logoSvgCache: string | null | undefined;
+
+const fetchText = (url: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        https.get(url, (res) => {
+            if (!res.statusCode || res.statusCode < 200 || res.statusCode >= 300) {
+                reject(new Error('Failed to fetch: ' + String(res.statusCode || 'unknown')));
+                return;
+            }
+            let data = '';
+            res.setEncoding('utf8');
+            res.on('data', (chunk) => { data += chunk; });
+            res.on('end', () => resolve(data));
+        }).on('error', reject);
+    });
+};
+
+const getEdnovateLogoSvg = async (): Promise<string | null> => {
+    if (logoSvgCache !== undefined) return logoSvgCache;
+    try {
+        const svg = await fetchText(LOGO_URL);
+        logoSvgCache = svg.includes('<svg') ? svg : null;
+    } catch {
+        logoSvgCache = null;
+    }
+    return logoSvgCache;
+};
+
+const scoresFromAnswers = (answers: Array<{ stream?: string; weight?: number }>): Record<string, number> => {
+    const acc: Record<string, number> = { science: 0, commerce: 0, arts: 0, neutral: 0 };
+    answers.forEach((ans) => {
+        const stream = String(ans?.stream || '').toLowerCase();
+        const weight = Number(ans?.weight) || 0;
+        if (stream in acc) acc[stream] += weight;
+    });
+    return acc;
+};
+
 const getPrimaryStream = (scores: Record<string, number>, fallback: string): StreamKey => {
     const f = (fallback || '').toLowerCase();
     if (f === 'science' || f === 'commerce' || f === 'arts') return f as StreamKey;
@@ -203,6 +244,8 @@ const getPrimaryStream = (scores: Record<string, number>, fallback: string): Str
 
 export const generateReportPDF = (student: any): Promise<Buffer> => {
     return new Promise((resolve, reject) => {
+        void (async () => {
+            const logoSvg = await getEdnovateLogoSvg();
         const doc = new PDFDocument({ margin: 0, size: 'A4', bufferPages: true });
         const chunks: Buffer[] = [];
         doc.on('data', (c: Buffer) => chunks.push(c));
@@ -213,7 +256,14 @@ export const generateReportPDF = (student: any): Promise<Buffer> => {
 
         const answers = parseJSON<any[]>(student?.answers, []);
         const result  = parseJSON<Record<string, any>>(student?.result, {});
-        const scores  = parseJSON<Record<string, number>>(result?.scores, {});
+        const resultScores = parseJSON<Record<string, number>>(result?.scores, {});
+        const answerScores = scoresFromAnswers(Array.isArray(answers) ? answers : []);
+        const answerTotal = (answerScores.science || 0) + (answerScores.commerce || 0) + (answerScores.arts || 0);
+        const resultTotal =
+            Math.max(0, Number(resultScores.science) || 0) +
+            Math.max(0, Number(resultScores.commerce) || 0) +
+            Math.max(0, Number(resultScores.arts) || 0);
+        const scores  = answerTotal > 0 ? answerScores : (resultTotal > 0 ? resultScores : answerScores);
         const primary = getPrimaryStream(scores, result?.stream || 'commerce');
         const P       = PROFILES[primary];
 
@@ -251,16 +301,28 @@ export const generateReportPDF = (student: any): Promise<Buffer> => {
 
         const drawPageHeader = (title: string, subtitle: string, pageNum: string) => {
             fillPage();
-            doc.rect(0, 0, W, 62).fill('#0F172A');
-            doc.rect(0, 0, 7, 62).fill('#E74623');
-            doc.roundedRect(M, 13, 37, 37, 6).fill('#E74623');
-            doc.fillColor('#FFFFFF').font('Helvetica-Bold').fontSize(20)
-               .text('E', M, 20, { width: 37, align: 'center' });
-            doc.fillColor('#FFFFFF').font('Helvetica-Bold').fontSize(14).text(title, M + 50, 14);
-            doc.fillColor('#94A3B8').font('Helvetica').fontSize(8).text(subtitle, M + 50, 36);
-            doc.fillColor('#64748B').font('Helvetica').fontSize(7.5)
-               .text('CC-' + ref + '  |  ' + dateStr + '  |  Page ' + pageNum, 0, 48, { width: W - M, align: 'right' });
-            doc.rect(0, 62, W, 2).fill('#E74623');
+            doc.rect(0, 0, W, 74).fill('#FFFFFF');
+            doc.rect(0, 72, W, 2).fill('#E74623');
+            doc.moveTo(0, 72).lineTo(W, 72).strokeColor('#E5E7EB').lineWidth(0.6).stroke();
+
+            if (logoSvg) {
+                try {
+                    SVGtoPDF(doc as any, logoSvg, M, 16, {
+                        width: 150,
+                        height: 38,
+                        preserveAspectRatio: 'xMinYMid meet',
+                    });
+                } catch {
+                    doc.fillColor('#E74623').font('Helvetica-Bold').fontSize(18).text('EDNOVATE', M, 24);
+                }
+            } else {
+                doc.fillColor('#E74623').font('Helvetica-Bold').fontSize(18).text('EDNOVATE', M, 24);
+            }
+
+            doc.fillColor('#111827').font('Helvetica-Bold').fontSize(13).text(title, M + 176, 20);
+            doc.fillColor('#6B7280').font('Helvetica').fontSize(8).text(subtitle, M + 176, 39);
+            doc.fillColor('#6B7280').font('Helvetica').fontSize(7.5)
+               .text('CC-' + ref + '  |  ' + dateStr + '  |  Page ' + pageNum, 0, 58, { width: W - M, align: 'right' });
         };
 
         const drawPageFooter = () => {
@@ -521,5 +583,6 @@ export const generateReportPDF = (student: any): Promise<Buffer> => {
 
         drawPageFooter();
         doc.end();
+        })().catch(reject);
     });
 };

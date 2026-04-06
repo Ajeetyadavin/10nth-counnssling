@@ -30,6 +30,7 @@
     "@prisma/adapter-pg": "^7.6.0",
     "@prisma/client": "^7.6.0",
     "pg": "^8.20.0",
-    "prisma": "^7.6.0"
+    "prisma": "^7.6.0",
+    "svg-to-pdfkit": "^0.1.8"
   }
 }

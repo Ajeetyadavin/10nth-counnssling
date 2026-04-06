@@ -485,9 +485,11 @@ export const getRecommendedStream = (answers: { questionId: number; stream: stri
     }
   });
 
-  // Determine the highest scoring stream (Strategic Focus on Commerce)
-  let maxScore = Math.max(scores.commerce, scores.science, scores.arts);
-  let recommendedStream = 'commerce'; 
+  // Determine highest scoring stream from actual answers.
+  const rankedStreams: Array<'science' | 'commerce' | 'arts'> = ['science', 'commerce', 'arts'];
+  rankedStreams.sort((a, b) => scores[b] - scores[a]);
+  const recommendedStream = rankedStreams[0] ?? 'commerce';
+  const maxScore = Math.max(scores.commerce, scores.science, scores.arts);
 
   return {
     stream: recommendedStream,
