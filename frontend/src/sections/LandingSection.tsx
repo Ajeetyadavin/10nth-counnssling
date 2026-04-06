@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Sparkles, Users, Award, ChevronRight, Star, CheckCircle, Zap, Target, BookOpen, TrendingUp, Brain } from 'lucide-react';
+import { Sparkles, Users, Award, ChevronRight, Star, CheckCircle, Zap, Target, BookOpen, TrendingUp } from 'lucide-react';
 
 interface LandingSectionProps {
   onStart: () => void;
@@ -22,8 +22,8 @@ const LandingSection = ({ onStart }: LandingSectionProps) => {
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center gap-3 mb-10 relative z-10"
         >
-          <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-            <Brain className="w-7 h-7 text-white" />
+          <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center p-2 backdrop-blur-sm">
+            <img src="/ednovate-logo.svg" alt="Ednovate" className="w-full h-full object-contain" />
           </div>
           <div>
             <p className="text-white/70 text-sm font-medium">Free Career Assessment</p>
@@ -139,6 +139,16 @@ const LandingSection = ({ onStart }: LandingSectionProps) => {
             Only 5 Left Today
           </span>
         </div>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.05 }}
+        className="flex items-center justify-center gap-2 py-3 bg-white/70 border-b border-blue-50"
+      >
+        <img src="/ednovate-logo.svg" alt="Ednovate" className="w-5 h-5 object-contain" />
+        <p className="text-[11px] font-semibold text-slate-500 tracking-wide">Powered by Ednovate</p>
       </motion.div>
 
       {/* Main Content - Scrollable if needed */}

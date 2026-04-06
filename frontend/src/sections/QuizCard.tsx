@@ -83,8 +83,8 @@ const QuizCard = ({ question, currentIndex, totalQuestions, onAnswer, timeLeft }
 
         {/* Brand */}
         <div className="flex items-center gap-2 mb-10 relative z-10">
-          <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center">
-            <span className="text-white font-bold text-sm">CC</span>
+          <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center p-1.5">
+            <img src="/ednovate-logo.svg" alt="Ednovate" className="w-full h-full object-contain" />
           </div>
           <span className="text-white/80 text-sm font-semibold">CareerCompass</span>
         </div>
@@ -147,6 +147,10 @@ const QuizCard = ({ question, currentIndex, totalQuestions, onAnswer, timeLeft }
       {/* Progress Header */}
       <div className="bg-slate-50 p-4 border-b border-slate-100 md:hidden">
         <div className="max-w-md mx-auto">
+          <div className="flex items-center justify-center gap-2 mb-2.5">
+            <img src="/ednovate-logo.svg" alt="Ednovate" className="w-[18px] h-[18px] object-contain" />
+            <span className="text-[10px] font-semibold tracking-wide text-slate-500 uppercase">Powered by Ednovate</span>
+          </div>
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-1.5">
               <span className="text-blue-600 font-bold">{currentIndex + 1}</span>
