@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import LandingSection from './sections/LandingSection';
 import LeadForm from './sections/LeadForm';
+import OtpVerification from './sections/OtpVerification';
 import QuizCard from './sections/QuizCard';
 import AnalyzingScreen from './sections/AnalyzingScreen';
 import BlurredReport from './sections/BlurredReport';
@@ -12,7 +13,7 @@ import { ArrowRight } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
 
-export type AppState = 'landing' | 'form' | 'quiz' | 'analyzing' | 'report' | 'admin' | 'admin-login';
+export type AppState = 'landing' | 'form' | 'otp' | 'quiz' | 'analyzing' | 'report' | 'admin' | 'admin-login';
 
 export interface UserData {
   name: string;
@@ -22,6 +23,15 @@ export interface UserData {
 }
 
 const STORAGE_KEY = 'career_counselor_state';
+
+const getErrorMessage = async (res: Response, fallback: string) => {
+  try {
+    const data = await res.json();
+    return data?.error || data?.message || fallback;
+  } catch {
+    return fallback;
+  }
+};
 
 // Helper to shuffle array
 const shuffleArray = <T,>(array: T[]): T[] => {
@@ -103,7 +113,7 @@ function App() {
 
   const savedState = loadState();
 
-  const [appState, setAppState] = useState<AppState>(savedState?.appState || 'landing');
+  const [appState, setAppState] = useState<AppState>(savedState?.appState === 'otp' ? 'form' : (savedState?.appState || 'landing'));
   const [userData, setUserData] = useState<UserData>(savedState?.userData || {
     name: '',
     mobile: '',
@@ -121,6 +131,9 @@ function App() {
   const [shuffledQuestions, setShuffledQuestions] = useState<any[]>(
     savedState?.shuffledQuestions || []
   );
+  const [otpHint, setOtpHint] = useState<string>('');
+  const [otpToken, setOtpToken] = useState<string | null>(savedState?.otpToken || null);
+  const [showOtpPopup, setShowOtpPopup] = useState<boolean>(savedState?.appState === 'otp');
 
   // Fetch Questions from DB on mount
   useEffect(() => {
@@ -169,13 +182,14 @@ function App() {
       appState,
       userData,
       studentId,
+      otpToken,
       currentQuestionIndex,
       answers,
       result,
       timeLeft,
       shuffledQuestions
     }));
-  }, [appState, userData, studentId, currentQuestionIndex, answers, result, timeLeft, shuffledQuestions]);
+  }, [appState, userData, studentId, otpToken, currentQuestionIndex, answers, result, timeLeft, shuffledQuestions]);
 
   // Countdown timer logic
   useEffect(() => {
@@ -215,23 +229,72 @@ function App() {
     setAppState('form');
   };
 
+  const sendOtp = async (mobile: string) => {
+    const res = await fetch(`${API_BASE}/api/otp/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mobile })
+    });
+
+    if (!res.ok) {
+      throw new Error(await getErrorMessage(res, 'Failed to send OTP.'));
+    }
+
+    const data = await res.json();
+    const devOtpHint = data?.devOtp ? `Dev OTP: ${data.devOtp}` : undefined;
+    setOtpHint(devOtpHint || 'OTP sent successfully.');
+    return devOtpHint;
+  };
+
   const handleFormSubmit = async (data: typeof userData) => {
     setUserData(data);
-    setAppState('quiz');
-    
-    // Register in backend
     try {
-      const res = await fetch(`${API_BASE}/api/student/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      const student = await res.json();
-      if (student.id) setStudentId(student.id);
+      await sendOtp(data.mobile);
+      setShowOtpPopup(true);
     } catch (err) {
-      console.error('Backend sync failed, continuing locally...');
+      console.error('OTP send failed:', err);
+      alert(err instanceof Error ? err.message : 'Could not send OTP right now. Please try again.');
     }
   };
+
+  const handleOtpVerify = async (otp: string) => {
+    const verifyRes = await fetch(`${API_BASE}/api/otp/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mobile: userData.mobile, otp })
+    });
+
+    if (!verifyRes.ok) {
+      throw new Error(await getErrorMessage(verifyRes, 'OTP verification failed.'));
+    }
+
+    const verifyData = await verifyRes.json();
+    if (!verifyData?.verificationToken) {
+      throw new Error('OTP verification token missing. Please retry.');
+    }
+
+    setOtpToken(verifyData.verificationToken);
+
+    const registerRes = await fetch(`${API_BASE}/api/student/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...userData, otpToken: verifyData.verificationToken })
+    });
+
+    if (!registerRes.ok) {
+      throw new Error(await getErrorMessage(registerRes, 'Could not start test after OTP verification.'));
+    }
+
+    const student = await registerRes.json();
+    if (student?.id) {
+      setStudentId(student.id);
+    }
+
+    setShowOtpPopup(false);
+    setAppState('quiz');
+  };
+
+  const handleOtpResend = async () => sendOtp(userData.mobile);
 
   const handleAnswer = (stream: string, weight: number) => {
     if (!shuffledQuestions[currentQuestionIndex]) return;
@@ -283,6 +346,9 @@ function App() {
     setCurrentQuestionIndex(0);
     setAnswers([]);
     setResult(null);
+    setOtpToken(null);
+    setOtpHint('');
+    setShowOtpPopup(false);
     setUserData({ name: '', mobile: '', email: '', location: '' });
     setTimeLeft(3600);
     
@@ -335,6 +401,16 @@ function App() {
             className="h-full"
           >
             <LeadForm onSubmit={handleFormSubmit} onBack={() => setAppState('landing')} />
+            {showOtpPopup && (
+              <OtpVerification
+                mode="modal"
+                mobile={userData.mobile}
+                initialHint={otpHint}
+                onBack={() => setShowOtpPopup(false)}
+                onVerify={handleOtpVerify}
+                onResend={handleOtpResend}
+              />
+            )}
           </motion.div>
         )}
 

@@ -48,6 +48,25 @@ const ensureTables = async () => {
   `);
 
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS "MobileVerification" (
+      id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+      mobile TEXT NOT NULL,
+      "otpHash" TEXT NOT NULL,
+      attempts INT NOT NULL DEFAULT 0,
+      "expiresAt" TIMESTAMP NOT NULL,
+      "verifiedAt" TIMESTAMP,
+      "verificationToken" TEXT,
+      "tokenConsumedAt" TIMESTAMP,
+      "correlationId" TEXT NOT NULL,
+      "createdAt" TIMESTAMP NOT NULL DEFAULT NOW(),
+      "updatedAt" TIMESTAMP NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  await pool.query('CREATE INDEX IF NOT EXISTS idx_mobile_verification_mobile_created ON "MobileVerification" (mobile, "createdAt" DESC)');
+  await pool.query('CREATE INDEX IF NOT EXISTS idx_mobile_verification_token ON "MobileVerification" ("verificationToken")');
+
+  await pool.query(`
     INSERT INTO "AdminSettings" (id, "questionLimit", "updatedAt")
     VALUES (1, 45, NOW())
     ON CONFLICT (id) DO NOTHING
@@ -432,6 +451,55 @@ export const setupAdminRoutes = (app: Express) => {
       res.json({ message: 'Student deleted' });
     } catch (err) {
       res.status(500).json({ error: 'Delete failed' });
+    }
+  });
+
+  // OTP Verification Data
+  app.get('/api/admin/otp-verification', async (req, res) => {
+    try {
+      const OTP_MAX_ATTEMPTS = Number(process.env.OTP_MAX_ATTEMPTS || 5);
+
+      // Verified users (successfully completed OTP)
+      const verifiedResult = await pool.query(`
+        SELECT 
+          mobile,
+          "verifiedAt" as "verifiedAt",
+          "createdAt" as "otpRequestedAt",
+          attempts as "attemptsTaken",
+          "correlationId"
+        FROM "MobileVerification"
+        WHERE "verifiedAt" IS NOT NULL
+        ORDER BY "verifiedAt" DESC
+      `);
+
+      // Failed/Incomplete attempts (wrong OTP or expired)
+      const failedResult = await pool.query(`
+        SELECT 
+          mobile,
+          "expiresAt",
+          attempts,
+          "createdAt" as "otpRequestedAt",
+          CASE 
+            WHEN attempts >= $1 THEN 'Max attempts exceeded'
+            WHEN "expiresAt" < NOW() THEN 'OTP expired'
+            ELSE 'Not attempted'
+          END as "failureReason",
+          "correlationId"
+        FROM "MobileVerification"
+        WHERE "verifiedAt" IS NULL
+        ORDER BY "createdAt" DESC
+      `, [OTP_MAX_ATTEMPTS]);
+
+      res.json({
+        verified: verifiedResult.rows,
+        failed: failedResult.rows,
+        verifiedCount: verifiedResult.rowCount || 0,
+        failedCount: failedResult.rowCount || 0,
+        totalAttempts: (verifiedResult.rowCount || 0) + (failedResult.rowCount || 0)
+      });
+    } catch (err: any) {
+      console.error('Error fetching OTP verification data:', err);
+      res.status(500).json({ error: 'Failed to fetch OTP verification data' });
     }
   });
 };

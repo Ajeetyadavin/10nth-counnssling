@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Download, Pencil, Plus, RefreshCw, Search, Trash2, Upload } from 'lucide-react';
 
-type Tab = 'students' | 'questions' | 'settings';
+type Tab = 'students' | 'questions' | 'settings' | 'otp';
 type StatusFilter = 'All' | 'Partial' | 'Completed';
 
 type Student = {
@@ -48,6 +48,11 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
   const [showAddQuestion, setShowAddQuestion] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<(Question & { options: QuestionOption[] }) | null>(null);
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<string[]>([]);
+
+  // OTP Verification Data
+  const [otpVerified, setOtpVerified] = useState<any[]>([]);
+  const [otpFailed, setOtpFailed] = useState<any[]>([]);
+  const [otpStats, setOtpStats] = useState({ verifiedCount: 0, failedCount: 0, totalAttempts: 0 });
 
   const [newQ, setNewQ] = useState({
     text: '',
@@ -114,6 +119,23 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
       const res = await fetch(`${API_BASE}/api/admin/settings`);
       const data = await res.json();
       setQuestionLimit(Number(data?.questionLimit) || 45);
+      setIsConnected(true);
+    } catch {
+      setIsConnected(false);
+    }
+  };
+
+  const fetchOtpData = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/otp-verification`);
+      const data = await res.json();
+      setOtpVerified(data.verified || []);
+      setOtpFailed(data.failed || []);
+      setOtpStats({
+        verifiedCount: data.verifiedCount || 0,
+        failedCount: data.failedCount || 0,
+        totalAttempts: data.totalAttempts || 0
+      });
       setIsConnected(true);
     } catch {
       setIsConnected(false);
@@ -452,6 +474,7 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
     if (activeTab === 'students') fetchStudents();
     if (activeTab === 'questions') fetchQuestions();
     if (activeTab === 'settings') fetchSettings();
+    if (activeTab === 'otp') fetchOtpData();
   }, [activeTab, filter]);
 
   return (
@@ -467,7 +490,12 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
               {isConnected ? 'Server online' : 'Server offline'}
             </span>
             <button
-              onClick={activeTab === 'students' ? fetchStudents : fetchQuestions}
+              onClick={() => {
+                if (activeTab === 'students') fetchStudents();
+                else if (activeTab === 'questions') fetchQuestions();
+                else if (activeTab === 'otp') fetchOtpData();
+                else if (activeTab === 'settings') fetchSettings();
+              }}
               className="inline-flex items-center gap-1.5 border border-slate-300 px-3 py-2 rounded-md text-sm text-slate-700 hover:bg-slate-100"
             >
               <RefreshCw className="w-4 h-4" />
@@ -502,6 +530,16 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
             className={`px-3 py-2 rounded-md text-sm ${activeTab === 'questions' ? 'bg-slate-900 text-white' : 'border border-slate-300 text-slate-700 hover:bg-slate-100'}`}
           >
             Questions
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab('otp');
+              setShowAddQuestion(false);
+              setEditingQuestion(null);
+            }}
+            className={`px-3 py-2 rounded-md text-sm ${activeTab === 'otp' ? 'bg-slate-900 text-white' : 'border border-slate-300 text-slate-700 hover:bg-slate-100'}`}
+          >
+            OTP Verification
           </button>
           <button
             onClick={() => {
@@ -881,6 +919,131 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
               {questions.length === 0 && (
                 <div className="text-center py-10 text-sm text-slate-500">No questions found.</div>
               )}
+            </div>
+          </div>
+        ) : activeTab === 'otp' ? (
+          <div className="space-y-6">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="border border-emerald-200 rounded-md p-4 bg-emerald-50">
+                <p className="text-sm font-medium text-emerald-700">Verified</p>
+                <p className="text-2xl font-bold text-emerald-900">{otpStats.verifiedCount}</p>
+                <p className="text-xs text-emerald-600">Successfully verified OTP</p>
+              </div>
+              <div className="border border-rose-200 rounded-md p-4 bg-rose-50">
+                <p className="text-sm font-medium text-rose-700">Failed</p>
+                <p className="text-2xl font-bold text-rose-900">{otpStats.failedCount}</p>
+                <p className="text-xs text-rose-600">Wrong/Expired OTP attempts</p>
+              </div>
+              <div className="border border-slate-200 rounded-md p-4 bg-slate-100">
+                <p className="text-sm font-medium text-slate-700">Total Attempts</p>
+                <p className="text-2xl font-bold text-slate-900">{otpStats.totalAttempts}</p>
+                <p className="text-xs text-slate-600">All OTP requests</p>
+              </div>
+            </div>
+
+            {/* Verified Section */}
+            <div className="border border-slate-200 rounded-md overflow-hidden">
+              <div className="bg-emerald-100 px-4 py-2">
+                <h3 className="text-sm font-semibold text-emerald-900">✓ Successfully Verified ({otpVerified.length})</h3>
+              </div>
+              <div className="overflow-auto max-h-[40vh]">
+                <table className="w-full text-xs">
+                  <thead className="bg-slate-50 sticky top-0">
+                    <tr>
+                      <th className="text-left px-4 py-2 text-slate-600">Mobile</th>
+                      <th className="text-left px-4 py-2 text-slate-600">OTP Requested</th>
+                      <th className="text-left px-4 py-2 text-slate-600">Verified At</th>
+                      <th className="text-left px-4 py-2 text-slate-600">Attempts</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-slate-200">
+                    {otpVerified.length > 0 ? (
+                      otpVerified.map((item: any, idx) => {
+                        const requestedDate = item.otpRequestedAt ? new Date(item.otpRequestedAt) : null;
+                        const verifiedDate = item.verifiedAt ? new Date(item.verifiedAt) : null;
+                        return (
+                          <tr key={idx} className="hover:bg-slate-50">
+                            <td className="px-4 py-2 font-mono text-emerald-600">{item.mobile}</td>
+                            <td className="px-4 py-2 text-slate-600">
+                              {requestedDate ? requestedDate.toLocaleString('en-IN') : '-'}
+                            </td>
+                            <td className="px-4 py-2 text-emerald-600">
+                              {verifiedDate ? verifiedDate.toLocaleString('en-IN') : '-'}
+                            </td>
+                            <td className="px-4 py-2">
+                              <span className="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-xs font-semibold">
+                                {item.attemptsTaken || 1}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <tr>
+                        <td colSpan={4} className="px-4 py-4 text-center text-slate-500">
+                          No verified OTPs yet
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Failed Section */}
+            <div className="border border-slate-200 rounded-md overflow-hidden">
+              <div className="bg-rose-100 px-4 py-2">
+                <h3 className="text-sm font-semibold text-rose-900">✗ Failed/Incomplete ({otpFailed.length})</h3>
+              </div>
+              <div className="overflow-auto max-h-[40vh]">
+                <table className="w-full text-xs">
+                  <thead className="bg-slate-50 sticky top-0">
+                    <tr>
+                      <th className="text-left px-4 py-2 text-slate-600">Mobile</th>
+                      <th className="text-left px-4 py-2 text-slate-600">OTP Requested</th>
+                      <th className="text-left px-4 py-2 text-slate-600">Failure Reason</th>
+                      <th className="text-left px-4 py-2 text-slate-600">Attempts</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-slate-200">
+                    {otpFailed.length > 0 ? (
+                      otpFailed.map((item: any, idx) => {
+                        const requestedDate = item.otpRequestedAt ? new Date(item.otpRequestedAt) : null;
+                        return (
+                          <tr key={idx} className="hover:bg-slate-50">
+                            <td className="px-4 py-2 font-mono text-rose-600">{item.mobile}</td>
+                            <td className="px-4 py-2 text-slate-600">
+                              {requestedDate ? requestedDate.toLocaleString('en-IN') : '-'}
+                            </td>
+                            <td className="px-4 py-2">
+                              <span className={`${
+                                item.failureReason === 'Max attempts exceeded'
+                                  ? 'bg-orange-100 text-orange-700'
+                                  : item.failureReason === 'OTP expired'
+                                  ? 'bg-amber-100 text-amber-700'
+                                  : 'bg-slate-100 text-slate-700'
+                              } px-2 py-1 rounded text-xs font-semibold`}>
+                                {item.failureReason || 'Unknown'}
+                              </span>
+                            </td>
+                            <td className="px-4 py-2">
+                              <span className="bg-rose-100 text-rose-700 px-2 py-1 rounded text-xs font-semibold">
+                                {item.attempts || 0}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <tr>
+                        <td colSpan={4} className="px-4 py-4 text-center text-slate-500">
+                          No failed OTPs
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         ) : (
