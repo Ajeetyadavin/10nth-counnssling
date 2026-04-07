@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import 'dotenv/config';
+import './config/env.js';
 import crypto from 'node:crypto';
 import pool from './db.js';
 import { setupAdminRoutes } from './routes/adminRoutes.js';
