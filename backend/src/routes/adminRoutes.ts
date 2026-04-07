@@ -37,6 +37,7 @@ const ensureTables = async () => {
   // Backward compatibility for already-created tables
   await pool.query('ALTER TABLE "Question" ADD COLUMN IF NOT EXISTS fixed BOOLEAN NOT NULL DEFAULT FALSE');
   await pool.query('ALTER TABLE "Question" ADD COLUMN IF NOT EXISTS hidden BOOLEAN NOT NULL DEFAULT FALSE');
+  await pool.query('ALTER TABLE "Question" ADD COLUMN IF NOT EXISTS language TEXT NOT NULL DEFAULT \'hinglish\'');
 
   // AdminSettings table
   await pool.query(`
@@ -192,9 +193,22 @@ export const setupAdminRoutes = (app: Express) => {
     try {
       console.log('Fetching questions from PostgreSQL...');
       const includeHidden = req.query.includeHidden === '1' || req.query.includeHidden === 'true';
-      const query = includeHidden
-        ? 'SELECT * FROM "Question" ORDER BY "order" ASC, "createdAt" DESC'
-        : 'SELECT * FROM "Question" WHERE "hidden" = FALSE ORDER BY "order" ASC, "createdAt" DESC';
+      const language = req.query.language as string | undefined;
+      
+      let query = 'SELECT * FROM "Question" WHERE "hidden" = FALSE';
+      if (!includeHidden) {
+        query = 'SELECT * FROM "Question" WHERE "hidden" = FALSE';
+      } else {
+        query = 'SELECT * FROM "Question"';
+      }
+      
+      // Filter by language if provided
+      if (language && (language === 'hinglish' || language === 'english')) {
+        query += ` AND language = '${language}'`;
+      }
+      
+      query += ' ORDER BY "order" ASC, "createdAt" DESC';
+      
       const result = await pool.query(query);
       console.log('Found questions:', result.rows.length);
       res.json(result.rows);
@@ -324,11 +338,11 @@ export const setupAdminRoutes = (app: Express) => {
 
   app.post('/api/admin/questions', async (req, res) => {
     try {
-      const { text, options, category, hidden, fixed } = req.body;
+      const { text, options, category, hidden, fixed, language } = req.body;
       console.log('Adding new question:', text);
       const result = await pool.query(
-        'INSERT INTO "Question" (text, options, category, hidden, fixed) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-        [text, JSON.stringify(options), category, Boolean(hidden), Boolean(fixed)]
+        'INSERT INTO "Question" (text, options, category, hidden, fixed, language) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+        [text, JSON.stringify(options), category, Boolean(hidden), Boolean(fixed), language || 'hinglish']
       );
       res.json(result.rows[0]);
     } catch (err: any) {
@@ -339,11 +353,11 @@ export const setupAdminRoutes = (app: Express) => {
 
   app.put('/api/admin/questions/:id', async (req, res) => {
     try {
-      const { text, options, category, hidden, fixed } = req.body;
+      const { text, options, category, hidden, fixed, language } = req.body;
       console.log('Updating question:', req.params.id);
       const result = await pool.query(
-        'UPDATE "Question" SET text = $1, options = $2, category = $3, hidden = $4, fixed = $5 WHERE id = $6 RETURNING *',
-        [text, JSON.stringify(options), category, Boolean(hidden), Boolean(fixed), req.params.id]
+        'UPDATE "Question" SET text = $1, options = $2, category = $3, hidden = $4, fixed = $5, language = $6 WHERE id = $7 RETURNING *',
+        [text, JSON.stringify(options), category, Boolean(hidden), Boolean(fixed), language || 'hinglish', req.params.id]
       );
       res.json(result.rows[0]);
     } catch (err: any) {

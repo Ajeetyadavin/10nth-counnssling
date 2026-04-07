@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import LandingSection from './sections/LandingSection';
+import LanguageSelect from './sections/LanguageSelect';
 import LeadForm from './sections/LeadForm';
 import OtpVerification from './sections/OtpVerification';
 import QuizCard from './sections/QuizCard';
@@ -8,12 +9,12 @@ import AnalyzingScreen from './sections/AnalyzingScreen';
 import BlurredReport from './sections/BlurredReport';
 import AdminPanel from './sections/AdminPanel';
 import AdminLogin from './sections/AdminLogin';
-import { questions, getRecommendedStream, type Answer } from './data/questions';
+import { getQuestionByLanguage, getRecommendedStream, type Answer } from './data/multiLanguageQuestions';
 import { ArrowRight } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
 
-export type AppState = 'landing' | 'form' | 'otp' | 'quiz' | 'analyzing' | 'report' | 'admin' | 'admin-login';
+export type AppState = 'language-select' | 'landing' | 'form' | 'otp' | 'quiz' | 'analyzing' | 'report' | 'admin' | 'admin-login';
 
 export interface UserData {
   name: string;
@@ -23,6 +24,7 @@ export interface UserData {
 }
 
 const STORAGE_KEY = 'career_counselor_state';
+const LANGUAGE_KEY = 'career_counselor_language';
 
 const getErrorMessage = async (res: Response, fallback: string) => {
   try {
@@ -79,17 +81,34 @@ function App() {
     if (window.location.pathname === '/admin') {
       return {
         appState: 'admin-login',
+        language: 'hinglish',
         userData: { name: '', mobile: '', email: '', location: '' },
         currentQuestionIndex: 0,
         answers: [],
         result: null,
         timeLeft: 3600,
         studentId: null,
-        shuffledQuestions: shuffleArray(questions)
+        shuffledQuestions: []
       };
     }
 
-    // Priority 2: Saved state from localStorage
+    // Priority 2: Check if language is selected
+    const savedLanguage = localStorage.getItem(LANGUAGE_KEY);
+    if (!savedLanguage) {
+      return {
+        appState: 'language-select',
+        language: 'hinglish',
+        userData: { name: '', mobile: '', email: '', location: '' },
+        currentQuestionIndex: 0,
+        answers: [],
+        result: null,
+        timeLeft: 3600,
+        studentId: null,
+        shuffledQuestions: []
+      };
+    }
+
+    // Priority 3: Saved state from localStorage
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
@@ -97,6 +116,7 @@ function App() {
         const normalizedSavedQuestions = normalizeQuestionPool(parsed?.shuffledQuestions || []);
         const normalizedParsed = {
           ...parsed,
+          language: savedLanguage,
           shuffledQuestions: normalizedSavedQuestions
         };
         // If they are on root '/', but state says admin, force landing
@@ -108,12 +128,25 @@ function App() {
     } catch (e) {
       console.error("Failed to load state", e);
     }
-    return null;
+
+    // Default: language selected but no quiz started
+    return {
+      appState: 'landing',
+      language: savedLanguage || 'hinglish',
+      userData: { name: '', mobile: '', email: '', location: '' },
+      currentQuestionIndex: 0,
+      answers: [],
+      result: null,
+      timeLeft: 3600,
+      studentId: null,
+      shuffledQuestions: []
+    };
   };
 
   const savedState = loadState();
 
-  const [appState, setAppState] = useState<AppState>(savedState?.appState === 'otp' ? 'form' : (savedState?.appState || 'landing'));
+  const [language, setLanguage] = useState<'hinglish' | 'english'>(savedState?.language || 'hinglish');
+  const [appState, setAppState] = useState<AppState>(savedState?.appState === 'otp' ? 'form' : (savedState?.appState || 'language-select'));
   const [userData, setUserData] = useState<UserData>(savedState?.userData || {
     name: '',
     mobile: '',
@@ -140,7 +173,7 @@ function App() {
     const fetchQuestions = async () => {
       try {
         const [qRes, settingsRes] = await Promise.all([
-          fetch(`${API_BASE}/api/admin/questions`),
+          fetch(`${API_BASE}/api/admin/questions?language=${language}`),
           fetch(`${API_BASE}/api/admin/settings`)
         ]);
 
@@ -150,7 +183,8 @@ function App() {
         const dynamicPool = normalizeQuestionPool(data);
         
         // If DB has questions, use them. Otherwise fallback to static.
-        const pool = dynamicPool.length > 0 ? dynamicPool : questions;
+        const staticPool = getQuestionByLanguage(language);
+        const pool = dynamicPool.length > 0 ? dynamicPool : staticPool;
         const requestedLimit = Number(settings?.questionLimit) || 45;
         const safeLimit = Math.max(1, Math.min(requestedLimit, pool.length));
         setQuestionLimit(safeLimit);
@@ -159,24 +193,30 @@ function App() {
         const savedCount = savedState?.shuffledQuestions?.length;
         const shouldRefreshSaved =
           !savedState?.shuffledQuestions ||
-          ((savedState?.appState === 'landing' || savedState?.appState === 'form') && savedCount !== safeLimit);
+          ((appState === 'landing' || appState === 'form') && savedCount !== safeLimit);
 
         if (shouldRefreshSaved) {
           setShuffledQuestions(buildQuizPool(pool, safeLimit));
         }
       } catch (err) {
         console.error('Failed to fetch dynamic questions, using static fallback');
-        const fallbackLimit = Math.min(45, questions.length);
+        const staticPool = getQuestionByLanguage(language);
+        const fallbackLimit = Math.min(45, staticPool.length);
         setQuestionLimit(fallbackLimit);
         if (!savedState?.shuffledQuestions) {
-          setShuffledQuestions(buildQuizPool(questions, fallbackLimit));
+          setShuffledQuestions(buildQuizPool(staticPool, fallbackLimit));
         }
       }
     };
     fetchQuestions();
-  }, []);
+  }, [language, appState]);
 
-  // Persistence logic
+  // Language persistence
+  useEffect(() => {
+    localStorage.setItem(LANGUAGE_KEY, language);
+  }, [language]);
+
+  // Storage persistence logic
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       appState,
@@ -296,6 +336,11 @@ function App() {
 
   const handleOtpResend = async () => sendOtp(userData.mobile);
 
+  const handleLanguageSelect = (lang: 'hinglish' | 'english') => {
+    setLanguage(lang);
+    setAppState('landing');
+  };
+
   const handleAnswer = (stream: string, weight: number) => {
     if (!shuffledQuestions[currentQuestionIndex]) return;
 
@@ -355,29 +400,58 @@ function App() {
     // Refresh questions from DB on restart
     try {
       const [qRes, settingsRes] = await Promise.all([
-        fetch(`${API_BASE}/api/admin/questions`),
+        fetch(`${API_BASE}/api/admin/questions?language=${language}`),
         fetch(`${API_BASE}/api/admin/settings`)
       ]);
 
       const data = qRes.ok ? await qRes.json() : [];
       const settings = settingsRes.ok ? await settingsRes.json() : { questionLimit: 45 };
-  const dynamicPool = normalizeQuestionPool(data);
-  const pool = dynamicPool.length > 0 ? dynamicPool : questions;
+      const dynamicPool = normalizeQuestionPool(data);
+      
+      // Fallback to multiLanguageQuestions filtered by language
+      const fallbackQuestions = getQuestionByLanguage(language).map((q: any) => ({
+        id: q.id,
+        question: q.question,
+        options: q.options || [],
+        fixed: q.fixed || false
+      }));
+      
+      const pool = dynamicPool.length > 0 ? dynamicPool : fallbackQuestions;
       const requestedLimit = Number(settings?.questionLimit) || 45;
       const safeLimit = Math.max(1, Math.min(requestedLimit, pool.length));
 
       setQuestionLimit(safeLimit);
       setShuffledQuestions(buildQuizPool(pool, safeLimit));
     } catch (e) {
-      const fallbackLimit = Math.min(45, questions.length);
+      // Fallback to static multiLanguageQuestions
+      const fallbackQuestions = getQuestionByLanguage(language).map((q: any) => ({
+        id: q.id,
+        question: q.question,
+        options: q.options || [],
+        fixed: q.fixed || false
+      }));
+      const fallbackLimit = Math.min(45, fallbackQuestions.length);
       setQuestionLimit(fallbackLimit);
-      setShuffledQuestions(buildQuizPool(questions, fallbackLimit));
+      setShuffledQuestions(buildQuizPool(fallbackQuestions, fallbackLimit));
     }
   };
 
   return (
     <div className="h-screen-mobile w-full bg-white overflow-hidden">
       <AnimatePresence mode="wait">
+        {appState === 'language-select' && (
+          <motion.div
+            key="language-select"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="h-full"
+          >
+            <LanguageSelect onSelect={handleLanguageSelect} />
+          </motion.div>
+        )}
+
         {appState === 'landing' && (
           <motion.div
             key="landing"

@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Lock, Phone, Users, Star, TrendingUp, CheckCircle, Sparkles, X, Zap } from 'lucide-react';
 import type { UserData } from '../App';
-import type { getRecommendedStream } from '../data/questions';
+import type { getRecommendedStream } from '../data/multiLanguageQuestions';
 
 interface BlurredReportProps {
   userData: UserData;
