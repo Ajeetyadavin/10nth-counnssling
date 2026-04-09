@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion';
 import { Sparkles, Users, Award, ChevronRight, Star, CheckCircle, Zap, Target, BookOpen, TrendingUp } from 'lucide-react';
 
+const DUBEY_LOGO_URL = 'https://dubeytutorials.in/wp-content/uploads/2021/10/Logo_1-e1635402497788.png';
+
 interface LandingSectionProps {
   onStart: () => void;
   language?: 'hinglish' | 'english';
@@ -25,7 +27,7 @@ const LandingSection = ({ onStart, language = 'hinglish' }: LandingSectionProps)
           className="flex items-center gap-3 mb-10 relative z-10"
         >
           <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center p-2 backdrop-blur-sm">
-            <img src="/ednovate-mark.svg" alt="Dubey Tutorials" className="w-full h-full object-contain" />
+            <img src={DUBEY_LOGO_URL} alt="Dubey Tutorials" className="w-full h-full object-contain" />
           </div>
           <div>
             <p className="text-white/70 text-sm font-medium">Free Career Assessment</p>
@@ -148,7 +150,7 @@ const LandingSection = ({ onStart, language = 'hinglish' }: LandingSectionProps)
         transition={{ delay: 0.05 }}
         className="flex items-center justify-center gap-2 py-3 bg-white/70 border-b border-blue-50"
       >
-        <img src="/ednovate-mark.svg" alt="Dubey Tutorials" className="w-5 h-5 object-contain" />
+        <img src={DUBEY_LOGO_URL} alt="Dubey Tutorials" className="w-5 h-5 object-contain" />
         <p className="text-[11px] font-semibold text-slate-500 tracking-wide">Powered by Dubey Tutorials</p>
       </motion.div>
 

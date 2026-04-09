@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Clock } from 'lucide-react';
 import type { Question } from '../data/questions';
 
+const DUBEY_LOGO_URL = 'https://dubeytutorials.in/wp-content/uploads/2021/10/Logo_1-e1635402497788.png';
+
 interface QuizCardProps {
   question: Question;
   currentIndex: number;
@@ -84,7 +86,7 @@ const QuizCard = ({ question, currentIndex, totalQuestions, onAnswer, timeLeft }
         {/* Brand */}
         <div className="flex items-center gap-2 mb-10 relative z-10">
           <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center p-1.5">
-            <img src="/ednovate-mark.svg" alt="Dubey Tutorials" className="w-full h-full object-contain" />
+            <img src={DUBEY_LOGO_URL} alt="Dubey Tutorials" className="w-full h-full object-contain" />
           </div>
           <span className="text-white/80 text-sm font-semibold">Dubey Tutorials</span>
         </div>
@@ -148,7 +150,7 @@ const QuizCard = ({ question, currentIndex, totalQuestions, onAnswer, timeLeft }
       <div className="bg-slate-50 p-4 border-b border-slate-100 md:hidden">
         <div className="max-w-md mx-auto">
           <div className="flex items-center justify-center gap-2 mb-2.5">
-            <img src="/ednovate-mark.svg" alt="Dubey Tutorials" className="w-[18px] h-[18px] object-contain" />
+            <img src={DUBEY_LOGO_URL} alt="Dubey Tutorials" className="w-[18px] h-[18px] object-contain" />
             <span className="text-[10px] font-semibold tracking-wide text-slate-500 uppercase">Powered by Dubey Tutorials</span>
           </div>
           <div className="flex items-center justify-between mb-2">
