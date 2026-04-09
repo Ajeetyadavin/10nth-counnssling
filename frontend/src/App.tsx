@@ -49,7 +49,7 @@ const normalizeQuestionPool = (pool: any[]) => {
   if (!Array.isArray(pool)) return [];
   return pool
     .map((q, index) => ({
-      id: Number(q?.id ?? index + 1),
+      id: q?.id ?? index + 1,
       question: q?.question ?? q?.text ?? '',
       options: Array.isArray(q?.options) ? q.options : [],
       fixed: Boolean(q?.fixed)
@@ -71,7 +71,10 @@ const buildQuizPool = (pool: any[], limit: number) => {
     selected = [...fixedQuestions, ...normalQuestions.slice(0, safeLimit - fixedQuestions.length)];
   }
 
-  return shuffleArray(selected);
+  return shuffleArray(selected).map((q) => ({
+    ...q,
+    options: shuffleArray(Array.isArray(q.options) ? q.options : [])
+  }));
 };
 
 function App() {
@@ -249,7 +252,7 @@ function App() {
           if (prev <= 1) {
             // Auto-submit when time is up
             if (answers.length > 0) {
-              const calculatedResult = getRecommendedStream(answers);
+              const calculatedResult = getRecommendedStream(answers, shuffledQuestions);
               setResult(calculatedResult);
               setAppState('analyzing');
             } else {
@@ -262,7 +265,7 @@ function App() {
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [appState, timeLeft, answers]);
+  }, [appState, timeLeft, answers, shuffledQuestions]);
 
   // Handle analyzing to report transition
   useEffect(() => {
@@ -395,7 +398,7 @@ function App() {
         });
       }
     } else {
-      const calculatedResult = getRecommendedStream(newAnswers);
+      const calculatedResult = getRecommendedStream(newAnswers, shuffledQuestions);
       setResult(calculatedResult);
       setAppState('analyzing');
       // Final sync

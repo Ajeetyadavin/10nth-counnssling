@@ -1,5 +1,5 @@
 export interface Answer {
-  questionId: number;
+  questionId: number | string;
   stream: string;
   weight: number;
 }
@@ -572,7 +572,7 @@ export function getQuestionByLanguage(language: 'hinglish' | 'english'): any[] {
   }));
 }
 
-export function getRecommendedStream(answers: Answer[]): {
+export function getRecommendedStream(answers: Answer[], questionsPool?: any[]): {
   stream: 'science' | 'commerce' | 'arts';
   scores: { science: number; commerce: number; arts: number; neutral: number };
   percentage: number;
@@ -584,10 +584,13 @@ export function getRecommendedStream(answers: Answer[]): {
     neutral: 0
   };
 
+  // Use provided questions pool or fallback to static array
+  const questionsToSearch = questionsPool && questionsPool.length > 0 ? questionsPool : multiLanguageQuestions;
+
   for (const answer of answers) {
-    const question = multiLanguageQuestions.find((q) => q.id === answer.questionId);
+    const question = questionsToSearch.find((q) => String(q.id) === String(answer.questionId));
     if (question) {
-      const option = question.options.find((opt) => opt.stream === answer.stream);
+      const option = question.options.find((opt: any) => opt.stream === answer.stream);
       if (option) {
         streamScores[option.stream] += option.weight;
       }
