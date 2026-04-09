@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import LandingSection from './sections/LandingSection';
 import LeadForm from './sections/LeadForm';
@@ -165,6 +165,7 @@ function App() {
   const [shuffledQuestions, setShuffledQuestions] = useState<any[]>(
     savedState?.shuffledQuestions || []
   );
+  const languageRef = useRef<'hinglish' | 'english'>(savedState?.language || 'hinglish');
   const [otpHint, setOtpHint] = useState<string>('');
   const [otpToken, setOtpToken] = useState<string | null>(savedState?.otpToken || null);
   const [otpRequired, setOtpRequired] = useState<boolean>(true);
@@ -192,14 +193,18 @@ function App() {
         const safeLimit = Math.max(1, Math.min(requestedLimit, pool.length));
         setQuestionLimit(safeLimit);
         
-        // Refresh saved list if limit changed while user is not in active quiz flow.
+        // Always refresh if: (1) language changed, (2) no saved questions, or (3) not in active quiz
+        const languageChanged = languageRef.current !== language;
         const savedCount = savedState?.shuffledQuestions?.length;
+        const notInActiveQuiz = appState !== 'quiz';
         const shouldRefreshSaved =
+          languageChanged ||
           !savedState?.shuffledQuestions ||
-          ((appState === 'landing' || appState === 'form') && savedCount !== safeLimit);
+          (notInActiveQuiz && savedCount !== safeLimit);
 
         if (shouldRefreshSaved) {
           setShuffledQuestions(buildQuizPool(pool, safeLimit));
+          languageRef.current = language;
         }
       } catch (err) {
         console.error('Failed to fetch dynamic questions, using static fallback', err);
@@ -209,6 +214,7 @@ function App() {
         if (!savedState?.shuffledQuestions) {
           setShuffledQuestions(buildQuizPool(staticPool, fallbackLimit));
         }
+        languageRef.current = language;
       }
     };
     fetchQuestions();
