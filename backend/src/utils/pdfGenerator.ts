@@ -43,9 +43,9 @@ const PROFILES: Record<StreamKey, Profile> = {
         subtitle: 'PCM / PCB / PCMB — Engineering, Medical & Research',
         tagline: 'Designed for Innovation and Analytical Excellence',
         description:
-            'Your assessment responses reflect exceptional analytical ability, strong logical reasoning, and a natural drive to understand how things work. ' +
-            'You thrive when problems have verifiable, data-backed solutions — the hallmark of every great engineer, scientist, and doctor. ' +
-            'You are primed for the highest-growth careers in India and globally.',
+            'Based on your Class 10 assessment, your responses reflect exceptional analytical ability, strong logical reasoning, and a natural drive to understand how things work. ' +
+            'As you move to 11th standard, Science stream (PCM/PCB) will perfectly channel your strengths into high-growth career paths. ' +
+            'Ednovate recommends starting your preparation early — connect with our mentors for a personalized 11th-12th roadmap.',
         personality: ['Analytical','Detail-Oriented','Systematic','Curious','Persistent'],
         personalityDesc: [
             'You break complex problems into clear, logical steps naturally.',
@@ -110,24 +110,24 @@ const PROFILES: Record<StreamKey, Profile> = {
             { name: 'Diploma Engineering (Polytechnic)', exam: 'State Polytechnic CET',       examDiff: 2, rating: 3, duration: '3 years',     fees: 'INR 15K-1L/yr',   colleges: 'Govt Polytechnics, NTTE, All State Board Institutes' },
         ],
         phases: [
-            { period: 'PHASE 1 — Days 1-30: Foundation Building', focus: 'NCERT mastery + concept clarity', color: '#059669',
-              tasks: ['Complete Class 11 NCERT chapters for Physics, Chemistry and Biology/Maths fully.',
-                      'Join a coaching institute (ALLEN, FIITJEE, Aakash) or enroll in an online batch.',
-                      'Build a subject-wise syllabus tracker and mark completed vs pending topics daily.',
-                      'Download last 5 years of JEE Main / NEET papers and review the pattern carefully.',
-                      'Set a 5-6 hour daily study schedule with Pomodoro breaks (50 min study, 10 rest).'] },
+            { period: 'PHASE 1 — Days 1-30: Foundation Building', focus: 'Stream confirmation + 11th prep start', color: '#059669',
+              tasks: ['Confirm your Class 11 subject combination: PCM (Engineering/Tech) or PCB (Medical) or PCMB.',
+                      'Enroll in a coaching program (Ednovate for Commerce, ALLEN/FIITJEE for Science) or structured online batch.',
+                      'Get Class 11 NCERT textbooks for Physics, Chemistry and Maths/Biology — start Chapter 1 immediately.',
+                      'Connect with Ednovate career mentors (WhatsApp 8651014840) for a free 1-on-1 guidance session.',
+                      'Set a daily 4-5 hour study schedule — use Pomodoro technique (50 min study, 10 min break).'] },
             { period: 'PHASE 2 — Days 31-60: Practice & Testing', focus: 'Problem solving + chapter tests', color: '#2563EB',
-              tasks: ['Solve minimum 30 problems per day from HC Verma, DC Pandey or equivalent books.',
+              tasks: ['Solve minimum 20-30 problems per day from HC Verma, DC Pandey or equivalent books.',
                       'Take 2 chapter-level mock tests per week and analyze all mistakes systematically.',
                       'Build a personal "mistake notebook" — categorize errors by concept and topic type.',
                       'Complete all NCERT examples and exercises (40% of NEET is directly from NCERT).',
-                      'Practice time management: target 1-2 minutes per Multiple Choice Question (MCQ).'] },
-            { period: 'PHASE 3 — Days 61-90: Mock & Revision Mode', focus: 'Full test practice + weak area fixing', color: '#7C3AED',
-              tasks: ['Take 3 full-length mock tests per week under real 3-hour exam conditions.',
+                      'Practice time management: target 1-2 minutes per MCQ in practice sessions.'] },
+            { period: 'PHASE 3 — Days 61-90: Full Prep Mode', focus: 'Mock tests + weak area fixing', color: '#7C3AED',
+              tasks: ['Take 3 full-length mock tests per week under real exam conditions.',
                       'Spend 2× the test time analyzing mistakes and doing targeted chapter revision.',
                       'Create formula sheets, reaction mechanism charts and derivation quick-references.',
                       'Identify your 3 weakest topics and dedicate 2 focused days to each one.',
-                      'Register for KVPY, or state Science Olympiad for extra practice and credentials.'] },
+                      'Book your Ednovate career counseling session to finalize your 11th-12th academic plan.'] },
         ],
         salaryMatrix: [
             { level: 'Entry Level (0-2 yrs)',       range: 'INR 4L-12L/yr',    growth: 'Steady +15%',  years: '1-2 yrs'  },
@@ -138,14 +138,14 @@ const PROFILES: Record<StreamKey, Profile> = {
         studyTips: [
             'Start with NCERT — NEET Biology is 70% directly from NCERT text.',
             'Focus on understanding concepts before memorization — helps in novel JEE problems.',
-            'Practice past papers from 2015-2024: this is the single most effective strategy.',
-            'Join peer study groups for doubt resolution — teaching others fixes your own gaps.',
+            'Practice past papers from 2015-2024: single most effective strategy for entrance exams.',
+            'Connect with Ednovate mentors for career guidance — even Science students benefit from early planning.',
             'Use visual aids: diagrams, flowcharts, and mind maps for complex topics.',
         ],
         resources: [
             'JEE: HC Verma (Physics) + MS Chauhan (Organic) + SL Loney (Maths)',
             'NEET: NCERT BIO + DC Pandey (Physics) + OP Tandon (Chemistry)',
-            'Online: Physics Wallah, Unacademy, ALLEN DLP, Khan Academy',
+            'Career Guidance: Ednovate 1-on-1 mentorship (WhatsApp 8651014840)',
             'Mock Tests: NTA Official JEE/NEET mock (free), Aakash test series',
             'Apps: Embibe, Toppr, Doubtnut for instant doubt clearing',
         ],
@@ -178,9 +178,9 @@ const PROFILES: Record<StreamKey, Profile> = {
         subtitle: 'Accountancy / Economics / Business Studies / Mathematics',
         tagline: 'Built for Financial Mastery and Leadership Excellence',
         description:
-            'Your responses reveal strong business judgment, financial intuition, and outstanding leadership potential. ' +
-            'You naturally think in systems, outcomes and value creation — exactly the mindset that drives India\'s top CAs, bankers, and entrepreneurs. ' +
-            'Commerce gives you direct access to India\'s most lucrative career pathways.',
+            'Based on your Class 10 assessment, your responses reveal strong business judgment, financial intuition, and outstanding leadership potential. ' +
+            'As you enter 11th standard, Commerce stream will perfectly match your strengths — Ednovate\'s FYJC/SYJC Commerce programs and CA Foundation coaching will give you an early advantage. ' +
+            'Connect with Ednovate mentors to start your Commerce + CA journey right after your 10th board results.',
         personality: ['Strategic','Goal-Oriented','Persuasive','Confident','Results-Driven'],
         personalityDesc: [
             'You see the bigger picture and make decisions with long-term impact in mind.',
@@ -200,7 +200,7 @@ const PROFILES: Record<StreamKey, Profile> = {
             'May need effort to build deeper quantitative and tech skills',
             'CA pathway is 4-5 years of intense study after Class 12',
             'Early entrepreneurship involves financial uncertainty and long hours',
-            'Competition for top MBA programs (IIMs) is extremely intense',
+            'Professional course pathways (CA, CS, CMA) require dedicated preparation early',
             'Risk of scope limiting if only one career path (eg. CA) is pursued',
         ],
         opportunities: [
@@ -213,7 +213,7 @@ const PROFILES: Record<StreamKey, Profile> = {
         threats: [
             'Automation is replacing routine accounting and bookkeeping tasks rapidly',
             'CA exam pass rates are low — requires 3-5 attempts on average',
-            'Top IIM MBA needs 99+ percentile in CAT — extremely competitive',
+            'FYJC/SYJC board exams require strong fundamentals in Accounts and Economics',
             'Global financial market volatility creates career risk in banking',
             'Regulatory changes (GST, SEBI) require continuous re-learning',
         ],
@@ -223,10 +223,10 @@ const PROFILES: Record<StreamKey, Profile> = {
               cons: ['3-5 year pathway with low exam pass rates (10-20% per attempt)','Work pressure during March-end (tax season) is very high'] },
             { name: 'Investment Banker / Analyst',   icon: 'IB', rating: 5, salary: 'INR 10L-2Cr+',      growth: '+30% finance boom', demand: 'Very High',
               pros: ['Among highest paying careers in India at senior level','Work on billion-dollar mergers, IPOs and capital market deals','Global exit opportunities to Singapore, Dubai, London, New York'],
-              cons: ['80+ hour work weeks are standard especially in first 3 years','Extremely competitive entry — only top MBA/CA graduates selected'] },
-            { name: 'MBA / Management Graduate',     icon: 'MB', rating: 5, salary: 'INR 8L-45L+',       growth: '+25% demand', demand: 'Very High',
-              pros: ['IIM Ahmedabad median package crossed INR 30L in 2024','Opens doors to every industry: consulting, FMCG, tech, banking','Best network and peer group to build in entire career journey'],
-              cons: ['IIM requires 99+ percentile in CAT — 2-3 years preparation needed','INR 25-30L fees for IIM — needs scholarship or loan planning'] },
+              cons: ['80+ hour work weeks are standard especially in first 3 years','Extremely competitive entry — only top CA/CFA graduates selected'] },
+            { name: 'Commerce Workshop Graduate',     icon: 'CW', rating: 5, salary: 'INR 6L-30L+',       growth: '+20% demand', demand: 'Very High',
+              pros: ['Hands-on practical training in commerce fundamentals from day one','Builds strong foundation for CA, CS, CMA and all professional courses','Industry-relevant skills: Tally, Excel, GST filing, financial analysis'],
+              cons: ['Requires consistent attendance and practice to get full benefit','Workshop slots fill up fast — early registration recommended'] },
             { name: 'Financial Analyst / CFP',       icon: 'FA', rating: 4, salary: 'INR 6L-28L+',       growth: '+18% steady', demand: 'High',
               pros: ['Strong demand from mutual funds, PMS, insurance sector companies','CFA designation boosts salary by 30-40% at mid level','Relatively structured work-life balance vs. investment banking'],
               cons: ['Requires CFA/CFP credential for senior advancement — 3 years','Salary growth slower in early years without additional certification'] },
@@ -242,27 +242,27 @@ const PROFILES: Record<StreamKey, Profile> = {
             { name: 'BBA / BMS (Business Studies)',  exam: 'IPMAT / NPAT / DU JAT / CUET',  examDiff: 4, rating: 5, duration: '3 years',      fees: 'INR 1L-8L/yr',      colleges: 'IIM Indore (IPMAT), NMIMS, Christ, Symbiosis, DU SRCC' },
             { name: 'B.Com (Hons) / B.Com General',  exam: 'CUET / State Board Merit',      examDiff: 2, rating: 4, duration: '3 years',      fees: 'INR 15K-3L/yr',     colleges: 'SRCC Delhi, LSR, Presidency Kolkata, Loyola, St. Xavier\'s' },
             { name: 'CMA / ICWA (Cost Accountant)',   exam: 'ICAI CMA Foundation',           examDiff: 4, rating: 4, duration: '4 years',      fees: 'INR 20K-80K total', colleges: 'ICAI CMA centers nationwide — 20+ study centers in India' },
-            { name: 'MBA (Post-Graduation)',          exam: 'CAT / XAT / MAT / GMAT',        examDiff: 5, rating: 5, duration: '2 years (PG)',  fees: 'INR 5L-35L total',  colleges: 'IIM A/B/C, XLRI, FMS Delhi, MDI Gurgaon, ISB Hyderabad' },
+            { name: 'FYJC / SYJC Commerce + Ednovate Professional Courses', exam: 'Board Exams + Ednovate Assessments', examDiff: 3, rating: 5, duration: '2 years (11th-12th)', fees: 'INR 999-50K', colleges: 'Ednovate Mumbai, Jr Colleges across Maharashtra' },
         ],
         phases: [
-            { period: 'PHASE 1 — Days 1-30: Foundation Setup', focus: 'Subject selection + CA/BBA prep intent', color: '#2563EB',
-              tasks: ['Select Accountancy, Economics, Business Studies, Maths in Class 11 (these open every path).',
-                      'Register for CA Foundation with ICAI — registration is open after Class 12 registration.',
+            { period: 'PHASE 1 — Days 1-30: Foundation Setup', focus: 'FYJC admission + CA/course registration', color: '#2563EB',
+              tasks: ['Secure FYJC Commerce admission — select Accountancy, Economics, Business Studies, Maths.',
+                      'Enroll in Ednovate\'s FYJC Commerce + CA Foundation combo program (WhatsApp 8651014840).',
+                      'Register for CA Foundation with ICAI — registration opens after Class 10 board results.',
                       'Start building Excel, Tally ERP, and Google Sheets skills — these are career basics.',
-                      'Download IPMAT previous year papers if targeting BBA at IIM Indore.',
                       'Read 2 business news articles daily (Economic Times, Mint) to build financial awareness.'] },
-            { period: 'PHASE 2 — Days 31-60: Skill Building', focus: 'Practice papers + CA module study', color: '#0891B2',
-              tasks: ['Study CA Foundation syllabus: Principles of Accounting + Business Laws (core topics).',
-                      'Practice 20 MCQs daily for IPMAT (Quant + Verbal sections from past papers).',
-                      'Complete 1 online finance or business course (Coursera, Udemy — business fundamentals).',
+            { period: 'PHASE 2 — Days 31-60: Skill Building', focus: 'Ednovate coaching + CA module study', color: '#0891B2',
+              tasks: ['Begin Ednovate\'s structured FYJC+CA coaching — attend all classes and doubt sessions.',
+                      'Study CA Foundation syllabus: Principles of Accounting + Business Laws (core topics).',
+                      'Use Ednovate\'s KYM (Know Your Mistake) reports to track and fix weak areas weekly.',
                       'Build a personal mock budget/P&L to understand Balance Sheet and accounting practically.',
-                      'Attend 2 webinars on CA career or BBA admissions to understand what\'s expected.'] },
-            { period: 'PHASE 3 — Days 61-90: Mock + College Research', focus: 'Mock tests + college shortlisting', color: '#7C3AED',
-              tasks: ['Take 3 full IPMAT/CUET mock tests per week under real time-limit conditions.',
-                      'Shortlist 8-10 BBA/B.Com colleges based on fees, placement, and location preference.',
+                      'Attend Ednovate\'s career workshops and webinars on CA/commerce career paths.'] },
+            { period: 'PHASE 3 — Days 61-90: Mock + Goal Setting', focus: 'Mock tests + professional course planning', color: '#7C3AED',
+              tasks: ['Take Ednovate\'s AIR-focused test series — 3 mock tests per week under real conditions.',
+                      'Plan your professional course pathway with Ednovate mentors: CA, CFA, ACCA, or CS.',
                       'If targeting CA: solve 2 previous year CA Foundation papers completely.',
-                      'Write your SOP draft for college applications — have a mentor review and refine it.',
-                      'Attend 1 college open day or virtual info session to make a final decision.'] },
+                      'Write your academic goals and career vision — share with your Ednovate mentor for feedback.',
+                      'Attend Ednovate\'s parent-student orientation to align family support with career goals.'] },
         ],
         salaryMatrix: [
             { level: 'Entry Level (0-2 yrs)',           range: 'INR 4L-9L/yr',     growth: 'Steady +14%',  years: '1-2 yrs'  },
@@ -273,22 +273,22 @@ const PROFILES: Record<StreamKey, Profile> = {
         studyTips: [
             'Read Economic Times daily — financial awareness is a career-long differentiator.',
             'Learn Excel deeply (VLOOKUP, Pivot Tables, macros) — every finance role needs it.',
-            'Take on a campus leadership role — commerce careers reward extracurricular activity.',
-            'Build a "trading portfolio" on Zerodha paper trading to understand markets practically.',
-            'Seek a summer internship in any CA firm, bank or startup — even free experience counts.',
+            'Join Ednovate\'s FYJC/SYJC Commerce program to build a strong board + CA foundation.',
+            'Use Ednovate\'s KYM reports to track your weak areas and improve every week.',
+            'Start CA Foundation prep early with Ednovate — don\'t wait till 12th to begin.',
         ],
         resources: [
+            'Ednovate: FYJC/SYJC Commerce + CA Foundation combo programs (letsednovate.com)',
             'Accounts: TS Grewal + RD Sharma (Commerce Maths)',
-            'CA Foundation: ICAI Study Material (official, free download)',
-            'Online: Finschool by NSE, ClearTax Academy, Unacademy Commerce',
-            'Mock Tests: ICAI mock exam series, TIME IPMAT practice tests',
+            'CA Foundation: ICAI Study Material (official, free download) + Ednovate coaching',
+            'Online: Ednovate Live Classes, Finschool by NSE, ClearTax Academy',
             'Apps: Zerodha Varsity (free), CleariQ, Toppr Commerce, Embibe',
         ],
         trends: [
             { area: 'FinTech & Digital Payments',     stat: 'INR 20L Cr mkt by 2030', detail: 'India leads the world in UPI transactions. FinTech companies are hiring finance professionals with tech skills urgently.', color: '#2563EB' },
             { area: 'Startup & Venture Ecosystem',    stat: '1.1L+ active startups', detail: 'India has 110+ unicorns. Every startup needs CFOs, finance managers, and growth leads from day one of operations.', color: '#059669' },
             { area: 'ESG & Sustainable Finance',      stat: 'INR 40L Cr ESG investing', detail: 'SEBI mandated ESG reporting for top 1000 companies. Sustainability accountants and ESG analysts are a new high-demand role.', color: '#0891B2' },
-            { area: 'Global Management Consulting',   stat: 'McKinsey India: 3000+ hired', detail: 'BCG, McKinsey, Bain, Deloitte, EY are expanding India offices rapidly — hiring commerce and MBA graduates at record numbers.', color: '#7C3AED' },
+            { area: 'Global Management Consulting',   stat: 'McKinsey India: 3000+ hired', detail: 'BCG, McKinsey, Bain, Deloitte, EY are expanding India offices rapidly — hiring commerce and CA graduates at record numbers.', color: '#7C3AED' },
             { area: 'E-Commerce & D2C Brands',        stat: 'INR 7L Cr e-com by 2030', detail: 'Meesho, Nykaa, Zepto, Blinkit need business analysts, category managers, and finance professionals at large scale.', color: '#D97706' },
             { area: 'Tax Tech & Compliance',          stat: '2L+ CA jobs unfilled',    detail: 'GST implementation, corporate tax reform, and SEBI compliance have created massive demand for qualified chartered accountants.', color: '#E74623' },
         ],
@@ -313,9 +313,9 @@ const PROFILES: Record<StreamKey, Profile> = {
         subtitle: 'History / Political Science / Psychology / Literature / Economics',
         tagline: 'Designed for Creative Impact and Social Leadership',
         description:
-            'Your responses reveal exceptional creative thinking, deep social awareness, and outstanding communication ability. ' +
-            'You naturally empathize with people and have a flair for original expression — the foundation of every great lawyer, civil servant, psychologist and designer. ' +
-            'Arts stream opens some of India\'s most respected, meaningful career paths.',
+            'Based on your Class 10 assessment, your responses reveal exceptional creative thinking, deep social awareness, and outstanding communication ability. ' +
+            'As you transition to 11th standard, Arts/Humanities stream will unlock your full potential in law, civil services, psychology, and design. ' +
+            'Ednovate\'s career mentorship program will help you build a winning portfolio and preparation strategy from day one of 11th class.',
         personality: ['Creative','Empathetic','Expressive','Independent','Change-Maker'],
         personalityDesc: [
             'You generate original ideas and approach problems in unconventional ways.',
@@ -380,22 +380,22 @@ const PROFILES: Record<StreamKey, Profile> = {
             { name: 'B.Design / BFA / NIFT Fashion',    exam: 'NID DAT / NIFT / UCEED',     examDiff: 4, rating: 4, duration: '4 years',     fees: 'INR 1L-5L/yr',     colleges: 'NID Ahmedabad, NIFT Delhi, UID, Srishti, VIT Design, MIT Pune' },
         ],
         phases: [
-            { period: 'PHASE 1 — Days 1-30: Foundation & Direction', focus: 'Subject selection + clear career goal', color: '#7C3AED',
-              tasks: ['Select your Class 11 subjects aligned with your goal (History, Political Sci, Economics, Psychology).',
+            { period: 'PHASE 1 — Days 1-30: Foundation & Direction', focus: 'Stream confirmation + goal setting', color: '#7C3AED',
+              tasks: ['Confirm Class 11 subject selection: History, Political Science, Economics, Psychology based on career goal.',
                       'Research 3 career options deeply: UPSC / Law / Design / Psychology / Journalism.',
-                      'Start a personal journal or blog — writing daily is the #1 arts career skill builder.',
-                      'For law: download CLAT syllabus and prepare a 12-month study timeline.',
-                      'For UPSC: read one NCERT History or Polity book this month to test your genuine interest.'] },
+                      'Connect with Ednovate career mentors (WhatsApp 8651014840) for free Arts career guidance.',
+                      'Start a personal journal or blog — daily writing is the #1 arts career skill builder.',
+                      'For law: download CLAT syllabus and prepare a 12-month study timeline.'] },
             { period: 'PHASE 2 — Days 31-60: Skill + Experience Building', focus: 'Portfolio development', color: '#D97706',
-              tasks: ['Join the school Debate Club, Mock UN, or writing club — participation builds credentials.',
+              tasks: ['Join school Debate Club, Mock UN, or writing club — participation builds credentials.',
                       'For law: solve 30 CLAT reasoning and English questions from past papers daily.',
                       'For design: build an online portfolio (Behance/Dribbble) with 3-5 creative works.',
                       'Apply for a summer internship: media house, NGO, law firm, or photography studio.',
-                      'Read one newspaper editorial daily and write a 150-word response — builds arguments.'] },
-            { period: 'PHASE 3 — Days 61-90: Mock Tests + Applications', focus: 'Entrance prep + college shortlisting', color: '#E74623',
+                      'Read one newspaper editorial daily and write a 150-word response — builds critical thinking.'] },
+            { period: 'PHASE 3 — Days 61-90: Mock Tests + Planning', focus: 'Entrance prep + career pathway finalization', color: '#E74623',
               tasks: ['Take 3 full CLAT / CUET / NID mock tests per week in real time-limit conditions.',
-                      'Shortlist 8 colleges and visit their website for admission dates, fees, processes.',
-                      'For UPSC track: finalize BA (Hons) college and optional subject for UPSC by Day 75.',
+                      'Shortlist 8 colleges and review admission dates, fees, and processes.',
+                      'Book an Ednovate career counseling session to finalize your Arts career roadmap.',
                       'Build a 2-page professional resume highlighting projects, activities, and achievements.',
                       'Attend 1 college open day for your target discipline — ask current students for advice.'] },
         ],
@@ -409,13 +409,13 @@ const PROFILES: Record<StreamKey, Profile> = {
             'Read one newspaper editorial daily and write a 150-word opinion — builds depth of thinking.',
             'Keep a "current affairs" notebook with monthly summaries — essential for UPSC and law.',
             'Take every speech, debate, and presentation opportunity — vocal confidence is irreplaceable.',
-            'Build a portfolio of your work (written, visual, designed) early — it opens every door.',
+            'Connect with Ednovate career mentors for Arts stream guidance (WhatsApp 8651014840).',
             'Take online courses in design (Canva, Figma), psychology, or public policy to supplement degree.',
         ],
         resources: [
             'UPSC: NCERT History/Polity + Laxmikanth + Bipin Chandra',
             'CLAT: Legal Awareness + LegalEdge modules + Previous papers',
-            'Design: Coursera Design Thinking, Skillshare, Google UX Certificate',
+            'Career Guidance: Ednovate 1-on-1 mentorship for Arts students',
             'Journalism: Reuters Training, Indian Express learning resources',
             'Apps: Unacademy IAS, Vision IAS, StudyIQ, YouTube CLAT channels',
         ],
@@ -484,8 +484,10 @@ const scoresFromAnswers = (answers: Array<{ stream?: string; weight?: number }>)
 const getPrimaryStream = (scores: Record<string, number>, fallback: string): StreamKey => {
     const f = (fallback || '').toLowerCase();
     if (f === 'science' || f === 'commerce' || f === 'arts') return f as StreamKey;
+    // Neutral responses should push towards commerce
+    const adjusted: Record<string, number> = { ...scores, commerce: (scores.commerce ?? 0) + (scores.neutral ?? 0) };
     const keys: StreamKey[] = ['science', 'commerce', 'arts'];
-    return keys.sort((a, b) => (scores[b] ?? 0) - (scores[a] ?? 0))[0] ?? 'commerce';
+    return keys.sort((a, b) => (adjusted[b] ?? 0) - (adjusted[a] ?? 0))[0] ?? 'commerce';
 };
 
 const parseJSON = <T>(v: unknown, fb: T): T => {
@@ -589,7 +591,7 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
                 doc.rect(0, H - 26, W, 26).fill('#F9FAFB');
                 doc.moveTo(0, H - 26).lineTo(W, H - 26).strokeColor(BORD).lineWidth(0.4).stroke();
                 doc.fillColor(LGRAY).font('Helvetica').fontSize(6.5)
-                   .text('Ednovate Career Counseling  |  AI-Powered Student Assessment  |  letsednovate.com  |  8651014840  |  Confidential Report', M, H - 16, { width: CW, align: 'center' });
+                   .text('Ednovate  |  Class 10 → 11th Career Counseling  |  FYJC/SYJC Commerce  |  CA Foundation  |  letsednovate.com  |  8651014840', M, H - 16, { width: CW, align: 'center' });
             };
 
             const st = (y: number, title: string, col = BRAND): number => {
@@ -637,14 +639,14 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
             // ─────────────────────────────────────────────────────────────────
             // PAGE 1 — COVER: Student profile + stream result + score breakdown
             // ─────────────────────────────────────────────────────────────────
-            hdr('CAREER ASSESSMENT REPORT', 'AI-Powered Stream Analysis  |  Ednovate Career Counseling', 'Page 1 of 10');
+            hdr('CAREER ASSESSMENT REPORT', 'Class 10 → 11th Stream Selection  |  Powered by Ednovate AI', 'Page 1 of 10');
             let y = Y0;
 
             // Welcome banner
             doc.rect(M, y, CW, 44).fill(tintHex(P.color, 0.87)).strokeColor(P.color).lineWidth(0.6).stroke();
             doc.roundedRect(M, y, 4, 44, 0).fill(P.color);
-            doc.fillColor(P.darkColor).font('Helvetica-Bold').fontSize(10).text('YOUR PERSONALIZED CAREER ASSESSMENT REPORT', M + 14, y + 8, { width: CW - 20 });
-            doc.fillColor(P.darkColor).font('Helvetica').fontSize(8).text(P.tagline, M + 14, y + 25, { width: CW - 20 });
+            doc.fillColor(P.darkColor).font('Helvetica-Bold').fontSize(10).text('CLASS 10 → 11th STREAM SELECTION REPORT', M + 14, y + 8, { width: CW - 20 });
+            doc.fillColor(P.darkColor).font('Helvetica').fontSize(8).text(P.tagline + '  |  Prepared by Ednovate Career Counseling', M + 14, y + 25, { width: CW - 20 });
             y += 52;
 
             // Student name + details
@@ -728,7 +730,7 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
             // PAGE 2 — FULL SWOT ANALYSIS
             // ─────────────────────────────────────────────────────────────────
             doc.addPage();
-            hdr('SWOT ANALYSIS', 'Personalized strength & weakness mapping for ' + P.title, 'Page 2 of 10');
+            hdr('SWOT ANALYSIS', 'Class 10 Student Profile — ' + P.title + '  |  Ednovate Assessment', 'Page 2 of 10');
             y = Y0;
 
             y = st(y, 'SWOT Analysis  —  Based on Your Stream Aptitude Profile');
@@ -775,7 +777,7 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
             // PAGE 3 — APTITUDE PROFILE (8 dimensions)
             // ─────────────────────────────────────────────────────────────────
             doc.addPage();
-            hdr('APTITUDE PROFILE', 'Your 8-dimension skill assessment with personalized scores', 'Page 3 of 10');
+            hdr('APTITUDE PROFILE', 'Class 10 → 11th Aptitude Mapping  |  Ednovate AI Assessment', 'Page 3 of 10');
             y = Y0;
 
             y = st(y, 'Your 8-Dimension Aptitude Assessment  —  Derived From Answer Patterns');
@@ -827,7 +829,7 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
             // PAGE 4 — CAREER PATHS (detailed 6 careers)
             // ─────────────────────────────────────────────────────────────────
             doc.addPage();
-            hdr('TOP CAREER PATHS', 'Detailed analysis with pros, cons and salary data for ' + P.title, 'Page 4 of 10');
+            hdr('TOP CAREER PATHS', 'Future careers after choosing ' + P.title + ' in 11th  |  Ednovate', 'Page 4 of 10');
             y = Y0;
 
             y = st(y, 'Top 6 Career Paths  —  Detailed Pros & Cons Analysis With Salary Data');
@@ -886,7 +888,7 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
             // PAGE 5 — COURSE GUIDE & EXAM ROADMAP
             // ─────────────────────────────────────────────────────────────────
             doc.addPage();
-            hdr('COURSE GUIDE & EXAM ROADMAP', 'Complete course details, fees, exams, and colleges for ' + P.title, 'Page 5 of 10');
+            hdr('COURSE GUIDE & EXAM ROADMAP', 'After 10th: courses & exams for ' + P.title + '  |  Ednovate', 'Page 5 of 10');
             y = Y0;
 
             y = st(y, 'Recommended Courses  —  With Exam, Difficulty, Fees, Colleges and Our Rating');
@@ -944,7 +946,7 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
             // PAGE 6 — 90-DAY ACTION PLAN
             // ─────────────────────────────────────────────────────────────────
             doc.addPage();
-            hdr('90-DAY ACTION PLAN', 'Structured 3-phase preparation roadmap for ' + P.title, 'Page 6 of 10');
+            hdr('90-DAY ACTION PLAN', 'Post-10th preparation roadmap for ' + P.title + '  |  Ednovate', 'Page 6 of 10');
             y = Y0;
 
             y = st(y, '90-Day Structured Action Plan  —  Phase-by-Phase Preparation Roadmap');
@@ -1008,7 +1010,7 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
             // PAGE 7 — SALARY FORECAST & FINANCIAL ROADMAP
             // ─────────────────────────────────────────────────────────────────
             doc.addPage();
-            hdr('SALARY FORECAST & FINANCIAL ROADMAP', 'Career growth trajectory and earnings potential for ' + P.title, 'Page 7 of 10');
+            hdr('SALARY FORECAST & FINANCIAL ROADMAP', 'Long-term career ROI — ' + P.title + '  |  Ednovate', 'Page 7 of 10');
             y = Y0;
 
             y = st(y, 'Career Growth & Salary Forecast  —  Year-by-Year Earnings Projection');
@@ -1083,7 +1085,7 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
             // PAGE 8 — INDUSTRY TRENDS
             // ─────────────────────────────────────────────────────────────────
             doc.addPage();
-            hdr('INDUSTRY TRENDS & FUTURE SKILLS', 'Market intelligence and top in-demand skills for ' + P.title, 'Page 8 of 10');
+            hdr('INDUSTRY TRENDS & FUTURE SKILLS', 'Skills to build in 11th-12th — ' + P.title + '  |  Ednovate', 'Page 8 of 10');
             y = Y0;
 
             y = st(y, 'Top 6 Industry Trends  —  What is Driving Career Growth in Your Field');
@@ -1130,7 +1132,7 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
             // PAGE 9 — FUTURE OUTLOOK
             // ─────────────────────────────────────────────────────────────────
             doc.addPage();
-            hdr('FUTURE OUTLOOK & MARKET INTELLIGENCE', 'India and global market forecast for your career stream', 'Page 9 of 10');
+            hdr('FUTURE OUTLOOK & MARKET INTELLIGENCE', 'Your future after 11th-12th in ' + P.title + '  |  Ednovate', 'Page 9 of 10');
             y = Y0;
 
             // Future stats 4-box
@@ -1163,11 +1165,11 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
             // Career timeline visual
             y = st(y, '10-Year Career Journey  —  What to Expect at Each Stage of Your Career');
             const timelineSteps = [
-                { stage: 'Class 11-12',   focus: 'Foundation: choose stream, start prep',    col: '#059669', yr: 'Now'    },
-                { stage: 'Year 1-2',      focus: 'Degree: college + internships + skills',   col: '#2563EB', yr: 'Age 18' },
-                { stage: 'Year 3-4',      focus: 'Graduate: first job or PG entrance prep',  col: '#7C3AED', yr: 'Age 21' },
-                { stage: 'Year 5-7',      focus: 'Growth: specialist role + salary jumps',   col: '#D97706', yr: 'Age 25' },
-                { stage: 'Year 8-10',     focus: 'Senior: team lead or independent practice', col: BRAND,   yr: 'Age 28' },
+                { stage: 'Class 10 → 11th', focus: 'Stream selection + Ednovate enrollment', col: '#059669', yr: 'Now'    },
+                { stage: 'Class 11-12',     focus: 'FYJC/SYJC + coaching + foundation prep', col: '#2563EB', yr: 'Age 16' },
+                { stage: 'Degree (18-21)',  focus: 'College + internships + professional exams', col: '#7C3AED', yr: 'Age 18' },
+                { stage: 'Early Career',    focus: 'First job + specialist skills + growth', col: '#D97706', yr: 'Age 22' },
+                { stage: 'Senior (25+)',    focus: 'Leadership + high earning + global roles', col: BRAND,   yr: 'Age 25' },
             ];
             const tlStepW = Math.floor(CW / timelineSteps.length);
             const tlLineY = y + 22;
@@ -1192,9 +1194,9 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
                    'SpaceX, NASA, ESA recruit from IIT and top Indian engineering colleges.']
                 : primary === 'commerce'
                 ? ['Indian CAs are recognized by ICAEW (UK) and AICPA (USA) for global accounting roles.',
-                   'Goldman Sachs, Morgan Stanley, Blackrock all have major India offices hiring MBAs.',
+                   'Goldman Sachs, Morgan Stanley, Blackrock all have major India offices hiring CAs and finance professionals.',
                    'Indian CFOs and Finance Directors are leading global companies in US, UK, Singapore.',
-                   'ISB Hyderabad ranks in top 30 global MBA programs — opens international doors.',
+                   'FYJC/SYJC commerce foundation + Ednovate professional courses open international career doors.',
                    'FinTech companies in Singapore, Dubai recruit extensively from Indian commerce graduates.']
                 : ['Indian civil services officers work with UN agencies, World Bank as consultants.',
                    'Indian lawyers increasingly practice in Dubai, Singapore (DIFC Court), and UK courts.',
@@ -1213,7 +1215,7 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
             // PAGE 10 — EDNOVATE BRANDING & PROGRAMS
             // ─────────────────────────────────────────────────────────────────
             doc.addPage();
-            hdr('EDNOVATE — YOUR CAREER PARTNER', 'Courses, programs, and guidance for every stream in India', 'Page 10 of 10');
+            hdr('EDNOVATE — YOUR 10th → 11th CAREER PARTNER', 'FYJC/SYJC Commerce  |  CA Foundation  |  Professional Courses  |  Career Mentorship', 'Page 10 of 10');
             y = Y0;
 
             // Big logo banner
@@ -1226,57 +1228,57 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
             } else {
                 doc.fillColor(BRAND).font('Helvetica-Bold').fontSize(26).text('EDNOVATE', M + 20, y + 20);
             }
-            doc.fillColor(DARK).font('Helvetica-Bold').fontSize(11).text('India\'s #1 AI-Powered Career Counseling Platform for Class 10 Students', M + 220, y + 18, { width: CW - 240 });
-            doc.fillColor('#6B7280').font('Helvetica').fontSize(8).text('Science  |  Commerce  |  Arts  |  AI Assessment  |  1-on-1 Expert Mentorship', M + 220, y + 40, { width: CW - 240 });
+            doc.fillColor(DARK).font('Helvetica-Bold').fontSize(11).text('India\'s #1 Career Counseling & Coaching for Class 10 → 11th Students', M + 220, y + 18, { width: CW - 240 });
+            doc.fillColor('#6B7280').font('Helvetica').fontSize(8).text('FYJC / SYJC Commerce  |  CA Foundation  |  Professional Courses  |  AI Assessment', M + 220, y + 40, { width: CW - 240 });
             doc.fillColor(BRAND).font('Helvetica-Bold').fontSize(9).text('letsednovate.com  |  WhatsApp: 8651014840', M + 220, y + 55, { width: CW - 240 });
             y += 78;
 
             // About section
             y = st(y, 'About Ednovate');
-            const aboutText = 'Ednovate is a premier Mumbai-based coaching institute founded in 2020, specializing in Chartered Accountancy (CA) and commerce education. Led by experienced faculty, it is known for high pass percentages and multiple All India Ranks (AIRs). The institute offers conceptual, test-based learning via face-to-face classroom programs, live interactive sessions, and recorded lectures, with personalized mentorship, 24x7 doubt support, and rigorous writing practice. Ednovate also runs a KYM (Know Your Mistake) reporting system and student events like Edno Fest, Edno Raas, and Edno Run.';
+            const aboutText = 'Ednovate is a premier Mumbai-based coaching institute founded in 2020, specializing in FYJC/SYJC Commerce, Chartered Accountancy (CA), and professional course education for students transitioning from Class 10 to 11th and beyond. Led by experienced faculty, Ednovate is known for high pass percentages and 51+ All India Ranks (AIRs). The institute offers FYJC/SYJC Commerce coaching, CA Foundation to Final programs, global certifications (CFA, ACCA, CMA-US), and personalized career mentorship — all designed to give Class 10 students the strongest possible start in their 11th-12th journey. With 24x7 doubt support, KYM (Know Your Mistake) reports, and hybrid learning (classroom + live + recorded), Ednovate ensures every student reaches their full potential.';
             doc.fillColor(GRAY).font('Helvetica').fontSize(8.5).text(aboutText, M, y, { width: CW, lineGap: 2, align: 'justify' });
             y = doc.y + 12;
 
             // Programs in 3 columns
-            y = st(y, 'Our Complete Commerce Program Portfolio');
+            y = st(y, 'Programs for Class 10 → 11th Students & Beyond');
             const progW = (CW - 16) / 3;
             const programs = [
                 {
-                    stream: 'CA TRACK',
+                    stream: 'FYJC/SYJC + CA TRACK',
                     color: '#2563EB',
                     courses: [
-                        'CA Foundation',
+                        'FYJC Commerce (Class 11)',
+                        'SYJC Commerce (Class 12)',
+                        'CA Foundation (after 10th/12th)',
                         'CA Intermediate',
                         'CA Final',
-                        'FYJC / SYJC Commerce',
-                        'KYM Report Tracking',
-                        'AIR-Focused Test Series',
+                        'Board Exam Toppers Program',
                     ],
                     price: 'Starting INR 999',
                 },
                 {
-                    stream: 'GLOBAL FINANCE CERTS',
+                    stream: 'PROFESSIONAL COURSES',
                     color: '#7C3AED',
                     courses: [
-                        'CFA',
-                        'ACCA',
-                        'CMA-US',
-                        'FRM',
-                        'FMAA',
-                        'Career Mentorship for Finance Roles',
+                        'CFA (Chartered Financial Analyst)',
+                        'ACCA (UK Accounting)',
+                        'CMA-US (Cost Management)',
+                        'FRM (Financial Risk Mgmt)',
+                        'CS Foundation (Company Sec)',
+                        'Career Mentorship Program',
                     ],
                     price: 'Starting INR 999',
                 },
                 {
-                    stream: 'MENTORSHIP & SUPPORT',
+                    stream: 'EDNOVATE ADVANTAGE',
                     color: '#059669',
                     courses: [
-                        '24x7 Doubt Support',
-                        'Personal Mentorship',
-                        'Concept + Writing Practice',
-                        'Live + Recorded Hybrid Learning',
+                        '24x7 Doubt Support System',
+                        'Personal Mentor (1-on-1)',
+                        'KYM Report Tracking',
+                        'Live + Recorded Hybrid Classes',
                         'Mumbai Classroom Programs',
-                        'Performance Analytics Dashboard',
+                        'AIR-Focused Test Series',
                     ],
                     price: 'Starting INR 999',
                 },
@@ -1301,13 +1303,13 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
             y += 198;
 
             // Why choose Ednovate
-            y = st(y, 'Why 10,000+ Students Trust Ednovate');
+            y = st(y, 'Why 10,000+ Students Choose Ednovate After 10th');
             const whyPoints = [
-                { icon: 'AIR', title: 'Rank-Focused Training', desc: 'Ednovate has produced 51+ AIRs with structured exam-focused preparation and rigorous testing.', color: BRAND },
-                { icon: 'CA', title: 'Specialized Commerce Focus', desc: 'Deep specialization in CA and commerce education with high-result classroom and online systems.', color: '#2563EB' },
-                { icon: 'KYM', title: 'KYM Report System', desc: 'Know Your Mistake reports help students track weak areas and improve in every test cycle.', color: '#7C3AED' },
-                { icon: '24x7', title: 'Mentorship + Doubt Support', desc: 'Personal mentorship, 24x7 doubt support, and writing practice ensure consistent progress.', color: '#059669' },
-                { icon: 'HYB', title: 'Hybrid Learning Formats', desc: 'Face-to-face Mumbai classes, live sessions, and recorded lectures in one ecosystem.', color: '#D97706' },
+                { icon: '10→11', title: 'Class 10 → 11th Specialists', desc: 'Purpose-built programs for students transitioning from 10th to FYJC/SYJC Commerce and professional courses.', color: BRAND },
+                { icon: 'AIR', title: '51+ All India Ranks', desc: 'Proven results with structured, exam-focused preparation that produces top rankers consistently.', color: '#2563EB' },
+                { icon: 'CA', title: 'CA + Professional Courses', desc: 'Complete pathway: FYJC/SYJC Commerce → CA Foundation → CA Inter → CA Final + CFA, ACCA, CMA-US.', color: '#7C3AED' },
+                { icon: 'KYM', title: 'KYM Report System', desc: 'Know Your Mistake reports track weak areas after every test — ensures continuous improvement.', color: '#059669' },
+                { icon: '24x7', title: '24x7 Mentorship + Doubt Support', desc: 'Personal mentor, round-the-clock doubt resolution, and writing practice from day one of 11th.', color: '#D97706' },
             ];
             const wyW = (CW - 8) / 2;
             const wyH = 44;
@@ -1328,9 +1330,9 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
                 doc.rect(M, y, CW, 6).fill(BRAND);
                 doc.roundedRect(M, y, CW, 8, 4).fill(BRAND);
                 doc.fillColor(BRAND).font('Helvetica-Bold').fontSize(14)
-                   .text('Start Your Career Journey With Ednovate Today', M, y + 16, { width: CW, align: 'center' });
+                   .text('10th Ke Baad Sahi Raasta — Ednovate Ke Saath!', M, y + 16, { width: CW, align: 'center' });
                 doc.fillColor(GRAY).font('Helvetica').fontSize(9)
-                   .text('Talk to our expert counselors and get your personalized roadmap within 24 hours.', M, y + 36, { width: CW, align: 'center' });
+                   .text('FYJC/SYJC Commerce  |  CA Foundation  |  Professional Courses  |  Free 1-on-1 Career Counseling Session', M, y + 36, { width: CW, align: 'center' });
                 doc.fillColor(BRAND).font('Helvetica-Bold').fontSize(12)
                    .text('Call / WhatsApp: 8651014840   |   letsednovate.com', M, y + 52, { width: CW, align: 'center' });
             }

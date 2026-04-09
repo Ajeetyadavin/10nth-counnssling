@@ -44,9 +44,11 @@ const ensureTables = async () => {
     CREATE TABLE IF NOT EXISTS "AdminSettings" (
       id INT PRIMARY KEY,
       "questionLimit" INT NOT NULL DEFAULT 45,
+      "otpRequired" BOOLEAN NOT NULL DEFAULT TRUE,
       "updatedAt" TIMESTAMP DEFAULT NOW()
     )
   `);
+  await pool.query('ALTER TABLE "AdminSettings" ADD COLUMN IF NOT EXISTS "otpRequired" BOOLEAN NOT NULL DEFAULT TRUE');
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS "MobileVerification" (
@@ -68,8 +70,8 @@ const ensureTables = async () => {
   await pool.query('CREATE INDEX IF NOT EXISTS idx_mobile_verification_token ON "MobileVerification" ("verificationToken")');
 
   await pool.query(`
-    INSERT INTO "AdminSettings" (id, "questionLimit", "updatedAt")
-    VALUES (1, 45, NOW())
+    INSERT INTO "AdminSettings" (id, "questionLimit", "otpRequired", "updatedAt")
+    VALUES (1, 45, TRUE, NOW())
     ON CONFLICT (id) DO NOTHING
   `);
 };
@@ -194,22 +196,23 @@ export const setupAdminRoutes = (app: Express) => {
       console.log('Fetching questions from PostgreSQL...');
       const includeHidden = req.query.includeHidden === '1' || req.query.includeHidden === 'true';
       const language = req.query.language as string | undefined;
-      
-      let query = 'SELECT * FROM "Question" WHERE "hidden" = FALSE';
+
+      const conditions: string[] = [];
+      const params: any[] = [];
+
       if (!includeHidden) {
-        query = 'SELECT * FROM "Question" WHERE "hidden" = FALSE';
-      } else {
-        query = 'SELECT * FROM "Question"';
+        conditions.push('"hidden" = FALSE');
       }
-      
-      // Filter by language if provided
+
       if (language && (language === 'hinglish' || language === 'english')) {
-        query += ` AND language = '${language}'`;
+        params.push(language);
+        conditions.push(`language = $${params.length}`);
       }
-      
-      query += ' ORDER BY "order" ASC, "createdAt" DESC';
-      
-      const result = await pool.query(query);
+
+      const whereClause = conditions.length > 0 ? ` WHERE ${conditions.join(' AND ')}` : '';
+      const query = `SELECT * FROM "Question"${whereClause} ORDER BY "order" ASC, "createdAt" DESC`;
+
+      const result = await pool.query(query, params);
       console.log('Found questions:', result.rows.length);
       res.json(result.rows);
     } catch (err: any) {
@@ -428,9 +431,13 @@ export const setupAdminRoutes = (app: Express) => {
   // Settings: question count for test
   app.get('/api/admin/settings', async (_req, res) => {
     try {
-      const result = await pool.query('SELECT "questionLimit", "updatedAt" FROM "AdminSettings" WHERE id = 1');
-      const row = result.rows[0] || { questionLimit: 45 };
-      res.json({ questionLimit: row.questionLimit, updatedAt: row.updatedAt });
+      const result = await pool.query('SELECT "questionLimit", "otpRequired", "updatedAt" FROM "AdminSettings" WHERE id = 1');
+      const row = result.rows[0] || { questionLimit: 45, otpRequired: true };
+      res.json({
+        questionLimit: Number(row.questionLimit) || 45,
+        otpRequired: row.otpRequired !== false,
+        updatedAt: row.updatedAt
+      });
     } catch (err: any) {
       console.error('Error fetching settings:', err);
       res.status(500).json({ error: 'Failed to fetch settings' });
@@ -439,19 +446,32 @@ export const setupAdminRoutes = (app: Express) => {
 
   app.put('/api/admin/settings', async (req, res) => {
     try {
-      const rawLimit = Number(req.body?.questionLimit);
-      if (!Number.isInteger(rawLimit) || rawLimit < 1 || rawLimit > 200) {
+      const existing = await pool.query('SELECT "questionLimit", "otpRequired" FROM "AdminSettings" WHERE id = 1');
+      const current = existing.rows[0] || { questionLimit: 45, otpRequired: true };
+
+      const nextLimitRaw = req.body?.questionLimit ?? current.questionLimit;
+      const nextLimit = Number(nextLimitRaw);
+      if (!Number.isInteger(nextLimit) || nextLimit < 1 || nextLimit > 200) {
         return res.status(400).json({ error: 'questionLimit must be an integer between 1 and 200' });
       }
+
+      const nextOtpRequired = req.body?.otpRequired === undefined
+        ? (current.otpRequired !== false)
+        : Boolean(req.body.otpRequired);
+
       const result = await pool.query(
         `UPDATE "AdminSettings"
-         SET "questionLimit" = $1, "updatedAt" = NOW()
+         SET "questionLimit" = $1, "otpRequired" = $2, "updatedAt" = NOW()
          WHERE id = 1
-         RETURNING "questionLimit", "updatedAt"`,
-        [rawLimit]
+         RETURNING "questionLimit", "otpRequired", "updatedAt"`,
+        [nextLimit, nextOtpRequired]
       );
 
-      res.json(result.rows[0]);
+      res.json({
+        questionLimit: Number(result.rows[0]?.questionLimit) || nextLimit,
+        otpRequired: result.rows[0]?.otpRequired !== false,
+        updatedAt: result.rows[0]?.updatedAt
+      });
     } catch (err: any) {
       console.error('Error updating settings:', err);
       res.status(500).json({ error: 'Failed to update settings' });

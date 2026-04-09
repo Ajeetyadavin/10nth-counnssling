@@ -7,6 +7,7 @@ import { setupAdminRoutes } from './routes/adminRoutes.js';
 import { sendOtpSms } from './utils/otpService.js';
 
 const app = express();
+const isDev = process.env.NODE_ENV !== 'production';
 const corsOrigins = (process.env.CORS_ORIGIN || '')
   .split(',')
   .map((v) => v.trim())
@@ -14,8 +15,20 @@ const corsOrigins = (process.env.CORS_ORIGIN || '')
 
 app.use(
   cors(
-    corsOrigins.length > 0
-      ? { origin: corsOrigins }
+    isDev
+      ? { origin: true }
+      : corsOrigins.length > 0
+      ? {
+          origin: (origin, callback) => {
+            // Allow server-to-server/no-origin requests
+            if (!origin) return callback(null, true);
+
+            // Explicitly allowed origins from env
+            if (corsOrigins.includes(origin)) return callback(null, true);
+
+            return callback(new Error('Not allowed by CORS'));
+          }
+        }
       : undefined
   )
 );
@@ -171,24 +184,30 @@ app.post('/api/student/register', async (req, res) => {
     if (!isValidMobile(String(mobile || ''))) {
       return res.status(400).json({ error: 'Valid mobile number is required.' });
     }
-    if (!otpToken) {
-      return res.status(403).json({ error: 'OTP verification is required before starting the test.' });
-    }
 
-    const tokenConsume = await pool.query(
-      `UPDATE "MobileVerification"
-       SET "tokenConsumedAt" = NOW(), "updatedAt" = NOW()
-       WHERE mobile = $1
-         AND "verificationToken" = $2
-         AND "verifiedAt" IS NOT NULL
-         AND "tokenConsumedAt" IS NULL
-         AND "expiresAt" > NOW()
-       RETURNING id`,
-      [mobile, otpToken]
-    );
+    const settingsResult = await pool.query('SELECT "otpRequired" FROM "AdminSettings" WHERE id = 1');
+    const otpRequired = settingsResult.rows[0]?.otpRequired !== false;
 
-    if (tokenConsume.rowCount === 0) {
-      return res.status(403).json({ error: 'OTP verification is invalid or expired. Please verify again.' });
+    if (otpRequired) {
+      if (!otpToken) {
+        return res.status(403).json({ error: 'OTP verification is required before starting the test.' });
+      }
+
+      const tokenConsume = await pool.query(
+        `UPDATE "MobileVerification"
+         SET "tokenConsumedAt" = NOW(), "updatedAt" = NOW()
+         WHERE mobile = $1
+           AND "verificationToken" = $2
+           AND "verifiedAt" IS NOT NULL
+           AND "tokenConsumedAt" IS NULL
+           AND "expiresAt" > NOW()
+         RETURNING id`,
+        [mobile, otpToken]
+      );
+
+      if (tokenConsume.rowCount === 0) {
+        return res.status(403).json({ error: 'OTP verification is invalid or expired. Please verify again.' });
+      }
     }
 
     const result = await pool.query(

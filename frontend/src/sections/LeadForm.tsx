@@ -1,14 +1,16 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Phone, Mail, MapPin, ArrowRight, ArrowLeft, Shield } from 'lucide-react';
+import { User, Phone, Mail, MapPin, ArrowRight, ArrowLeft, Shield, Languages } from 'lucide-react';
 import type { UserData } from '../App';
 
 interface LeadFormProps {
   onSubmit: (data: UserData) => void;
   onBack: () => void;
+  selectedLanguage: 'hinglish' | 'english';
+  onLanguageChange: (language: 'hinglish' | 'english') => void;
 }
 
-const LeadForm = ({ onSubmit, onBack }: LeadFormProps) => {
+const LeadForm = ({ onSubmit, onBack, selectedLanguage, onLanguageChange }: LeadFormProps) => {
   const [formData, setFormData] = useState<UserData>({
     name: '',
     mobile: '',
@@ -141,6 +143,41 @@ const LeadForm = ({ onSubmit, onBack }: LeadFormProps) => {
 
         {/* Input Fields Container */}
         <div className="space-y-4">
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                Test Language <span className="text-rose-500">*</span>
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => onLanguageChange('hinglish')}
+                  className={`flex items-center justify-center gap-2 rounded-2xl border-2 px-4 py-3 font-semibold transition-all ${
+                    selectedLanguage === 'hinglish'
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                  }`}
+                >
+                  <Languages className="h-4 w-4" />
+                  Hinglish
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onLanguageChange('english')}
+                  className={`flex items-center justify-center gap-2 rounded-2xl border-2 px-4 py-3 font-semibold transition-all ${
+                    selectedLanguage === 'english'
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                  }`}
+                >
+                  <Languages className="h-4 w-4" />
+                  English
+                </button>
+              </div>
+            </motion.div>
+
             {inputFields.map((field, index) => (
               <motion.div
                 key={field.key}

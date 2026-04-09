@@ -23,7 +23,7 @@ const BlurredReport = ({ userData, result, onRestart }: BlurredReportProps) => {
       title: "Commerce Stream",
       subtitle: "With/Without Maths",
       description: "Aapka financial acumen commerce mein shine karega!",
-      careers: ["CA", "MBA", "Investment Banker", "Entrepreneur"],
+      careers: ["CA", "Commerce Workshop", "FYJC/SYJC", "Ednovate Professional Courses"],
       color: "#2563EB",
       bgGradient: "from-blue-500/10 to-indigo-500/10"
     },

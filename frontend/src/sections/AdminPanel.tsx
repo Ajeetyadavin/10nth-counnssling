@@ -24,12 +24,14 @@ type Question = {
   id: string;
   text: string;
   category?: string;
+  language?: 'hinglish' | 'english' | string;
   options: QuestionOption[] | string;
   hidden?: boolean;
   fixed?: boolean;
 };
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
+const DEFAULT_API_BASE = import.meta.env.DEV ? '' : 'http://localhost:5001';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE;
 
 const AdminPanel = ({ onBack }: { onBack: () => void }) => {
   const [activeTab, setActiveTab] = useState<Tab>('students');
@@ -40,9 +42,11 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [questionLimit, setQuestionLimit] = useState<number>(45);
+  const [otpRequired, setOtpRequired] = useState<boolean>(true);
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [settingsMsg, setSettingsMsg] = useState('');
   const [importingQuestions, setImportingQuestions] = useState(false);
+  const [questionLanguageFilter, setQuestionLanguageFilter] = useState<'all' | 'hinglish' | 'english'>('all');
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [showAddQuestion, setShowAddQuestion] = useState(false);
@@ -57,6 +61,7 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
   const [newQ, setNewQ] = useState({
     text: '',
     category: 'neutral',
+    language: 'hinglish' as 'hinglish' | 'english',
     hidden: false,
     fixed: false,
     options: [
@@ -81,6 +86,7 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
     setNewQ({
       text: '',
       category: 'neutral',
+      language: 'hinglish',
       hidden: false,
       fixed: false,
       options: [
@@ -105,7 +111,8 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
 
   const fetchQuestions = async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/admin/questions?includeHidden=1`);
+      const languageParam = questionLanguageFilter === 'all' ? '' : `&language=${questionLanguageFilter}`;
+      const res = await fetch(`${API_BASE}/api/admin/questions?includeHidden=1${languageParam}`);
       const data = await res.json();
       setQuestions(Array.isArray(data) ? data : []);
       setIsConnected(true);
@@ -119,6 +126,7 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
       const res = await fetch(`${API_BASE}/api/admin/settings`);
       const data = await res.json();
       setQuestionLimit(Number(data?.questionLimit) || 45);
+      setOtpRequired(data?.otpRequired !== false);
       setIsConnected(true);
     } catch {
       setIsConnected(false);
@@ -449,13 +457,14 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
       const res = await fetch(`${API_BASE}/api/admin/settings`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ questionLimit: safeLimit })
+        body: JSON.stringify({ questionLimit: safeLimit, otpRequired })
       });
 
       if (!res.ok) throw new Error('Save failed');
       const data = await res.json();
       setQuestionLimit(Number(data?.questionLimit) || safeLimit);
-      setSettingsMsg('Settings saved. User test ab isi question count ke saath chalega.');
+      setOtpRequired(data?.otpRequired !== false);
+      setSettingsMsg('Settings saved. Test count aur OTP preference update ho gaya.');
     } catch {
       setSettingsMsg('Settings save nahi hua.');
     } finally {
@@ -475,7 +484,7 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
     if (activeTab === 'questions') fetchQuestions();
     if (activeTab === 'settings') fetchSettings();
     if (activeTab === 'otp') fetchOtpData();
-  }, [activeTab, filter]);
+  }, [activeTab, filter, questionLanguageFilter]);
 
   return (
     <div className="h-full w-full overflow-y-auto bg-slate-50 p-4 md:p-6">
@@ -713,6 +722,15 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
                   <Upload className="w-4 h-4" />
                   {importingQuestions ? 'Importing...' : 'Import Excel (CSV)'}
                 </button>
+                <select
+                  value={questionLanguageFilter}
+                  onChange={(e) => setQuestionLanguageFilter(e.target.value as 'all' | 'hinglish' | 'english')}
+                  className="border border-slate-300 px-3 py-2 rounded-md text-sm text-slate-700"
+                >
+                  <option value="all">All Languages</option>
+                  <option value="hinglish">Hinglish</option>
+                  <option value="english">English</option>
+                </select>
                 <button
                   onClick={() => {
                     setShowAddQuestion(true);
@@ -741,6 +759,25 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
                         : setNewQ({ ...newQ, text: e.target.value })}
                       className="w-full border border-slate-300 rounded-md p-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-200"
                     />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Language</label>
+                    <select
+                      value={editingQuestion ? (editingQuestion.language || 'hinglish') : newQ.language}
+                      onChange={(e) => {
+                        const lang = e.target.value as 'hinglish' | 'english';
+                        if (editingQuestion) {
+                          setEditingQuestion({ ...editingQuestion, language: lang });
+                        } else {
+                          setNewQ({ ...newQ, language: lang });
+                        }
+                      }}
+                      className="w-full border border-slate-300 rounded-md p-2.5 text-sm"
+                    >
+                      <option value="hinglish">Hinglish</option>
+                      <option value="english">English</option>
+                    </select>
                   </div>
 
                   <div>
@@ -861,6 +898,9 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
                           onChange={() => toggleQuestionSelection(q.id)}
                         />
                         <span className="text-xs text-slate-500 uppercase">{q.category || 'neutral'}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-blue-100 text-blue-700 uppercase">
+                          {q.language || 'hinglish'}
+                        </span>
                         <span className={`text-[10px] px-2 py-0.5 rounded ${q.hidden ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
                           {q.hidden ? 'Hidden' : 'Visible'}
                         </span>
@@ -1062,14 +1102,32 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
                   onChange={(e) => setQuestionLimit(Number(e.target.value))}
                   className="w-32 border border-slate-300 rounded-md p-2 text-sm"
                 />
-                <button
-                  onClick={saveSettings}
-                  disabled={settingsSaving}
-                  className="px-3 py-2 rounded-md text-sm bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50"
-                >
-                  {settingsSaving ? 'Saving...' : 'Save'}
-                </button>
               </div>
+            </div>
+
+            <div className="border border-slate-200 rounded-md p-4 bg-slate-50">
+              <h3 className="text-base font-semibold text-slate-900 mb-2">OTP Requirement</h3>
+              <p className="text-sm text-slate-600 mb-3">
+                OTP disable karne par user bina OTP ke test start kar sakta hai (testing mode).
+              </p>
+              <label className="inline-flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={otpRequired}
+                  onChange={(e) => setOtpRequired(e.target.checked)}
+                />
+                OTP Required
+              </label>
+            </div>
+
+            <div>
+              <button
+                onClick={saveSettings}
+                disabled={settingsSaving}
+                className="px-3 py-2 rounded-md text-sm bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50"
+              >
+                {settingsSaving ? 'Saving...' : 'Save Settings'}
+              </button>
               {settingsMsg && <p className="text-xs text-slate-600 mt-2">{settingsMsg}</p>}
             </div>
           </div>

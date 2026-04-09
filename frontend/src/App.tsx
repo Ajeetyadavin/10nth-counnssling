@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import LandingSection from './sections/LandingSection';
-import LanguageSelect from './sections/LanguageSelect';
 import LeadForm from './sections/LeadForm';
 import OtpVerification from './sections/OtpVerification';
 import QuizCard from './sections/QuizCard';
@@ -12,9 +11,10 @@ import AdminLogin from './sections/AdminLogin';
 import { getQuestionByLanguage, getRecommendedStream, type Answer } from './data/multiLanguageQuestions';
 import { ArrowRight } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
+const DEFAULT_API_BASE = import.meta.env.DEV ? '' : 'http://localhost:5001';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE;
 
-export type AppState = 'language-select' | 'landing' | 'form' | 'otp' | 'quiz' | 'analyzing' | 'report' | 'admin' | 'admin-login';
+export type AppState = 'landing' | 'form' | 'otp' | 'quiz' | 'analyzing' | 'report' | 'admin' | 'admin-login';
 
 export interface UserData {
   name: string;
@@ -96,7 +96,7 @@ function App() {
     const savedLanguage = localStorage.getItem(LANGUAGE_KEY);
     if (!savedLanguage) {
       return {
-        appState: 'language-select',
+        appState: 'landing',
         language: 'hinglish',
         userData: { name: '', mobile: '', email: '', location: '' },
         currentQuestionIndex: 0,
@@ -117,6 +117,7 @@ function App() {
         const normalizedParsed = {
           ...parsed,
           language: savedLanguage,
+          appState: parsed.appState === 'language-select' ? 'landing' : parsed.appState,
           shuffledQuestions: normalizedSavedQuestions
         };
         // If they are on root '/', but state says admin, force landing
@@ -146,7 +147,7 @@ function App() {
   const savedState = loadState();
 
   const [language, setLanguage] = useState<'hinglish' | 'english'>(savedState?.language || 'hinglish');
-  const [appState, setAppState] = useState<AppState>(savedState?.appState === 'otp' ? 'form' : (savedState?.appState || 'language-select'));
+  const [appState, setAppState] = useState<AppState>(savedState?.appState === 'otp' ? 'form' : (savedState?.appState || 'landing'));
   const [userData, setUserData] = useState<UserData>(savedState?.userData || {
     name: '',
     mobile: '',
@@ -166,6 +167,7 @@ function App() {
   );
   const [otpHint, setOtpHint] = useState<string>('');
   const [otpToken, setOtpToken] = useState<string | null>(savedState?.otpToken || null);
+  const [otpRequired, setOtpRequired] = useState<boolean>(true);
   const [showOtpPopup, setShowOtpPopup] = useState<boolean>(savedState?.appState === 'otp');
 
   // Fetch Questions from DB on mount
@@ -179,7 +181,8 @@ function App() {
 
         if (!qRes.ok) throw new Error('Question API error');
         const data = await qRes.json();
-        const settings = settingsRes.ok ? await settingsRes.json() : { questionLimit: 45 };
+        const settings = settingsRes.ok ? await settingsRes.json() : { questionLimit: 45, otpRequired: true };
+        setOtpRequired(settings?.otpRequired !== false);
         const dynamicPool = normalizeQuestionPool(data);
         
         // If DB has questions, use them. Otherwise fallback to static.
@@ -199,7 +202,7 @@ function App() {
           setShuffledQuestions(buildQuizPool(pool, safeLimit));
         }
       } catch (err) {
-        console.error('Failed to fetch dynamic questions, using static fallback');
+        console.error('Failed to fetch dynamic questions, using static fallback', err);
         const staticPool = getQuestionByLanguage(language);
         const fallbackLimit = Math.min(45, staticPool.length);
         setQuestionLimit(fallbackLimit);
@@ -289,11 +292,31 @@ function App() {
   const handleFormSubmit = async (data: typeof userData) => {
     setUserData(data);
     try {
-      await sendOtp(data.mobile);
-      setShowOtpPopup(true);
+      if (otpRequired) {
+        await sendOtp(data.mobile);
+        setShowOtpPopup(true);
+        return;
+      }
+
+      const registerRes = await fetch(`${API_BASE}/api/student/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...data })
+      });
+
+      if (!registerRes.ok) {
+        throw new Error(await getErrorMessage(registerRes, 'Could not start test.'));
+      }
+
+      const student = await registerRes.json();
+      if (student?.id) {
+        setStudentId(student.id);
+      }
+      setShowOtpPopup(false);
+      setAppState('quiz');
     } catch (err) {
-      console.error('OTP send failed:', err);
-      alert(err instanceof Error ? err.message : 'Could not send OTP right now. Please try again.');
+      console.error('Start test failed:', err);
+      alert(err instanceof Error ? err.message : 'Could not start test right now. Please try again.');
     }
   };
 
@@ -335,11 +358,6 @@ function App() {
   };
 
   const handleOtpResend = async () => sendOtp(userData.mobile);
-
-  const handleLanguageSelect = (lang: 'hinglish' | 'english') => {
-    setLanguage(lang);
-    setAppState('landing');
-  };
 
   const handleAnswer = (stream: string, weight: number) => {
     if (!shuffledQuestions[currentQuestionIndex]) return;
@@ -405,7 +423,8 @@ function App() {
       ]);
 
       const data = qRes.ok ? await qRes.json() : [];
-      const settings = settingsRes.ok ? await settingsRes.json() : { questionLimit: 45 };
+      const settings = settingsRes.ok ? await settingsRes.json() : { questionLimit: 45, otpRequired: true };
+      setOtpRequired(settings?.otpRequired !== false);
       const dynamicPool = normalizeQuestionPool(data);
       
       // Fallback to multiLanguageQuestions filtered by language
@@ -439,19 +458,6 @@ function App() {
   return (
     <div className="h-screen-mobile w-full bg-white overflow-hidden">
       <AnimatePresence mode="wait">
-        {appState === 'language-select' && (
-          <motion.div
-            key="language-select"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="h-full"
-          >
-            <LanguageSelect onSelect={handleLanguageSelect} />
-          </motion.div>
-        )}
-
         {appState === 'landing' && (
           <motion.div
             key="landing"
@@ -474,7 +480,12 @@ function App() {
             transition={{ duration: 0.2 }}
             className="h-full"
           >
-            <LeadForm onSubmit={handleFormSubmit} onBack={() => setAppState('landing')} />
+            <LeadForm
+              onSubmit={handleFormSubmit}
+              onBack={() => setAppState('landing')}
+              selectedLanguage={language}
+              onLanguageChange={setLanguage}
+            />
             {showOtpPopup && (
               <OtpVerification
                 mode="modal"

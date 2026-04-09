@@ -1,25 +1,21 @@
-export interface Answer {
-  questionId: number;
-  stream: string;
-  weight: number;
-}
+export type QuestionStream = 'science' | 'commerce' | 'arts' | 'neutral';
 
-export interface MultiLanguageQuestion {
-  id: number;
-  category?: string;
+export type BilingualQuestion = {
+  order: number;
+  category: string;
   hinglish: string;
   english: string;
   options: {
     hinglish: string;
     english: string;
-    stream: 'science' | 'commerce' | 'arts' | 'neutral';
+    stream: QuestionStream;
     weight: number;
   }[];
-}
+};
 
-export const multiLanguageQuestions: MultiLanguageQuestion[] = [
+export const QUESTION_BANK: BilingualQuestion[] = [
   {
-    id: 1,
+    order: 1,
     category: 'commerce',
     hinglish: 'Aapko numbers aur calculations se kya lagta hai?',
     english: 'How do you feel about numbers and calculations?',
@@ -31,7 +27,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 2,
+    order: 2,
     category: 'commerce',
     hinglish: 'Aap apne pocket money ko kaise manage karte ho?',
     english: 'How do you manage your pocket money?',
@@ -43,7 +39,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 3,
+    order: 3,
     category: 'commerce',
     hinglish: 'Business news ya stock market ke baare mein padhna pasand hai?',
     english: 'Do you enjoy reading about business news or the stock market?',
@@ -55,7 +51,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 4,
+    order: 4,
     category: 'commerce',
     hinglish: 'Aapko shopping karte waqt kya zyada matter karta hai?',
     english: 'What matters most to you while shopping?',
@@ -67,7 +63,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 5,
+    order: 5,
     category: 'commerce',
     hinglish: 'Agar aapke paas 10,000 rupee hote toh kya karte?',
     english: 'If you had 10,000 rupees, what would you do?',
@@ -79,7 +75,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 6,
+    order: 6,
     category: 'commerce',
     hinglish: 'Bank account aur interest ke baare mein kitna jaante ho?',
     english: 'How much do you know about bank accounts and interest?',
@@ -91,7 +87,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 7,
+    order: 7,
     category: 'neutral',
     hinglish: 'Aapko kis type ki movies zyada pasand hai?',
     english: 'What type of movies do you like the most?',
@@ -103,7 +99,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 8,
+    order: 8,
     category: 'commerce',
     hinglish: 'Agar family business ho toh aap kya karoge?',
     english: 'If there were a family business, what would you do?',
@@ -115,7 +111,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 9,
+    order: 9,
     category: 'science',
     hinglish: 'Maths ke kaunse topic mein aap strong ho?',
     english: 'Which topics in mathematics are you strong in?',
@@ -127,7 +123,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 10,
+    order: 10,
     category: 'neutral',
     hinglish: 'Aapko kya lagta hai, success ka key kya hai?',
     english: 'What do you think is the key to success?',
@@ -139,7 +135,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 11,
+    order: 11,
     category: 'commerce',
     hinglish: 'Online shopping apps mein aap kya notice karte ho?',
     english: 'What do you notice on online shopping apps?',
@@ -151,7 +147,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 12,
+    order: 12,
     category: 'commerce',
     hinglish: 'Agar aapka dost aapse paise udhar maange toh?',
     english: 'If your friend asks to borrow money from you, what would you do?',
@@ -163,7 +159,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 13,
+    order: 13,
     category: 'neutral',
     hinglish: 'Future mein aap kis type ki job prefer karoge?',
     english: 'What type of job would you prefer in the future?',
@@ -175,7 +171,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 14,
+    order: 14,
     category: 'neutral',
     hinglish: 'Aapko kaunsa subject zyada interesting lagta hai?',
     english: 'Which subject feels the most interesting to you?',
@@ -187,7 +183,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 15,
+    order: 15,
     category: 'commerce',
     hinglish: 'Agar aapko koi business idea aaye toh?',
     english: 'If you got a business idea, what would you do?',
@@ -199,7 +195,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 16,
+    order: 16,
     category: 'science',
     hinglish: 'Aapko experiments karna pasand hai?',
     english: 'Do you like doing experiments?',
@@ -211,7 +207,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 17,
+    order: 17,
     category: 'science',
     hinglish: 'Technology aur gadgets ke baare mein kya feel karte ho?',
     english: 'How do you feel about technology and gadgets?',
@@ -223,7 +219,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 18,
+    order: 18,
     category: 'science',
     hinglish: 'Space, planets, universe ke baare mein padhna pasand hai?',
     english: 'Do you like reading about space, planets, and the universe?',
@@ -235,7 +231,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 19,
+    order: 19,
     category: 'neutral',
     hinglish: 'Problem solve karte waqt aapka approach kya hai?',
     english: 'What is your approach when solving a problem?',
@@ -247,7 +243,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 20,
+    order: 20,
     category: 'science',
     hinglish: 'Aapko nature observe karna pasand hai?',
     english: 'Do you like observing nature?',
@@ -259,7 +255,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 21,
+    order: 21,
     category: 'science',
     hinglish: 'Maths ke difficult problems solve karne mein maza aata hai?',
     english: 'Do you enjoy solving difficult mathematics problems?',
@@ -271,7 +267,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 22,
+    order: 22,
     category: 'science',
     hinglish: 'Agar koi machine kaam nahi kar rahi toh aap kya karoge?',
     english: 'If a machine is not working, what would you do?',
@@ -283,7 +279,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 23,
+    order: 23,
     category: 'science',
     hinglish: 'Aapko research aur analysis karna pasand hai?',
     english: 'Do you like doing research and analysis?',
@@ -295,7 +291,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 24,
+    order: 24,
     category: 'science',
     hinglish: 'Future mein invention ya discovery karna chahoge?',
     english: 'Would you like to make an invention or discovery in the future?',
@@ -307,7 +303,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 25,
+    order: 25,
     category: 'neutral',
     hinglish: 'Aapko data aur facts pe zyada believe hai ya feelings pe?',
     english: 'Do you believe more in data and facts or in feelings?',
@@ -319,7 +315,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 26,
+    order: 26,
     category: 'arts',
     hinglish: 'Aapko drawing, painting ya sketching pasand hai?',
     english: 'Do you like drawing, painting, or sketching?',
@@ -331,7 +327,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 27,
+    order: 27,
     category: 'arts',
     hinglish: 'Aapko writing ya storytelling pasand hai?',
     english: 'Do you like writing or storytelling?',
@@ -343,7 +339,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 28,
+    order: 28,
     category: 'arts',
     hinglish: 'Music, dance ya acting mein interest hai?',
     english: 'Are you interested in music, dance, or acting?',
@@ -355,7 +351,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 29,
+    order: 29,
     category: 'arts',
     hinglish: 'Aapko social causes aur helping others pasand hai?',
     english: 'Do you care about social causes and helping others?',
@@ -367,7 +363,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 30,
+    order: 30,
     category: 'arts',
     hinglish: 'Aapka imagination power kaisa hai?',
     english: 'How strong is your imagination?',
@@ -379,7 +375,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 31,
+    order: 31,
     category: 'arts',
     hinglish: 'Aapko travel aur new cultures explore karna pasand hai?',
     english: 'Do you like travelling and exploring new cultures?',
@@ -391,7 +387,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 32,
+    order: 32,
     category: 'arts',
     hinglish: 'Aapko photography ya videography mein interest hai?',
     english: 'Are you interested in photography or videography?',
@@ -403,7 +399,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 33,
+    order: 33,
     category: 'arts',
     hinglish: 'Aapko logon se baat karna aur socialize karna pasand hai?',
     english: 'Do you enjoy talking to people and socializing?',
@@ -415,7 +411,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 34,
+    order: 34,
     category: 'arts',
     hinglish: 'Aapko fashion aur dressing sense pe dhyan dete ho?',
     english: 'Do you pay attention to fashion and dressing sense?',
@@ -427,7 +423,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 35,
+    order: 35,
     category: 'arts',
     hinglish: 'Aapko history aur ancient civilizations padhna pasand hai?',
     english: 'Do you like reading about history and ancient civilizations?',
@@ -439,7 +435,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 36,
+    order: 36,
     category: 'neutral',
     hinglish: 'Aapko team mein kaam karna pasand hai ya alone?',
     english: 'Do you prefer working in a team or alone?',
@@ -451,7 +447,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 37,
+    order: 37,
     category: 'neutral',
     hinglish: 'Pressure situation mein aap kaise react karte ho?',
     english: 'How do you react in pressure situations?',
@@ -463,7 +459,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 38,
+    order: 38,
     category: 'neutral',
     hinglish: 'Aapka dream kya hai - Money, Fame, ya Satisfaction?',
     english: 'What is your dream: money, fame, or satisfaction?',
@@ -475,7 +471,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 39,
+    order: 39,
     category: 'neutral',
     hinglish: 'Aapko risk lena pasand hai ya safe rehna?',
     english: 'Do you like taking risks or staying safe?',
@@ -487,7 +483,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 40,
+    order: 40,
     category: 'neutral',
     hinglish: 'Aapko kaunsa game zyada pasand hai?',
     english: 'Which type of game do you like the most?',
@@ -499,7 +495,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 41,
+    order: 41,
     category: 'neutral',
     hinglish: 'Aapko planning karna pasand hai ya spontaneous rehna?',
     english: 'Do you like planning or being spontaneous?',
@@ -511,7 +507,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 42,
+    order: 42,
     category: 'neutral',
     hinglish: 'Agar aapse galti ho jaaye toh kya karoge?',
     english: 'If you make a mistake, what would you do?',
@@ -523,7 +519,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 43,
+    order: 43,
     category: 'neutral',
     hinglish: 'Aapko leadership role pasand hai ya follower?',
     english: 'Do you like leadership roles or being a follower?',
@@ -535,7 +531,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 44,
+    order: 44,
     category: 'neutral',
     hinglish: 'Aapka time management kaisa hai?',
     english: 'How is your time management?',
@@ -547,7 +543,7 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   },
   {
-    id: 45,
+    order: 45,
     category: 'neutral',
     hinglish: 'Finally, aapko apne future ko leke kya feel hota hai?',
     english: 'Finally, how do you feel about your future?',
@@ -559,52 +555,3 @@ export const multiLanguageQuestions: MultiLanguageQuestion[] = [
     ]
   }
 ];
-
-export function getQuestionByLanguage(language: 'hinglish' | 'english'): any[] {
-  return multiLanguageQuestions.map((q) => ({
-    id: q.id,
-    question: language === 'hinglish' ? q.hinglish : q.english,
-    options: q.options.map((opt) => ({
-      text: language === 'hinglish' ? opt.hinglish : opt.english,
-      stream: opt.stream,
-      weight: opt.weight
-    }))
-  }));
-}
-
-export function getRecommendedStream(answers: Answer[]): {
-  stream: 'science' | 'commerce' | 'arts';
-  scores: { science: number; commerce: number; arts: number; neutral: number };
-  percentage: number;
-} {
-  const streamScores: Record<string, number> = {
-    commerce: 0,
-    science: 0,
-    arts: 0,
-    neutral: 0
-  };
-
-  for (const answer of answers) {
-    const question = multiLanguageQuestions.find((q) => q.id === answer.questionId);
-    if (question) {
-      const option = question.options.find((opt) => opt.stream === answer.stream);
-      if (option) {
-        streamScores[option.stream] += option.weight;
-      }
-    }
-  }
-
-  // Neutral responses should push towards commerce
-  streamScores.commerce += streamScores.neutral;
-
-  const rankedStreams: Array<'science' | 'commerce' | 'arts'> = ['science', 'commerce', 'arts'];
-  rankedStreams.sort((a, b) => streamScores[b] - streamScores[a]);
-  const recommendedStream = rankedStreams[0] ?? 'commerce';
-  const maxScore = Math.max(streamScores.commerce, streamScores.science, streamScores.arts);
-
-  return {
-    stream: recommendedStream,
-    scores: streamScores as { science: number; commerce: number; arts: number; neutral: number },
-    percentage: Math.round((maxScore / (answers.length * 3)) * 100)
-  };
-}
