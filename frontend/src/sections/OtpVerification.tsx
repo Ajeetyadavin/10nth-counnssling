@@ -6,6 +6,7 @@ interface OtpVerificationProps {
   mobile: string;
   initialHint?: string;
   mode?: 'page' | 'modal';
+  language?: 'hinglish' | 'english';
   onBack: () => void;
   onVerify: (otp: string) => Promise<void>;
   onResend: () => Promise<string | undefined>;
@@ -15,10 +16,12 @@ const OtpVerification = ({
   mobile,
   initialHint,
   mode = 'page',
+  language = 'hinglish',
   onBack,
   onVerify,
   onResend
 }: OtpVerificationProps) => {
+  const isEn = language === 'english';
   const [otp, setOtp] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [hint, setHint] = useState<string | null>(initialHint || null);
@@ -93,7 +96,7 @@ const OtpVerification = ({
         <div className="mb-6">
           <div className="flex items-center justify-between text-sm text-slate-500 mb-2 font-medium">
             <span>Step 2 of 2</span>
-            <span>OTP verify karke test start karein</span>
+            <span>{isEn ? 'Verify OTP to start test' : 'OTP verify karke test start karein'}</span>
           </div>
           <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
             <motion.div

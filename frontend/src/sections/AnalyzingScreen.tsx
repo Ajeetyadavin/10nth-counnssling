@@ -1,12 +1,17 @@
 import { motion } from 'framer-motion';
 import { Brain, BarChart3, Target, Lightbulb, Sparkles } from 'lucide-react';
 
-const AnalyzingScreen = () => {
+interface AnalyzingScreenProps {
+  language?: 'hinglish' | 'english';
+}
+
+const AnalyzingScreen = ({ language = 'hinglish' }: AnalyzingScreenProps) => {
+  const isEn = language === 'english';
   const analyzingSteps = [
-    { icon: Brain, text: "Personality analyze ho raha hai..." },
-    { icon: BarChart3, text: "Aptitude score calculate ho raha hai..." },
-    { icon: Target, text: "Best streams match ho rahe hain..." },
-    { icon: Lightbulb, text: "Recommendations generate ho rahi hain..." }
+    { icon: Brain, text: isEn ? 'Analyzing your personality...' : 'Personality analyze ho raha hai...' },
+    { icon: BarChart3, text: isEn ? 'Calculating aptitude score...' : 'Aptitude score calculate ho raha hai...' },
+    { icon: Target, text: isEn ? 'Matching best streams...' : 'Best streams match ho rahe hain...' },
+    { icon: Lightbulb, text: isEn ? 'Generating recommendations...' : 'Recommendations generate ho rahi hain...' }
   ];
 
   return (
@@ -59,7 +64,7 @@ const AnalyzingScreen = () => {
           transition={{ delay: 0.1 }}
           className="text-slate-500 text-sm mb-6"
         >
-          AI aapke answers analyze kar raha hai
+          {isEn ? 'AI is analyzing your answers' : 'AI aapke answers analyze kar raha hai'}
         </motion.p>
 
         {/* Progress Bar */}

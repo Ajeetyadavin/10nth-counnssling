@@ -11,6 +11,7 @@ interface LeadFormProps {
 }
 
 const LeadForm = ({ onSubmit, onBack, selectedLanguage, onLanguageChange }: LeadFormProps) => {
+  const isEn = selectedLanguage === 'english';
   const [formData, setFormData] = useState<UserData>({
     name: '',
     mobile: '',
@@ -56,10 +57,10 @@ const LeadForm = ({ onSubmit, onBack, selectedLanguage, onLanguageChange }: Lead
 
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof UserData, string>> = {};
-    if (!formData.name.trim()) newErrors.name = 'Naam zaroori hai';
-    if (!formData.mobile.trim() || !/^\d{10}$/.test(formData.mobile)) newErrors.mobile = 'Sahi 10-digit number dein';
-    if (formData.email.trim() && !/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Sahi email dein';
-    if (!formData.location.trim()) newErrors.location = 'Location zaroori hai';
+    if (!formData.name.trim()) newErrors.name = isEn ? 'Name is required' : 'Naam zaroori hai';
+    if (!formData.mobile.trim() || !/^\d{10}$/.test(formData.mobile)) newErrors.mobile = isEn ? 'Enter a valid 10-digit number' : 'Sahi 10-digit number dein';
+    if (formData.email.trim() && !/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = isEn ? 'Enter a valid email' : 'Sahi email dein';
+    if (!formData.location.trim()) newErrors.location = isEn ? 'Location is required' : 'Location zaroori hai';
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -130,7 +131,7 @@ const LeadForm = ({ onSubmit, onBack, selectedLanguage, onLanguageChange }: Lead
         <div className="mb-6">
           <div className="flex items-center justify-between text-sm text-slate-500 mb-2 font-medium">
             <span>Step 1 of 2</span>
-            <span>Aapke baare mein batayein</span>
+            <span>{isEn ? 'Tell us about yourself' : 'Aapke baare mein batayein'}</span>
           </div>
           <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
             <motion.div
@@ -257,7 +258,7 @@ const LeadForm = ({ onSubmit, onBack, selectedLanguage, onLanguageChange }: Lead
             className="flex items-center gap-2 text-xs text-slate-500 mt-6"
           >
             <Shield className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-            <p>Aapka data 100% encrypted aur safe hai. Koi spam nahi!</p>
+            <p>{isEn ? 'Your data is 100% encrypted and safe. No spam!' : 'Aapka data 100% encrypted aur safe hai. Koi spam nahi!'}</p>
           </motion.div>
 
           {/* Submit Button */}

@@ -467,7 +467,7 @@ function App() {
             transition={{ duration: 0.2 }}
             className="h-full"
           >
-            <LandingSection onStart={handleStartTest} />
+            <LandingSection onStart={handleStartTest} language={language} />
           </motion.div>
         )}
 
@@ -491,6 +491,7 @@ function App() {
                 mode="modal"
                 mobile={userData.mobile}
                 initialHint={otpHint}
+                language={language}
                 onBack={() => setShowOtpPopup(false)}
                 onVerify={handleOtpVerify}
                 onResend={handleOtpResend}
@@ -528,7 +529,7 @@ function App() {
             transition={{ duration: 0.2 }}
             className="h-full"
           >
-            <AnalyzingScreen />
+            <AnalyzingScreen language={language} />
           </motion.div>
         )}
 
@@ -545,6 +546,7 @@ function App() {
               userData={userData}
               result={result}
               onRestart={handleRestart}
+              language={language}
             />
           </motion.div>
         )}
@@ -587,7 +589,14 @@ function App() {
           >
             {/* Dynamic Motivation Data */}
             {(() => {
-              const motivations = [
+              const isEn = language === 'english';
+              const motivations = isEn ? [
+                { title: "Amazing!", msg: "You conquered the first 10 questions!", emoji: "🔥" },
+                { title: "Brilliant!", msg: "Your focus is incredible!", emoji: "⚡" },
+                { title: "Power-up!", msg: "You're very close to the goal!", emoji: "🚀" },
+                { title: "On Fire!", msg: "Your choices are spot on!", emoji: "🎊" },
+                { title: "Almost There!", msg: "Just a few questions left!", emoji: "✨" }
+              ] : [
                 { title: "Gajab!", msg: "Pehle 10 sawal fatah kar liye!", emoji: "🔥" },
                 { title: "Shandaar!", msg: "Aapka focus kamaal ka hai!", emoji: "⚡" },
                 { title: "Power-up!", msg: "Aap goal ke bahut kareeb hain!", emoji: "🚀" },
@@ -643,7 +652,7 @@ function App() {
                         {msg}
                       </p>
                       <div className="bg-orange-600 inline-block px-6 py-2 rounded-full text-white font-black text-2xl shadow-lg mb-8">
-                        Bas {shuffledQuestions.length - answers.length} sawal aur!
+                        {isEn ? `Just ${shuffledQuestions.length - answers.length} questions left!` : `Bas ${shuffledQuestions.length - answers.length} sawal aur!`}
                       </div>
 
                       <motion.button

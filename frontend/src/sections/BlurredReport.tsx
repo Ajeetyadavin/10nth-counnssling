@@ -7,14 +7,16 @@ interface BlurredReportProps {
   userData: UserData;
   result: ReturnType<typeof getRecommendedStream>;
   onRestart: () => void;
+  language?: 'hinglish' | 'english';
 }
 
-const BlurredReport = ({ userData, result, onRestart }: BlurredReportProps) => {
+const BlurredReport = ({ userData, result, onRestart, language = 'hinglish' }: BlurredReportProps) => {
+  const isEn = language === 'english';
   const streamDetails = {
     science: {
       title: "Science Stream",
       subtitle: "PCM/PCB/PCMB",
-      description: "Aapka analytical mind science stream ke liye perfect hai!",
+      description: isEn ? 'Your analytical mind is perfect for the science stream!' : 'Aapka analytical mind science stream ke liye perfect hai!',
       careers: ["Engineer", "Doctor", "Scientist", "Data Analyst"],
       color: "#10B981",
       bgGradient: "from-emerald-500/10 to-teal-500/10"
@@ -22,7 +24,7 @@ const BlurredReport = ({ userData, result, onRestart }: BlurredReportProps) => {
     commerce: {
       title: "Commerce Stream",
       subtitle: "With/Without Maths",
-      description: "Aapka financial acumen commerce mein shine karega!",
+      description: isEn ? 'Your financial acumen will shine in the commerce stream!' : 'Aapka financial acumen commerce mein shine karega!',
       careers: ["CA", "Commerce Workshop", "FYJC/SYJC", "Ednovate Professional Courses"],
       color: "#2563EB",
       bgGradient: "from-blue-500/10 to-indigo-500/10"
@@ -30,7 +32,7 @@ const BlurredReport = ({ userData, result, onRestart }: BlurredReportProps) => {
     arts: {
       title: "Arts/Humanities",
       subtitle: "With Electives",
-      description: "Aapki creativity arts stream mein best utilize hogi!",
+      description: isEn ? 'Your creativity will be best utilized in the arts stream!' : 'Aapki creativity arts stream mein best utilize hogi!',
       careers: ["Lawyer", "Journalist", "Designer", "Psychologist"],
       color: "#F43F5E",
       bgGradient: "from-rose-500/10 to-pink-500/10"
@@ -149,7 +151,7 @@ const BlurredReport = ({ userData, result, onRestart }: BlurredReportProps) => {
             </div>
             <div>
               <h4 className="text-white font-bold text-sm">Hurry! Limited Offer</h4>
-              <p className="text-white/90 text-xs">Sirf 5 slots bache hain!</p>
+              <p className="text-white/90 text-xs">{isEn ? 'Only 5 slots left!' : 'Sirf 5 slots bache hain!'}</p>
             </div>
           </div>
         </motion.div>
@@ -193,7 +195,7 @@ const BlurredReport = ({ userData, result, onRestart }: BlurredReportProps) => {
           className="text-center mt-auto py-4 px-2"
         >
           <p className="text-sm font-bold text-slate-600 mb-4 px-4">
-            Aapki full career report aur college guidance ke liye call karein:
+            {isEn ? 'Call us for your full career report and college guidance:' : 'Aapki full career report aur college guidance ke liye call karein:'}
           </p>
           
           <div className="relative inline-block w-full max-w-[280px]">
@@ -268,7 +270,7 @@ const BlurredReport = ({ userData, result, onRestart }: BlurredReportProps) => {
           className="mt-2 text-[10px] text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1 mx-auto"
         >
           <X className="w-3 h-3" />
-          Test Dobaara Dein
+          {isEn ? 'Retake Test' : 'Test Dobaara Dein'}
         </motion.button>
       </div>
     </div>

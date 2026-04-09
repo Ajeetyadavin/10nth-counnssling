@@ -3,9 +3,11 @@ import { Sparkles, Users, Award, ChevronRight, Star, CheckCircle, Zap, Target, B
 
 interface LandingSectionProps {
   onStart: () => void;
+  language?: 'hinglish' | 'english';
 }
 
-const LandingSection = ({ onStart }: LandingSectionProps) => {
+const LandingSection = ({ onStart, language = 'hinglish' }: LandingSectionProps) => {
+  const isEn = language === 'english';
   return (
     <div className="h-full flex flex-col md:flex-row overflow-hidden">
 
@@ -39,11 +41,10 @@ const LandingSection = ({ onStart }: LandingSectionProps) => {
           className="mb-8 relative z-10"
         >
           <h2 className="text-4xl xl:text-5xl font-extrabold text-white leading-tight mb-4">
-            10th ke baad <br />
-            <span className="text-yellow-300">sahi raah</span> chuno
+            {isEn ? <>After 10th, choose the <br /><span className="text-yellow-300">right path</span></> : <>10th ke baad <br /><span className="text-yellow-300">sahi raah</span> chuno</>}
           </h2>
           <p className="text-blue-100 text-lg leading-relaxed max-w-md">
-            Science, Commerce ya Arts? AI-powered analysis se jaano apke liye best career path konsa hai.
+            {isEn ? 'Science, Commerce or Arts? Find out the best career path for you with AI-powered analysis.' : 'Science, Commerce ya Arts? AI-powered analysis se jaano apke liye best career path konsa hai.'}
           </p>
         </motion.div>
 
@@ -55,10 +56,10 @@ const LandingSection = ({ onStart }: LandingSectionProps) => {
           className="space-y-4 mb-10 relative z-10 max-w-md"
         >
           {[
-            { icon: Target, text: 'Personalized stream: Science, Commerce ya Arts' },
-            { icon: BookOpen, text: 'Detailed career path breakdown for your stream' },
-            { icon: TrendingUp, text: 'Top colleges & courses aligned with your interests' },
-            { icon: Award, text: 'Expert-curated FREE career report in 5 minutes' },
+            { icon: Target, text: isEn ? 'Personalized stream: Science, Commerce or Arts' : 'Personalized stream: Science, Commerce ya Arts' },
+            { icon: BookOpen, text: isEn ? 'Detailed career path breakdown for your stream' : 'Detailed career path breakdown for your stream' },
+            { icon: TrendingUp, text: isEn ? 'Top colleges & courses aligned with your interests' : 'Top colleges & courses aligned with your interests' },
+            { icon: Award, text: isEn ? 'Expert-curated FREE career report in 5 minutes' : 'Expert-curated FREE career report in 5 minutes' },
           ].map((item, i) => (
             <motion.div
               key={i}
@@ -88,7 +89,7 @@ const LandingSection = ({ onStart }: LandingSectionProps) => {
             ))}
           </div>
           <p className="text-white/90 text-sm italic mb-3">
-            "Is test ki wajah se mujhe pata chala ki mujhe Commerce lena chahiye tha. Abhi CA ki taiyari kar raha hu!"
+            {isEn ? '"This test helped me realize I should choose Commerce. Now I\'m preparing for CA!"' : '"Is test ki wajah se mujhe pata chala ki mujhe Commerce lena chahiye tha. Abhi CA ki taiyari kar raha hu!"'}
           </p>
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white font-bold text-sm">R</div>
@@ -162,7 +163,7 @@ const LandingSection = ({ onStart }: LandingSectionProps) => {
         >
           <div className="inline-flex items-center gap-2 bg-blue-100 rounded-full px-4 py-2">
             <Sparkles className="w-4 h-4 text-blue-600" />
-            <span className="text-sm font-semibold text-blue-700">10th Class Ke Baad Kya?</span>
+            <span className="text-sm font-semibold text-blue-700">{isEn ? 'What After 10th Class?' : '10th Class Ke Baad Kya?'}</span>
           </div>
         </motion.div>
 
@@ -198,11 +199,10 @@ const LandingSection = ({ onStart }: LandingSectionProps) => {
           className="text-center mb-6"
         >
           <h1 className="text-3xl font-extrabold text-slate-900 leading-tight">
-            Apna Perfect <br />
-            <span className="text-blue-600">Career Discover Karo!</span>
+            {isEn ? <>Discover Your <br /><span className="text-blue-600">Perfect Career!</span></> : <>Apna Perfect <br /><span className="text-blue-600">Career Discover Karo!</span></>}
           </h1>
           <p className="text-slate-600 text-sm mt-3 px-2">
-            Professional analysis se jaano Science, Commerce ya Arts mein aapke liye best kya hai.
+            {isEn ? 'Find out whether Science, Commerce or Arts is best for you with professional analysis.' : 'Professional analysis se jaano Science, Commerce ya Arts mein aapke liye best kya hai.'}
           </p>
         </motion.div>
 
