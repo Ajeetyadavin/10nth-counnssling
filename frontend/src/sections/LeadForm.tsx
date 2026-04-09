@@ -99,10 +99,10 @@ const LeadForm = ({ onSubmit, onBack, selectedLanguage, onLanguageChange }: Lead
   };
 
   const inputFields = [
-    { key: 'name' as const, label: 'Full Name', placeholder: 'Apna naam', icon: User, type: 'text', autoComplete: 'name', name: 'name' },
-    { key: 'mobile' as const, label: 'Mobile Number', placeholder: '10 digit number', icon: Phone, type: 'tel', maxLength: 10, autoComplete: 'tel', name: 'mobile' },
-    { key: 'email' as const, label: 'Email', placeholder: 'email@example.com', icon: Mail, type: 'email', autoComplete: 'email', name: 'email' },
-    { key: 'location' as const, label: 'City', placeholder: 'Mumbai Station Name...', icon: MapPin, type: 'text', autoComplete: 'address-level2', name: 'city' }
+    { key: 'name' as const, label: isEn ? 'Full Name' : 'Full Name', placeholder: isEn ? 'Your name' : 'Apna naam', icon: User, type: 'text', autoComplete: 'name', name: 'name' },
+    { key: 'mobile' as const, label: isEn ? 'Mobile Number' : 'Mobile Number', placeholder: isEn ? '10 digit number' : '10 digit number', icon: Phone, type: 'tel', maxLength: 10, autoComplete: 'tel', name: 'mobile' },
+    { key: 'email' as const, label: isEn ? 'Email' : 'Email', placeholder: isEn ? 'email@example.com' : 'email@example.com', icon: Mail, type: 'email', autoComplete: 'email', name: 'email' },
+    { key: 'location' as const, label: isEn ? 'City' : 'City', placeholder: isEn ? 'Enter your city...' : 'Mumbai Station Name...', icon: MapPin, type: 'text', autoComplete: 'address-level2', name: 'city' }
   ];
 
   return (
@@ -117,7 +117,7 @@ const LeadForm = ({ onSubmit, onBack, selectedLanguage, onLanguageChange }: Lead
             <ArrowLeft className="w-6 h-6 text-white" />
           </button>
           <div>
-            <h2 className="text-xl font-bold text-white">Basic Information</h2>
+            <h2 className="text-xl font-bold text-white">{isEn ? 'Basic Information' : 'Aapki Basic Jaankari'}</h2>
           </div>
         </div>
       </div>
@@ -149,7 +149,7 @@ const LeadForm = ({ onSubmit, onBack, selectedLanguage, onLanguageChange }: Lead
               animate={{ opacity: 1, y: 0 }}
             >
               <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                Test Language <span className="text-rose-500">*</span>
+                {isEn ? 'Test Language' : 'Test Language'} <span className="text-rose-500">*</span>
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <button
@@ -274,7 +274,7 @@ const LeadForm = ({ onSubmit, onBack, selectedLanguage, onLanguageChange }: Lead
               whileTap={{ scale: 0.98 }}
               className="w-full gradient-primary text-white font-bold py-4 px-6 rounded-2xl text-base shadow-button flex items-center justify-center gap-2 group"
             >
-              <span>Continue to Test</span>
+              <span>{isEn ? 'Continue to Test' : 'Test Ke Liye Continue Kare'}</span>
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </motion.button>
           </motion.div>
