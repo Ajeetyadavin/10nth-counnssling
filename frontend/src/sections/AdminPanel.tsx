@@ -9,10 +9,13 @@ type Student = {
   name: string;
   mobile: string;
   location: string;
+  source?: 'ednovate' | 'dubey' | string;
   status: 'Partial' | 'Completed' | string;
   answers?: any;
   createdAt?: string;
 };
+
+type SourceFilter = 'all' | 'ednovate' | 'dubey';
 
 type QuestionOption = {
   text: string;
@@ -46,6 +49,7 @@ const AdminPanel = ({
   const [students, setStudents] = useState<Student[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [filter, setFilter] = useState<StatusFilter>('All');
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
   const [search, setSearch] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
@@ -640,6 +644,19 @@ const AdminPanel = ({
                     {opt}
                   </button>
                 ))}
+                {([
+                  { key: 'all', label: 'All Brands' },
+                  { key: 'ednovate', label: 'Ednovate' },
+                  { key: 'dubey', label: 'Dubey' }
+                ] as const).map((opt) => (
+                  <button
+                    key={opt.key}
+                    onClick={() => setSourceFilter(opt.key)}
+                    className={`px-3 py-2 rounded-md text-sm ${sourceFilter === opt.key ? 'bg-blue-700 text-white' : 'border border-slate-300 text-slate-700 hover:bg-slate-100'}`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
                 <button
                   onClick={exportCSV}
                   className="px-3 py-2 rounded-md text-sm border border-slate-300 text-slate-700 hover:bg-slate-100"
@@ -654,6 +671,7 @@ const AdminPanel = ({
                 <thead className="bg-slate-100">
                   <tr>
                     <th className="text-left px-3 py-2">Name</th>
+                    <th className="text-left px-3 py-2">Brand</th>
                     <th className="text-left px-3 py-2">Mobile</th>
                     <th className="text-left px-3 py-2">Location</th>
                     <th className="text-left px-3 py-2">Date</th>
@@ -665,6 +683,7 @@ const AdminPanel = ({
                 <tbody>
                   {students
                     .filter((s) => s.name.toLowerCase().includes(search.toLowerCase()) || s.mobile.includes(search))
+                    .filter((s) => sourceFilter === 'all' ? true : (s.source || 'ednovate') === sourceFilter)
                     .map((student) => {
                       const answersArray = Array.isArray(student.answers) ? student.answers : (typeof student.answers === 'string' ? JSON.parse(student.answers || '[]') : []);
                       const progress = answersArray.length;
@@ -672,10 +691,16 @@ const AdminPanel = ({
                       const created = student.createdAt ? new Date(student.createdAt) : null;
                       const createdDate = created && !Number.isNaN(created.getTime()) ? created.toLocaleDateString('en-IN') : '-';
                       const createdTime = created && !Number.isNaN(created.getTime()) ? created.toLocaleTimeString('en-IN') : '-';
+                      const brand = (student.source || 'ednovate') === 'dubey' ? 'Dubey' : 'Ednovate';
                       
                       return (
                         <tr key={student.id} className="border-t border-slate-200">
                           <td className="px-3 py-2 font-medium">{student.name}</td>
+                          <td className="px-3 py-2 text-slate-500">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${brand === 'Dubey' ? 'bg-sky-100 text-sky-700' : 'bg-indigo-100 text-indigo-700'}`}>
+                              {brand}
+                            </span>
+                          </td>
                           <td className="px-3 py-2 text-slate-500">{student.mobile}</td>
                           <td className="px-3 py-2 text-slate-500">{student.location}</td>
                           <td className="px-3 py-2 text-slate-500">{createdDate}</td>
