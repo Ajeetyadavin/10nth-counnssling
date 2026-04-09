@@ -33,7 +33,15 @@ type Question = {
 const DEFAULT_API_BASE = import.meta.env.DEV ? '' : 'http://localhost:5001';
 const API_BASE = import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE;
 
-const AdminPanel = ({ onBack }: { onBack: () => void }) => {
+const AdminPanel = ({
+  onBack,
+  adminToken,
+  onUnauthorized
+}: {
+  onBack: () => void;
+  adminToken: string | null;
+  onUnauthorized: () => void;
+}) => {
   const [activeTab, setActiveTab] = useState<Tab>('students');
   const [students, setStudents] = useState<Student[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -98,9 +106,27 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
     });
   };
 
+  const adminFetch = async (input: RequestInfo | URL, init: RequestInit = {}) => {
+    if (!adminToken) {
+      onUnauthorized();
+      throw new Error('Admin session missing. Please login again.');
+    }
+
+    const headers = new Headers(init.headers || {});
+    headers.set('Authorization', `Bearer ${adminToken}`);
+
+    const res = await fetch(input, { ...init, headers });
+    if (res.status === 401) {
+      onUnauthorized();
+      throw new Error('Session expired. Please login again.');
+    }
+
+    return res;
+  };
+
   const fetchStudents = async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/admin/students?status=${filter === 'All' ? '' : filter}`);
+      const res = await adminFetch(`${API_BASE}/api/admin/students?status=${filter === 'All' ? '' : filter}`);
       const data = await res.json();
       setStudents(Array.isArray(data) ? data : []);
       setIsConnected(true);
@@ -112,7 +138,7 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
   const fetchQuestions = async () => {
     try {
       const languageParam = questionLanguageFilter === 'all' ? '' : `&language=${questionLanguageFilter}`;
-      const res = await fetch(`${API_BASE}/api/admin/questions?includeHidden=1${languageParam}`);
+      const res = await adminFetch(`${API_BASE}/api/admin/questions?includeHidden=1${languageParam}`);
       const data = await res.json();
       setQuestions(Array.isArray(data) ? data : []);
       setIsConnected(true);
@@ -123,7 +149,7 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
 
   const fetchSettings = async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/admin/settings`);
+      const res = await adminFetch(`${API_BASE}/api/admin/settings`);
       const data = await res.json();
       setQuestionLimit(Number(data?.questionLimit) || 45);
       setOtpRequired(data?.otpRequired !== false);
@@ -135,7 +161,7 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
 
   const fetchOtpData = async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/admin/otp-verification`);
+      const res = await adminFetch(`${API_BASE}/api/admin/otp-verification`);
       const data = await res.json();
       setOtpVerified(data.verified || []);
       setOtpFailed(data.failed || []);
@@ -154,7 +180,7 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
     if (!window.confirm('Delete student?')) return;
     setIsDeleting(id);
     try {
-      await fetch(`${API_BASE}/api/admin/student/${id}`, { method: 'DELETE' });
+      await adminFetch(`${API_BASE}/api/admin/student/${id}`, { method: 'DELETE' });
       setStudents((prev) => prev.filter((s) => s.id !== id));
     } catch {
       alert('Delete failed');
@@ -166,7 +192,7 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
   const deleteQuestion = async (id: string) => {
     if (!window.confirm('Delete question?')) return;
     try {
-      await fetch(`${API_BASE}/api/admin/questions/${id}`, { method: 'DELETE' });
+      await adminFetch(`${API_BASE}/api/admin/questions/${id}`, { method: 'DELETE' });
       setQuestions((prev) => prev.filter((q) => q.id !== id));
     } catch {
       alert('Delete failed');
@@ -176,7 +202,7 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
   const addQuestion = async () => {
     if (!newQ.text.trim()) return alert('Question text is required');
     try {
-      const res = await fetch(`${API_BASE}/api/admin/questions`, {
+      const res = await adminFetch(`${API_BASE}/api/admin/questions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newQ)
@@ -193,7 +219,7 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
   const updateQuestion = async () => {
     if (!editingQuestion || !editingQuestion.text.trim()) return alert('Question text is required');
     try {
-      const res = await fetch(`${API_BASE}/api/admin/questions/${editingQuestion.id}`, {
+      const res = await adminFetch(`${API_BASE}/api/admin/questions/${editingQuestion.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editingQuestion)
@@ -228,7 +254,7 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
     }
 
     try {
-      const res = await fetch(`${API_BASE}/api/admin/questions/visibility/bulk`, {
+      const res = await adminFetch(`${API_BASE}/api/admin/questions/visibility/bulk`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids: selectedQuestionIds, hidden })
@@ -254,7 +280,7 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
     }
 
     try {
-      const res = await fetch(`${API_BASE}/api/admin/questions/fixed/bulk`, {
+      const res = await adminFetch(`${API_BASE}/api/admin/questions/fixed/bulk`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids: selectedQuestionIds, fixed })
@@ -273,7 +299,7 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
 
   const updateSingleVisibility = async (id: string, hidden: boolean) => {
     try {
-      const res = await fetch(`${API_BASE}/api/admin/questions/visibility/bulk`, {
+      const res = await adminFetch(`${API_BASE}/api/admin/questions/visibility/bulk`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids: [id], hidden })
@@ -288,7 +314,7 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
 
   const updateSingleFixed = async (id: string, fixed: boolean) => {
     try {
-      const res = await fetch(`${API_BASE}/api/admin/questions/fixed/bulk`, {
+      const res = await adminFetch(`${API_BASE}/api/admin/questions/fixed/bulk`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids: [id], fixed })
@@ -426,7 +452,7 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
         return;
       }
 
-      const res = await fetch(`${API_BASE}/api/admin/questions/import`, {
+      const res = await adminFetch(`${API_BASE}/api/admin/questions/import`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mode: 'merge', questions: incoming })
@@ -454,7 +480,7 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
     try {
       setSettingsSaving(true);
       setSettingsMsg('');
-      const res = await fetch(`${API_BASE}/api/admin/settings`, {
+      const res = await adminFetch(`${API_BASE}/api/admin/settings`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ questionLimit: safeLimit, otpRequired })
@@ -472,8 +498,37 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
     }
   };
 
-  const exportCSV = () => window.open(`${API_BASE}/api/admin/export`, '_blank');
-  const downloadPDF = (id: string) => window.open(`${API_BASE}/api/admin/report/${id}`, '_blank');
+  const exportCSV = async () => {
+    try {
+      const res = await adminFetch(`${API_BASE}/api/admin/export`);
+      if (!res.ok) throw new Error('Export failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `students_data_${Date.now()}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert('CSV export failed');
+    }
+  };
+
+  const downloadPDF = async (id: string) => {
+    try {
+      const res = await adminFetch(`${API_BASE}/api/admin/report/${id}`);
+      if (!res.ok) throw new Error('PDF download failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Report_${id}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert('PDF download failed');
+    }
+  };
 
   useEffect(() => {
     fetchSettings();
@@ -484,7 +539,7 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
     if (activeTab === 'questions') fetchQuestions();
     if (activeTab === 'settings') fetchSettings();
     if (activeTab === 'otp') fetchOtpData();
-  }, [activeTab, filter, questionLanguageFilter]);
+  }, [activeTab, filter, questionLanguageFilter, adminToken]);
 
   return (
     <div className="h-full w-full overflow-y-auto bg-slate-50 p-4 md:p-6">

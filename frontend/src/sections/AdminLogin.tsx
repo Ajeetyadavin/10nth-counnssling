@@ -1,26 +1,37 @@
 import React, { useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 
-const ADMIN_USERNAME = import.meta.env.VITE_ADMIN_USERNAME?.trim() || '';
-const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD?.trim() || '';
-const IS_ADMIN_CONFIGURED = Boolean(ADMIN_USERNAME && ADMIN_PASSWORD);
+const DEFAULT_API_BASE = import.meta.env.DEV ? '' : 'http://localhost:5001';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE;
 
-const AdminLogin = ({ onLogin, onBack }: { onLogin: () => void, onBack: () => void }) => {
+const AdminLogin = ({ onLogin, onBack }: { onLogin: (token: string) => void, onBack: () => void }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!IS_ADMIN_CONFIGURED) {
-      setError('Admin credentials are not configured. Set VITE_ADMIN_USERNAME and VITE_ADMIN_PASSWORD.');
-      return;
-    }
+    setError('');
+    setIsLoading(true);
 
-    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-      onLogin();
-    } else {
-      setError('Invalid username or password');
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data?.token) {
+        throw new Error(data?.error || 'Invalid username or password');
+      }
+
+      onLogin(String(data.token));
+    } catch (err: any) {
+      setError(err?.message || 'Invalid username or password');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -40,12 +51,6 @@ const AdminLogin = ({ onLogin, onBack }: { onLogin: () => void, onBack: () => vo
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
-          {!IS_ADMIN_CONFIGURED && (
-            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700">
-              Admin login is disabled until VITE_ADMIN_USERNAME and VITE_ADMIN_PASSWORD are set.
-            </p>
-          )}
-
           <div className="space-y-2">
             <input 
               type="text" 
@@ -67,10 +72,10 @@ const AdminLogin = ({ onLogin, onBack }: { onLogin: () => void, onBack: () => vo
 
           <button 
             type="submit"
-            disabled={!IS_ADMIN_CONFIGURED}
-            className="w-full bg-black text-white text-sm font-medium py-3 rounded-lg hover:bg-zinc-800 transition-colors"
+            disabled={isLoading}
+            className="w-full bg-black text-white text-sm font-medium py-3 rounded-lg hover:bg-zinc-800 transition-colors disabled:opacity-70"
           >
-            Login
+            {isLoading ? 'Logging in...' : 'Login'}
           </button>
         </form>
       </div>

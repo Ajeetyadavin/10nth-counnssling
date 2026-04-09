@@ -25,6 +25,7 @@ export interface UserData {
 
 const STORAGE_KEY = 'career_counselor_state';
 const LANGUAGE_KEY = 'career_counselor_language';
+const ADMIN_TOKEN_KEY = 'career_counselor_admin_token';
 
 const getErrorMessage = async (res: Response, fallback: string) => {
   try {
@@ -173,6 +174,7 @@ function App() {
   const [otpToken, setOtpToken] = useState<string | null>(savedState?.otpToken || null);
   const [otpRequired, setOtpRequired] = useState<boolean>(true);
   const [showOtpPopup, setShowOtpPopup] = useState<boolean>(savedState?.appState === 'otp');
+  const [adminToken, setAdminToken] = useState<string | null>(() => localStorage.getItem(ADMIN_TOKEN_KEY));
 
   // Fetch Questions from DB on mount
   useEffect(() => {
@@ -567,7 +569,15 @@ function App() {
             animate={{ opacity: 1 }}
             className="h-full"
           >
-            <AdminPanel onBack={() => setAppState('landing')} />
+            <AdminPanel
+              adminToken={adminToken}
+              onUnauthorized={() => {
+                localStorage.removeItem(ADMIN_TOKEN_KEY);
+                setAdminToken(null);
+                setAppState('admin-login');
+              }}
+              onBack={() => setAppState('landing')}
+            />
           </motion.div>
         )}
 
@@ -579,7 +589,11 @@ function App() {
             className="h-full"
           >
             <AdminLogin 
-              onLogin={() => setAppState('admin')} 
+              onLogin={(token) => {
+                localStorage.setItem(ADMIN_TOKEN_KEY, token);
+                setAdminToken(token);
+                setAppState('admin');
+              }} 
               onBack={() => setAppState('landing')} 
             />
           </motion.div>

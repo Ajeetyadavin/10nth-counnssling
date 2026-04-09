@@ -4,6 +4,7 @@ import './config/env.js';
 import crypto from 'node:crypto';
 import pool from './db.js';
 import { setupAdminRoutes } from './routes/adminRoutes.js';
+import { requireAdminAuth } from './middleware/adminAuth.js';
 import { sendOtpSms } from './utils/otpService.js';
 
 const app = express();
@@ -251,6 +252,7 @@ app.post('/api/student/complete/:id', async (req, res) => {
 });
 
 // Admin view students & exports
+app.use('/api/admin', requireAdminAuth);
 setupAdminRoutes(app);
 
 // Start Server

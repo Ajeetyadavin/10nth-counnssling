@@ -1,6 +1,7 @@
 import pool from '../db.js';
 import { generateReportPDF } from '../utils/pdfGenerator.js';
 import { seedQuestionsIfEmpty } from '../seeds.js';
+import { signAdminToken } from '../middleware/adminAuth.js';
 import type { Express } from 'express';
 
 const ensureTables = async () => {
@@ -88,6 +89,29 @@ export const setupAdminRoutes = (app: Express) => {
   ensureTables()
     .then(() => seedQuestionsIfEmpty())
     .catch((err) => console.error('Failed to initialize tables/seed:', err));
+
+  app.post('/api/admin/auth/login', async (req, res) => {
+    const username = String(req.body?.username || '').trim();
+    const password = String(req.body?.password || '').trim();
+    const expectedUsername = String(process.env.ADMIN_USERNAME || '').trim();
+    const expectedPassword = String(process.env.ADMIN_PASSWORD || '').trim();
+
+    if (!expectedUsername || !expectedPassword) {
+      return res.status(503).json({ error: 'Admin credentials are not configured on server.' });
+    }
+
+    if (username !== expectedUsername || password !== expectedPassword) {
+      return res.status(401).json({ error: 'Invalid username or password.' });
+    }
+
+    try {
+      const token = signAdminToken(username);
+      return res.json({ ok: true, token });
+    } catch (err: any) {
+      console.error('Admin login token error:', err?.message || err);
+      return res.status(503).json({ error: 'Admin auth is not configured on server.' });
+    }
+  });
 
   // Get all students
   app.get('/api/admin/students', async (req, res) => {
