@@ -6,16 +6,17 @@ const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET || '';
 type AdminTokenPayload = {
   role: 'admin';
   username: string;
+  scope: 'all' | 'dubey';
 };
 
 const openAdminPaths = new Set(['/auth/login']);
 
-export const signAdminToken = (username: string) => {
+export const signAdminToken = (username: string, scope: 'all' | 'dubey') => {
   if (!ADMIN_JWT_SECRET) {
     throw new Error('ADMIN_JWT_SECRET is not configured');
   }
 
-  return jwt.sign({ role: 'admin', username }, ADMIN_JWT_SECRET, { expiresIn: '8h' });
+  return jwt.sign({ role: 'admin', username, scope }, ADMIN_JWT_SECRET, { expiresIn: '8h' });
 };
 
 export const requireAdminAuth = (req: Request, res: Response, next: NextFunction) => {
@@ -39,6 +40,10 @@ export const requireAdminAuth = (req: Request, res: Response, next: NextFunction
     if (payload?.role !== 'admin') {
       return res.status(401).json({ error: 'Invalid admin token.' });
     }
+    (req as any).adminAuth = {
+      username: payload.username,
+      scope: payload.scope === 'dubey' ? 'dubey' : 'all'
+    };
     return next();
   } catch {
     return res.status(401).json({ error: 'Invalid or expired admin token.' });

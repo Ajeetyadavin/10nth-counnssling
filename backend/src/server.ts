@@ -45,6 +45,11 @@ const OTP_EXPIRY_MINUTES = Number(process.env.OTP_EXPIRY_MINUTES || 10);
 const OTP_RESEND_COOLDOWN_SECONDS = Number(process.env.OTP_RESEND_COOLDOWN_SECONDS || 45);
 const OTP_MAX_ATTEMPTS = Number(process.env.OTP_MAX_ATTEMPTS || 5);
 
+const getAppSource = (value: unknown): 'ednovate' | 'dubey' => {
+  const normalized = String(value || '').trim().toLowerCase();
+  return normalized === 'dubey' ? 'dubey' : 'ednovate';
+};
+
 const isValidMobile = (mobile: string) => /^\d{10}$/.test(String(mobile || '').trim());
 const makeOtp = () => String(Math.floor(100000 + Math.random() * 900000));
 const hashOtp = (otp: string) => crypto.createHash('sha256').update(String(otp)).digest('hex');
@@ -55,16 +60,49 @@ app.get('/api/health', (_req, res) => {
   res.json({ ok: true });
 });
 
+app.get('/api/quiz/settings', async (_req, res) => {
+  try {
+    const result = await pool.query('SELECT "questionLimit", "otpRequired" FROM "AdminSettings" WHERE id = 1');
+    const row = result.rows[0] || { questionLimit: 45, otpRequired: true };
+    return res.json({
+      questionLimit: Number(row.questionLimit) || 45,
+      otpRequired: row.otpRequired !== false
+    });
+  } catch {
+    return res.json({ questionLimit: 45, otpRequired: true });
+  }
+});
+
+app.get('/api/quiz/questions', async (req, res) => {
+  try {
+    const language = req.query.language as string | undefined;
+    const params: any[] = [];
+    let query = 'SELECT * FROM "Question" WHERE "hidden" = FALSE';
+
+    if (language && (language === 'hinglish' || language === 'english')) {
+      params.push(language);
+      query += ` AND language = $${params.length}`;
+    }
+
+    query += ' ORDER BY "order" ASC, "createdAt" DESC';
+    const result = await pool.query(query, params);
+    return res.json(result.rows);
+  } catch {
+    return res.status(500).json({ error: 'Failed to fetch quiz questions' });
+  }
+});
+
 app.post('/api/otp/send', async (req, res) => {
   try {
     const mobile = String(req.body?.mobile || '').trim();
+    const appSource = getAppSource(req.headers['x-app-source']);
     if (!isValidMobile(mobile)) {
       return res.status(400).json({ error: 'Please provide a valid 10-digit mobile number.' });
     }
 
     const recent = await pool.query(
-      'SELECT "createdAt" FROM "MobileVerification" WHERE mobile = $1 ORDER BY "createdAt" DESC LIMIT 1',
-      [mobile]
+      'SELECT "createdAt" FROM "MobileVerification" WHERE mobile = $1 AND source = $2 ORDER BY "createdAt" DESC LIMIT 1',
+      [mobile, appSource]
     );
     if (recent.rows[0]?.createdAt) {
       const lastSentAt = new Date(recent.rows[0].createdAt).getTime();
@@ -80,10 +118,10 @@ app.post('/api/otp/send', async (req, res) => {
     const correlationId = crypto.randomUUID();
     const insert = await pool.query(
       `INSERT INTO "MobileVerification"
-      (id, mobile, "otpHash", "expiresAt", attempts, "createdAt", "updatedAt", "correlationId")
-      VALUES (gen_random_uuid()::text, $1, $2, NOW() + ($3 || ' minutes')::interval, 0, NOW(), NOW(), $4)
+      (id, mobile, source, "otpHash", "expiresAt", attempts, "createdAt", "updatedAt", "correlationId")
+      VALUES (gen_random_uuid()::text, $1, $2, $3, NOW() + ($4 || ' minutes')::interval, 0, NOW(), NOW(), $5)
       RETURNING id`,
-      [mobile, hashOtp(otp), String(OTP_EXPIRY_MINUTES), correlationId]
+      [mobile, appSource, hashOtp(otp), String(OTP_EXPIRY_MINUTES), correlationId]
     );
 
     let smsResult: { mocked?: boolean } = {};
@@ -123,6 +161,7 @@ app.post('/api/otp/verify', async (req, res) => {
   try {
     const mobile = String(req.body?.mobile || '').trim();
     const otp = String(req.body?.otp || '').trim();
+    const appSource = getAppSource(req.headers['x-app-source']);
 
     if (!isValidMobile(mobile)) {
       return res.status(400).json({ error: 'Please provide a valid 10-digit mobile number.' });
@@ -134,10 +173,10 @@ app.post('/api/otp/verify', async (req, res) => {
     const latest = await pool.query(
       `SELECT id, "otpHash", attempts, "expiresAt"
        FROM "MobileVerification"
-       WHERE mobile = $1 AND "verifiedAt" IS NULL
+       WHERE mobile = $1 AND source = $2 AND "verifiedAt" IS NULL
        ORDER BY "createdAt" DESC
        LIMIT 1`,
-      [mobile]
+      [mobile, appSource]
     );
 
     if (latest.rowCount === 0) {
@@ -181,6 +220,7 @@ app.post('/api/student/register', async (req, res) => {
   console.log('Register called:', req.body);
   try {
     const { name, mobile, email, location, otpToken } = req.body;
+    const appSource = getAppSource(req.headers['x-app-source']);
 
     if (!isValidMobile(String(mobile || ''))) {
       return res.status(400).json({ error: 'Valid mobile number is required.' });
@@ -198,12 +238,13 @@ app.post('/api/student/register', async (req, res) => {
         `UPDATE "MobileVerification"
          SET "tokenConsumedAt" = NOW(), "updatedAt" = NOW()
          WHERE mobile = $1
-           AND "verificationToken" = $2
+           AND source = $2
+           AND "verificationToken" = $3
            AND "verifiedAt" IS NOT NULL
            AND "tokenConsumedAt" IS NULL
            AND "expiresAt" > NOW()
          RETURNING id`,
-        [mobile, otpToken]
+        [mobile, appSource, otpToken]
       );
 
       if (tokenConsume.rowCount === 0) {
@@ -212,8 +253,8 @@ app.post('/api/student/register', async (req, res) => {
     }
 
     const result = await pool.query(
-      'INSERT INTO "Student" (id, name, mobile, email, location, status, "createdAt", "updatedAt") VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, NOW(), NOW()) RETURNING *',
-      [name, mobile, email, location, 'Partial']
+      'INSERT INTO "Student" (id, name, mobile, email, location, source, status, "createdAt", "updatedAt") VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, NOW(), NOW()) RETURNING *',
+      [name, mobile, email, location, appSource, 'Partial']
     );
     console.log('Inserted:', result.rows[0]);
     res.status(201).json(result.rows[0]);

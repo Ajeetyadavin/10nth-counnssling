@@ -2,7 +2,7 @@ import pool from '../db.js';
 import { generateReportPDF } from '../utils/pdfGenerator.js';
 import { seedQuestionsIfEmpty } from '../seeds.js';
 import { signAdminToken } from '../middleware/adminAuth.js';
-import type { Express } from 'express';
+import type { Express, Request } from 'express';
 
 const ensureTables = async () => {
   // Student table
@@ -13,6 +13,7 @@ const ensureTables = async () => {
       mobile TEXT NOT NULL,
       email TEXT NOT NULL,
       location TEXT NOT NULL,
+      source TEXT NOT NULL DEFAULT 'ednovate',
       answers JSONB NOT NULL DEFAULT '[]',
       result JSONB,
       status TEXT NOT NULL DEFAULT 'Partial',
@@ -39,6 +40,7 @@ const ensureTables = async () => {
   await pool.query('ALTER TABLE "Question" ADD COLUMN IF NOT EXISTS fixed BOOLEAN NOT NULL DEFAULT FALSE');
   await pool.query('ALTER TABLE "Question" ADD COLUMN IF NOT EXISTS hidden BOOLEAN NOT NULL DEFAULT FALSE');
   await pool.query('ALTER TABLE "Question" ADD COLUMN IF NOT EXISTS language TEXT NOT NULL DEFAULT \'hinglish\'');
+  await pool.query('ALTER TABLE "Student" ADD COLUMN IF NOT EXISTS source TEXT NOT NULL DEFAULT \'ednovate\'');
 
   // AdminSettings table
   await pool.query(`
@@ -55,6 +57,7 @@ const ensureTables = async () => {
     CREATE TABLE IF NOT EXISTS "MobileVerification" (
       id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
       mobile TEXT NOT NULL,
+      source TEXT NOT NULL DEFAULT 'ednovate',
       "otpHash" TEXT NOT NULL,
       attempts INT NOT NULL DEFAULT 0,
       "expiresAt" TIMESTAMP NOT NULL,
@@ -66,6 +69,8 @@ const ensureTables = async () => {
       "updatedAt" TIMESTAMP NOT NULL DEFAULT NOW()
     )
   `);
+
+  await pool.query('ALTER TABLE "MobileVerification" ADD COLUMN IF NOT EXISTS source TEXT NOT NULL DEFAULT \'ednovate\'');
 
   await pool.query('CREATE INDEX IF NOT EXISTS idx_mobile_verification_mobile_created ON "MobileVerification" (mobile, "createdAt" DESC)');
   await pool.query('CREATE INDEX IF NOT EXISTS idx_mobile_verification_token ON "MobileVerification" ("verificationToken")');
@@ -85,6 +90,11 @@ const csvEscape = (value: unknown) => {
   return str;
 };
 
+const getAdminScope = (req: Request): 'all' | 'dubey' => {
+  const scope = (req as any)?.adminAuth?.scope;
+  return scope === 'dubey' ? 'dubey' : 'all';
+};
+
 export const setupAdminRoutes = (app: Express) => {
   ensureTables()
     .then(() => seedQuestionsIfEmpty())
@@ -93,19 +103,28 @@ export const setupAdminRoutes = (app: Express) => {
   app.post('/api/admin/auth/login', async (req, res) => {
     const username = String(req.body?.username || '').trim();
     const password = String(req.body?.password || '').trim();
-    const expectedUsername = String(process.env.ADMIN_USERNAME || '').trim();
-    const expectedPassword = String(process.env.ADMIN_PASSWORD || '').trim();
+    const allUsername = String(process.env.ADMIN_USERNAME || '').trim();
+    const allPassword = String(process.env.ADMIN_PASSWORD || '').trim();
+    const dubeyUsername = String(process.env.DUBEY_ADMIN_USERNAME || '').trim();
+    const dubeyPassword = String(process.env.DUBEY_ADMIN_PASSWORD || '').trim();
 
-    if (!expectedUsername || !expectedPassword) {
+    if ((!allUsername || !allPassword) && (!dubeyUsername || !dubeyPassword)) {
       return res.status(503).json({ error: 'Admin credentials are not configured on server.' });
     }
 
-    if (username !== expectedUsername || password !== expectedPassword) {
+    let scope: 'all' | 'dubey' | null = null;
+    if (allUsername && allPassword && username === allUsername && password === allPassword) {
+      scope = 'all';
+    } else if (dubeyUsername && dubeyPassword && username === dubeyUsername && password === dubeyPassword) {
+      scope = 'dubey';
+    }
+
+    if (!scope) {
       return res.status(401).json({ error: 'Invalid username or password.' });
     }
 
     try {
-      const token = signAdminToken(username);
+      const token = signAdminToken(username, scope);
       return res.json({ ok: true, token });
     } catch (err: any) {
       console.error('Admin login token error:', err?.message || err);
@@ -118,12 +137,23 @@ export const setupAdminRoutes = (app: Express) => {
     try {
       console.log('Fetching students from PostgreSQL...');
       const { status } = req.query;
+      const scope = getAdminScope(req);
       let query = 'SELECT * FROM "Student"';
       let params: any[] = [];
+      const conditions: string[] = [];
+
+      if (scope === 'dubey') {
+        params.push('dubey');
+        conditions.push(`source = $${params.length}`);
+      }
       
       if (status && status !== '') {
-        query += ' WHERE status = $1';
-        params = [status];
+        params.push(status);
+        conditions.push(`status = $${params.length}`);
+      }
+
+      if (conditions.length > 0) {
+        query += ` WHERE ${conditions.join(' AND ')}`;
       }
       
       query += ' ORDER BY "createdAt" DESC';
@@ -140,7 +170,11 @@ export const setupAdminRoutes = (app: Express) => {
   // Export CSV
   app.get('/api/admin/export', async (req, res) => {
     try {
-      const result = await pool.query('SELECT * FROM "Student"');
+      const scope = getAdminScope(req);
+      const result =
+        scope === 'dubey'
+          ? await pool.query('SELECT * FROM "Student" WHERE source = $1', ['dubey'])
+          : await pool.query('SELECT * FROM "Student"');
       const students = result.rows;
       const csv =
         'Name,Mobile,Email,Location,Status,Result,CreatedDate,CreatedTime,CreatedTimestamp\n' +
@@ -179,11 +213,18 @@ export const setupAdminRoutes = (app: Express) => {
   app.get('/api/admin/report/generate', async (req, res) => {
     try {
       const { mobile } = req.query;
+      const scope = getAdminScope(req);
       if (!mobile) return res.status(400).send('Mobile number is required');
-      const result = await pool.query(
-        'SELECT * FROM "Student" WHERE mobile = $1 ORDER BY "createdAt" DESC LIMIT 1',
-        [mobile]
-      );
+      const result =
+        scope === 'dubey'
+          ? await pool.query(
+              'SELECT * FROM "Student" WHERE mobile = $1 AND source = $2 ORDER BY "createdAt" DESC LIMIT 1',
+              [mobile, 'dubey']
+            )
+          : await pool.query(
+              'SELECT * FROM "Student" WHERE mobile = $1 ORDER BY "createdAt" DESC LIMIT 1',
+              [mobile]
+            );
       const student = result.rows[0];
       if (!student) return res.status(404).send('No completed test found for this mobile number');
       if (student.status !== 'Completed' || !student.result)
@@ -200,7 +241,11 @@ export const setupAdminRoutes = (app: Express) => {
 
   app.get('/api/admin/report/:id', async (req, res) => {
     try {
-      const result = await pool.query('SELECT * FROM "Student" WHERE id = $1', [req.params.id]);
+      const scope = getAdminScope(req);
+      const result =
+        scope === 'dubey'
+          ? await pool.query('SELECT * FROM "Student" WHERE id = $1 AND source = $2', [req.params.id, 'dubey'])
+          : await pool.query('SELECT * FROM "Student" WHERE id = $1', [req.params.id]);
       const student = result.rows[0];
       if (!student) return res.status(404).send('Student not found');
       
@@ -505,7 +550,12 @@ export const setupAdminRoutes = (app: Express) => {
   // Delete student
   app.delete('/api/admin/student/:id', async (req, res) => {
     try {
-      await pool.query('DELETE FROM "Student" WHERE id = $1', [req.params.id]);
+      const scope = getAdminScope(req);
+      if (scope === 'dubey') {
+        await pool.query('DELETE FROM "Student" WHERE id = $1 AND source = $2', [req.params.id, 'dubey']);
+      } else {
+        await pool.query('DELETE FROM "Student" WHERE id = $1', [req.params.id]);
+      }
       res.json({ message: 'Student deleted' });
     } catch (err) {
       res.status(500).json({ error: 'Delete failed' });
@@ -515,10 +565,15 @@ export const setupAdminRoutes = (app: Express) => {
   // OTP Verification Data
   app.get('/api/admin/otp-verification', async (req, res) => {
     try {
+      const scope = getAdminScope(req);
       const OTP_MAX_ATTEMPTS = Number(process.env.OTP_MAX_ATTEMPTS || 5);
+      const verifiedScopeClause = scope === 'dubey' ? ' AND source = $1' : '';
+      const failedScopeClause = scope === 'dubey' ? ' AND source = $2' : '';
+      const failedParams = scope === 'dubey' ? [OTP_MAX_ATTEMPTS, 'dubey'] : [OTP_MAX_ATTEMPTS];
 
       // Verified users (successfully completed OTP)
-      const verifiedResult = await pool.query(`
+      const verifiedResult = await pool.query(
+        `
         SELECT 
           mobile,
           "verifiedAt" as "verifiedAt",
@@ -526,12 +581,15 @@ export const setupAdminRoutes = (app: Express) => {
           attempts as "attemptsTaken",
           "correlationId"
         FROM "MobileVerification"
-        WHERE "verifiedAt" IS NOT NULL
+        WHERE "verifiedAt" IS NOT NULL${verifiedScopeClause}
         ORDER BY "verifiedAt" DESC
-      `);
+      `,
+        scope === 'dubey' ? ['dubey'] : []
+      );
 
       // Failed/Incomplete attempts (wrong OTP or expired)
-      const failedResult = await pool.query(`
+      const failedResult = await pool.query(
+        `
         SELECT 
           mobile,
           "expiresAt",
@@ -544,9 +602,11 @@ export const setupAdminRoutes = (app: Express) => {
           END as "failureReason",
           "correlationId"
         FROM "MobileVerification"
-        WHERE "verifiedAt" IS NULL
+        WHERE "verifiedAt" IS NULL${failedScopeClause}
         ORDER BY "createdAt" DESC
-      `, [OTP_MAX_ATTEMPTS]);
+      `,
+        failedParams
+      );
 
       res.json({
         verified: verifiedResult.rows,
