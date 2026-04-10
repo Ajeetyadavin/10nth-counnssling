@@ -185,7 +185,7 @@ const PROFILES: Record<StreamKey, Profile> = {
     commerce: {
         title: 'Commerce Stream',
         subtitle: 'Accountancy / Economics / Business Studies / Mathematics',
-        tagline: 'Built for Financial Mastery and Leadership Excellence',
+        tagline: 'Clear pathway to finance, business, and leadership careers',
         description:
             'Based on your Class 10 assessment, your responses reveal strong business judgment, financial intuition, and outstanding leadership potential. ' +
             'As you enter 11th standard, Commerce stream will perfectly match your strengths — Ednovate\'s FYJC/SYJC Commerce programs and CA Foundation coaching will give you an early advantage. ' +
@@ -233,9 +233,9 @@ const PROFILES: Record<StreamKey, Profile> = {
             { name: 'Investment Banker / Analyst',   icon: 'IB', rating: 5, salary: 'INR 10L-2Cr+',      growth: '+30% finance boom', demand: 'Very High',
               pros: ['Among highest paying careers in India at senior level','Work on billion-dollar mergers, IPOs and capital market deals','Global exit opportunities to Singapore, Dubai, London, New York'],
               cons: ['80+ hour work weeks are standard especially in first 3 years','Extremely competitive entry — only top CA/CFA graduates selected'] },
-            { name: 'Commerce Workshop Graduate',     icon: 'CW', rating: 5, salary: 'INR 6L-30L+',       growth: '+20% demand', demand: 'Very High',
-              pros: ['Hands-on practical training in commerce fundamentals from day one','Builds strong foundation for CA, CS, CMA and all professional courses','Industry-relevant skills: Tally, Excel, GST filing, financial analysis'],
-              cons: ['Requires consistent attendance and practice to get full benefit','Workshop slots fill up fast — early registration recommended'] },
+                        { name: 'Management Consultant (Business Analyst)', icon: 'MC', rating: 5, salary: 'INR 8L-45L+', growth: '+24% consulting growth', demand: 'Very High',
+                            pros: ['Top consulting firms hire strong commerce graduates with problem-solving ability','High exposure to strategy, operations, and finance across industries','Fast career progression with strong global mobility opportunities'],
+                            cons: ['Entry is highly competitive and interview standards are demanding','Client-facing roles can involve long hours and frequent travel'] },
             { name: 'Financial Analyst / CFP',       icon: 'FA', rating: 4, salary: 'INR 6L-28L+',       growth: '+18% steady', demand: 'High',
               pros: ['Strong demand from mutual funds, PMS, insurance sector companies','CFA designation boosts salary by 30-40% at mid level','Relatively structured work-life balance vs. investment banking'],
               cons: ['Requires CFA/CFP credential for senior advancement — 3 years','Salary growth slower in early years without additional certification'] },
@@ -247,11 +247,11 @@ const PROFILES: Record<StreamKey, Profile> = {
               cons: ['Commoditized at entry level — needs specialization to stand out','ROI measurement pressure is high in performance marketing roles'] },
         ],
         courses: [
+            { name: 'FYJC / SYJC Commerce + Ednovate Professional Courses', exam: 'Board Exams + Ednovate Assessments', examDiff: 3, rating: 5, duration: '2 years (11th-12th)', fees: 'Program fee details shared during counseling', colleges: 'Ednovate Mumbai, Jr Colleges across Maharashtra' },
             { name: 'CA Foundation → Inter → Final', exam: 'ICAI Examinations (3 levels)',  examDiff: 5, rating: 5, duration: '4-5 years',    fees: 'INR 30K-1L total',  colleges: 'ICAI Coaching Delhi/Mumbai, Aldine, IPCC coaching everywhere' },
-            { name: 'BBA / BMS (Business Studies)',  exam: 'IPMAT / NPAT / DU JAT / CUET',  examDiff: 4, rating: 5, duration: '3 years',      fees: 'INR 1L-8L/yr',      colleges: 'IIM Indore (IPMAT), NMIMS, Christ, Symbiosis, DU SRCC' },
-            { name: 'B.Com (Hons) / B.Com General',  exam: 'CUET / State Board Merit',      examDiff: 2, rating: 4, duration: '3 years',      fees: 'INR 15K-3L/yr',     colleges: 'SRCC Delhi, LSR, Presidency Kolkata, Loyola, St. Xavier\'s' },
             { name: 'CMA / ICWA (Cost Accountant)',   exam: 'ICAI CMA Foundation',           examDiff: 4, rating: 4, duration: '4 years',      fees: 'INR 20K-80K total', colleges: 'ICAI CMA centers nationwide — 20+ study centers in India' },
-            { name: 'FYJC / SYJC Commerce + Ednovate Professional Courses', exam: 'Board Exams + Ednovate Assessments', examDiff: 3, rating: 5, duration: '2 years (11th-12th)', fees: 'INR 999-50K', colleges: 'Ednovate Mumbai, Jr Colleges across Maharashtra' },
+            { name: 'B.Com (Hons) / B.Com General',  exam: 'CUET / State Board Merit',      examDiff: 2, rating: 4, duration: '3 years',      fees: 'INR 15K-3L/yr',     colleges: 'SRCC Delhi, LSR, Presidency Kolkata, Loyola, St. Xavier\'s' },
+            { name: 'BBA / BMS (Business Studies)',  exam: 'IPMAT / NPAT / DU JAT / CUET',  examDiff: 4, rating: 5, duration: '3 years',      fees: 'INR 1L-8L/yr',      colleges: 'IIM Indore (IPMAT), NMIMS, Christ, Symbiosis, DU SRCC' },
         ],
         phases: [
             { period: 'PHASE 1 — Days 1-30: Foundation Setup', focus: 'FYJC admission + CA/course registration', color: '#2563EB',
@@ -620,7 +620,7 @@ export const generateReportPDF = (student: any, contactConfig?: ReportContactCon
                             'CA Final',
                             'Board Exam Toppers Program',
                         ],
-                        price: 'Starting INR 999',
+                        price: 'Program details on request',
                     },
                     {
                         stream: 'PROFESSIONAL COURSES',
@@ -633,7 +633,7 @@ export const generateReportPDF = (student: any, contactConfig?: ReportContactCon
                             'CS Foundation (Company Sec)',
                             'Career Mentorship Program',
                         ],
-                        price: 'Starting INR 999',
+                        price: 'Program details on request',
                     },
                     {
                         stream: 'EDNOVATE ADVANTAGE',
@@ -646,7 +646,7 @@ export const generateReportPDF = (student: any, contactConfig?: ReportContactCon
                             'Mumbai Classroom Programs',
                             'AIR-Focused Test Series',
                         ],
-                        price: 'Starting INR 999',
+                        price: 'Program details on request',
                     },
                 ]
                 : [
@@ -785,17 +785,34 @@ export const generateReportPDF = (student: any, contactConfig?: ReportContactCon
                 }
             };
 
+            const pieChart = (cx: number, cy: number, r: number, segments: { value: number; color: string }[]) => {
+                const total = Math.max(segments.reduce((sum, s) => sum + Math.max(0, s.value), 0), 1);
+                let start = -Math.PI / 2;
+                const pdoc = doc as any;
+                segments.forEach((s) => {
+                    const part = Math.max(0, s.value) / total;
+                    const end = start + part * Math.PI * 2;
+                    pdoc.moveTo(cx, cy)
+                        .lineTo(cx + r * Math.cos(start), cy + r * Math.sin(start))
+                        .arc(cx, cy, r, start, end)
+                        .closePath()
+                        .fill(s.color);
+                    start = end;
+                });
+                doc.circle(cx, cy, Math.max(8, Math.round(r * 0.42))).fill('#FFFFFF');
+            };
+
             // ─────────────────────────────────────────────────────────────────
             // PAGE 1 — COVER: Student profile + stream result + score breakdown
             // ─────────────────────────────────────────────────────────────────
-            hdr('CAREER ASSESSMENT REPORT', 'Class 10 → 11th Stream Selection  |  Powered by Ednovate AI', 'Page 1 of 10');
+            hdr('Career Counseling Report', 'Class 10 to Class 11 Stream Selection | Powered by Ednovate AI', 'Page 1 of 10');
             let y = Y0;
 
             // Welcome banner
             doc.rect(M, y, CW, 44).fill(tintHex(P.color, 0.87)).strokeColor(P.color).lineWidth(0.6).stroke();
             doc.roundedRect(M, y, 4, 44, 0).fill(P.color);
-            doc.fillColor(P.darkColor).font('Helvetica-Bold').fontSize(10).text('CLASS 10 → 11th STREAM SELECTION REPORT', M + 14, y + 8, { width: CW - 20 });
-            doc.fillColor(P.darkColor).font('Helvetica').fontSize(8).text(P.tagline + '  |  Prepared by Ednovate Career Counseling', M + 14, y + 25, { width: CW - 20 });
+            doc.fillColor(P.darkColor).font('Helvetica-Bold').fontSize(10).text('Class 10 to Class 11 Stream Selection Report', M + 14, y + 8, { width: CW - 20 });
+            doc.fillColor(P.darkColor).font('Helvetica').fontSize(8).text(P.tagline + ' | Prepared by the Ednovate Career Counseling Team', M + 14, y + 25, { width: CW - 20 });
             y += 52;
 
             // Student name + details
@@ -824,20 +841,32 @@ export const generateReportPDF = (student: any, contactConfig?: ReportContactCon
             doc.fillColor('#FFFFFF').font('Helvetica').fontSize(7).text('Based on ' + String(answered) + ' responses', scX, y + 73, { width: scW, align: 'center' });
             y += 98;
 
-            // Stream score bars
-            y = st(y, 'Stream Score Breakdown');
+            // Stream score bars + pie chart
+            y = st(y, 'Recommended Stream Distribution (Bar and Pie Chart)');
             const scoreRows = [
                 { label: 'Science  (Engineering, Medical, Research)',        pct: sciPct, score: sci, color: '#059669' },
                 { label: 'Commerce  (Finance, Business, Entrepreneurship)',  pct: comPct, score: com, color: '#2563EB' },
                 { label: 'Arts & Humanities  (Law, Design, Media, UPSC)',    pct: artPct, score: art, color: '#7C3AED' },
             ];
+            const chartCardH = 122;
+            card(M, y, CW, chartCardH, '#FFFFFF');
+            let ry = y + 14;
             scoreRows.forEach(r => {
-                doc.fillColor(GRAY).font('Helvetica-Bold').fontSize(8.5).text(r.label, M, y + 2, { width: 250 });
-                hbar(M + 256, y, 180, 14, r.pct, r.color);
-                doc.fillColor(DARK).font('Helvetica-Bold').fontSize(8.5).text(String(r.pct) + '%  (score: ' + String(r.score) + ')', M + 444, y + 2);
-                y += 28;
+                doc.fillColor(GRAY).font('Helvetica-Bold').fontSize(8.5).text(r.label, M + 12, ry + 2, { width: 250 });
+                hbar(M + 268, ry, 136, 12, r.pct, r.color);
+                doc.fillColor(DARK).font('Helvetica-Bold').fontSize(8).text(String(r.pct) + '%  (' + String(r.score) + ')', M + 410, ry + 2);
+                ry += 26;
             });
-            y += 4;
+
+            const pieCx = M + CW - 72;
+            const pieCy = y + 56;
+            pieChart(pieCx, pieCy, 34, [
+                { value: sci, color: '#059669' },
+                { value: com, color: '#2563EB' },
+                { value: art, color: '#7C3AED' },
+            ]);
+            doc.fillColor('#111827').font('Helvetica-Bold').fontSize(7).text('Distribution', pieCx - 28, y + 96, { width: 56, align: 'center' });
+            y += chartCardH + 8;
 
             // Personality trait pills
             y = st(y, 'Your Personality Traits');
