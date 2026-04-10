@@ -121,7 +121,7 @@ app.post('/api/otp/send', async (req, res) => {
     }
 
     const recent = await pool.query(
-      'SELECT "createdAt" FROM "MobileVerification" WHERE mobile = $1 AND source = $2 ORDER BY "createdAt" DESC LIMIT 1',
+      'SELECT "createdAt" FROM "MobileVerification" WHERE mobile = $1 AND LOWER(TRIM(source)) = $2 ORDER BY "createdAt" DESC LIMIT 1',
       [mobile, appSource]
     );
     if (recent.rows[0]?.createdAt) {
@@ -193,7 +193,7 @@ app.post('/api/otp/verify', async (req, res) => {
     const latest = await pool.query(
       `SELECT id, "otpHash", attempts, "expiresAt"
        FROM "MobileVerification"
-       WHERE mobile = $1 AND source = $2 AND "verifiedAt" IS NULL
+       WHERE mobile = $1 AND LOWER(TRIM(source)) = $2 AND "verifiedAt" IS NULL
        ORDER BY "createdAt" DESC
        LIMIT 1`,
       [mobile, appSource]
@@ -261,7 +261,7 @@ app.post('/api/student/register', async (req, res) => {
         `UPDATE "MobileVerification"
          SET "tokenConsumedAt" = NOW(), "updatedAt" = NOW()
          WHERE mobile = $1
-           AND source = $2
+           AND LOWER(TRIM(source)) = $2
            AND "verificationToken" = $3
            AND "verifiedAt" IS NOT NULL
            AND "tokenConsumedAt" IS NULL

@@ -44,6 +44,11 @@ const ensureTables = async () => {
   await pool.query('ALTER TABLE "Question" ADD COLUMN IF NOT EXISTS hidden BOOLEAN NOT NULL DEFAULT FALSE');
   await pool.query('ALTER TABLE "Question" ADD COLUMN IF NOT EXISTS language TEXT NOT NULL DEFAULT \'hinglish\'');
   await pool.query('ALTER TABLE "Student" ADD COLUMN IF NOT EXISTS source TEXT NOT NULL DEFAULT \'ednovate\'');
+  await pool.query(
+    `UPDATE "Student"
+     SET source = CASE WHEN LOWER(TRIM(source)) = 'dubey' THEN 'dubey' ELSE 'ednovate' END
+     WHERE source IS NULL OR source <> CASE WHEN LOWER(TRIM(source)) = 'dubey' THEN 'dubey' ELSE 'ednovate' END`
+  );
 
   // AdminSettings table
   await pool.query(`
@@ -99,6 +104,11 @@ const ensureTables = async () => {
   `);
 
   await pool.query('ALTER TABLE "MobileVerification" ADD COLUMN IF NOT EXISTS source TEXT NOT NULL DEFAULT \'ednovate\'');
+  await pool.query(
+    `UPDATE "MobileVerification"
+     SET source = CASE WHEN LOWER(TRIM(source)) = 'dubey' THEN 'dubey' ELSE 'ednovate' END
+     WHERE source IS NULL OR source <> CASE WHEN LOWER(TRIM(source)) = 'dubey' THEN 'dubey' ELSE 'ednovate' END`
+  );
 
   await pool.query('CREATE INDEX IF NOT EXISTS idx_mobile_verification_mobile_created ON "MobileVerification" (mobile, "createdAt" DESC)');
   await pool.query('CREATE INDEX IF NOT EXISTS idx_mobile_verification_token ON "MobileVerification" ("verificationToken")');
@@ -208,7 +218,7 @@ export const setupAdminRoutes = (app: Express) => {
 
       if (scope === 'dubey') {
         params.push('dubey');
-        conditions.push(`source = $${params.length}`);
+        conditions.push(`LOWER(TRIM(source)) = $${params.length}`);
       }
       
       if (status && status !== '') {
@@ -237,7 +247,7 @@ export const setupAdminRoutes = (app: Express) => {
       const scope = getAdminScope(req);
       const result =
         scope === 'dubey'
-          ? await pool.query('SELECT * FROM "Student" WHERE source = $1', ['dubey'])
+          ? await pool.query('SELECT * FROM "Student" WHERE LOWER(TRIM(source)) = $1', ['dubey'])
           : await pool.query('SELECT * FROM "Student"');
       const students = result.rows;
       const csv =
@@ -283,7 +293,7 @@ export const setupAdminRoutes = (app: Express) => {
       const result =
         scope === 'dubey'
           ? await pool.query(
-              'SELECT * FROM "Student" WHERE mobile = $1 AND source = $2 ORDER BY "createdAt" DESC LIMIT 1',
+              'SELECT * FROM "Student" WHERE mobile = $1 AND LOWER(TRIM(source)) = $2 ORDER BY "createdAt" DESC LIMIT 1',
               [mobile, 'dubey']
             )
           : await pool.query(
@@ -311,7 +321,7 @@ export const setupAdminRoutes = (app: Express) => {
       const scope = getAdminScope(req);
       const result =
         scope === 'dubey'
-          ? await pool.query('SELECT * FROM "Student" WHERE id = $1 AND source = $2', [req.params.id, 'dubey'])
+          ? await pool.query('SELECT * FROM "Student" WHERE id = $1 AND LOWER(TRIM(source)) = $2', [req.params.id, 'dubey'])
           : await pool.query('SELECT * FROM "Student" WHERE id = $1', [req.params.id]);
       const student = result.rows[0];
       if (!student) return res.status(404).send('Student not found');
@@ -727,7 +737,7 @@ export const setupAdminRoutes = (app: Express) => {
     try {
       const scope = getAdminScope(req);
       if (scope === 'dubey') {
-        await pool.query('DELETE FROM "Student" WHERE id = $1 AND source = $2', [req.params.id, 'dubey']);
+        await pool.query('DELETE FROM "Student" WHERE id = $1 AND LOWER(TRIM(source)) = $2', [req.params.id, 'dubey']);
       } else {
         await pool.query('DELETE FROM "Student" WHERE id = $1', [req.params.id]);
       }
@@ -742,8 +752,8 @@ export const setupAdminRoutes = (app: Express) => {
     try {
       const scope = getAdminScope(req);
       const OTP_MAX_ATTEMPTS = Number(process.env.OTP_MAX_ATTEMPTS || 5);
-      const verifiedScopeClause = scope === 'dubey' ? ' AND source = $1' : '';
-      const failedScopeClause = scope === 'dubey' ? ' AND source = $2' : '';
+      const verifiedScopeClause = scope === 'dubey' ? ' AND LOWER(TRIM(source)) = $1' : '';
+      const failedScopeClause = scope === 'dubey' ? ' AND LOWER(TRIM(source)) = $2' : '';
       const failedParams = scope === 'dubey' ? [OTP_MAX_ATTEMPTS, 'dubey'] : [OTP_MAX_ATTEMPTS];
 
       // Verified users (successfully completed OTP)
