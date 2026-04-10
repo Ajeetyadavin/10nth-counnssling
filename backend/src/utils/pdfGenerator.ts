@@ -54,7 +54,7 @@ const PROFILES: Record<StreamKey, Profile> = {
         description:
             'Based on your Class 10 assessment, your responses reflect exceptional analytical ability, strong logical reasoning, and a natural drive to understand how things work. ' +
             'As you move to 11th standard, Science stream (PCM/PCB) will perfectly channel your strengths into high-growth career paths. ' +
-            'Ednovate recommends starting your preparation early — connect with our mentors for a personalized 11th-12th roadmap.',
+            'Start early with structured mentorship and a personalized 11th-12th roadmap to convert your aptitude into consistent results.',
         personality: ['Analytical','Detail-Oriented','Systematic','Curious','Persistent'],
         personalityDesc: [
             'You break complex problems into clear, logical steps naturally.',
@@ -123,7 +123,7 @@ const PROFILES: Record<StreamKey, Profile> = {
               tasks: ['Confirm your Class 11 subject combination: PCM (Engineering/Tech) or PCB (Medical) or PCMB.',
                       'Enroll in a coaching program (Ednovate for Commerce, ALLEN/FIITJEE for Science) or structured online batch.',
                       'Get Class 11 NCERT textbooks for Physics, Chemistry and Maths/Biology — start Chapter 1 immediately.',
-                      'Connect with Ednovate career mentors on WhatsApp for a free 1-on-1 guidance session.',
+                                            'Connect with a qualified career mentor for a 1-on-1 science pathway guidance session.',
                       'Set a daily 4-5 hour study schedule — use Pomodoro technique (50 min study, 10 min break).'] },
             { period: 'PHASE 2 — Days 31-60: Practice & Testing', focus: 'Problem solving + chapter tests', color: '#2563EB',
               tasks: ['Solve minimum 20-30 problems per day from HC Verma, DC Pandey or equivalent books.',
@@ -136,7 +136,7 @@ const PROFILES: Record<StreamKey, Profile> = {
                       'Spend 2× the test time analyzing mistakes and doing targeted chapter revision.',
                       'Create formula sheets, reaction mechanism charts and derivation quick-references.',
                       'Identify your 3 weakest topics and dedicate 2 focused days to each one.',
-                      'Book your Ednovate career counseling session to finalize your 11th-12th academic plan.'] },
+                                            'Book a structured counseling session to finalize your 11th-12th academic plan.'] },
         ],
         salaryMatrix: [
             { level: 'Entry Level (0-2 yrs)',       range: 'INR 4L-12L/yr',    growth: 'Steady +15%',  years: '1-2 yrs'  },
@@ -148,13 +148,13 @@ const PROFILES: Record<StreamKey, Profile> = {
             'Start with NCERT — NEET Biology is 70% directly from NCERT text.',
             'Focus on understanding concepts before memorization — helps in novel JEE problems.',
             'Practice past papers from 2015-2024: single most effective strategy for entrance exams.',
-            'Connect with Ednovate mentors for career guidance — even Science students benefit from early planning.',
+            'Connect with experienced mentors for career guidance — science students benefit from early planning.',
             'Use visual aids: diagrams, flowcharts, and mind maps for complex topics.',
         ],
         resources: [
             'JEE: HC Verma (Physics) + MS Chauhan (Organic) + SL Loney (Maths)',
             'NEET: NCERT BIO + DC Pandey (Physics) + OP Tandon (Chemistry)',
-            'Career Guidance: Ednovate 1-on-1 mentorship via WhatsApp support',
+            'Career Guidance: 1-on-1 mentorship with experienced counselors',
             'Mock Tests: NTA Official JEE/NEET mock (free), Aakash test series',
             'Apps: Embibe, Toppr, Doubtnut for instant doubt clearing',
         ],
@@ -324,7 +324,7 @@ const PROFILES: Record<StreamKey, Profile> = {
         description:
             'Based on your Class 10 assessment, your responses reveal exceptional creative thinking, deep social awareness, and outstanding communication ability. ' +
             'As you transition to 11th standard, Arts/Humanities stream will unlock your full potential in law, civil services, psychology, and design. ' +
-            'Ednovate\'s career mentorship program will help you build a winning portfolio and preparation strategy from day one of 11th class.',
+            'A strong mentorship framework can help you build a winning portfolio and preparation strategy from day one of 11th class.',
         personality: ['Creative','Empathetic','Expressive','Independent','Change-Maker'],
         personalityDesc: [
             'You generate original ideas and approach problems in unconventional ways.',
@@ -392,7 +392,7 @@ const PROFILES: Record<StreamKey, Profile> = {
             { period: 'PHASE 1 — Days 1-30: Foundation & Direction', focus: 'Stream confirmation + goal setting', color: '#7C3AED',
               tasks: ['Confirm Class 11 subject selection: History, Political Science, Economics, Psychology based on career goal.',
                       'Research 3 career options deeply: UPSC / Law / Design / Psychology / Journalism.',
-                      'Connect with Ednovate career mentors on WhatsApp for free Arts career guidance.',
+                                            'Connect with a qualified mentor for personalized Arts career guidance.',
                       'Start a personal journal or blog — daily writing is the #1 arts career skill builder.',
                       'For law: download CLAT syllabus and prepare a 12-month study timeline.'] },
             { period: 'PHASE 2 — Days 31-60: Skill + Experience Building', focus: 'Portfolio development', color: '#D97706',
@@ -404,7 +404,7 @@ const PROFILES: Record<StreamKey, Profile> = {
             { period: 'PHASE 3 — Days 61-90: Mock Tests + Planning', focus: 'Entrance prep + career pathway finalization', color: '#E74623',
               tasks: ['Take 3 full CLAT / CUET / NID mock tests per week in real time-limit conditions.',
                       'Shortlist 8 colleges and review admission dates, fees, and processes.',
-                      'Book an Ednovate career counseling session to finalize your Arts career roadmap.',
+                                            'Book a structured counseling session to finalize your Arts career roadmap.',
                       'Build a 2-page professional resume highlighting projects, activities, and achievements.',
                       'Attend 1 college open day for your target discipline — ask current students for advice.'] },
         ],
@@ -418,13 +418,13 @@ const PROFILES: Record<StreamKey, Profile> = {
             'Read one newspaper editorial daily and write a 150-word opinion — builds depth of thinking.',
             'Keep a "current affairs" notebook with monthly summaries — essential for UPSC and law.',
             'Take every speech, debate, and presentation opportunity — vocal confidence is irreplaceable.',
-            'Connect with Ednovate career mentors for Arts stream guidance via WhatsApp support.',
+            'Connect with experienced mentors for Arts stream guidance and pathway planning.',
             'Take online courses in design (Canva, Figma), psychology, or public policy to supplement degree.',
         ],
         resources: [
             'UPSC: NCERT History/Polity + Laxmikanth + Bipin Chandra',
             'CLAT: Legal Awareness + LegalEdge modules + Previous papers',
-            'Career Guidance: Ednovate 1-on-1 mentorship for Arts students',
+            'Career Guidance: 1-on-1 mentorship for Arts students',
             'Journalism: Reuters Training, Indian Express learning resources',
             'Apps: Unacademy IAS, Vision IAS, StudyIQ, YouTube CLAT channels',
         ],
@@ -551,6 +551,7 @@ export const generateReportPDF = (student: any, contactConfig?: ReportContactCon
             const scores     = aTotal > 0 ? aScores : (rTotal > 0 ? rScores : aScores);
             const primary    = getPrimaryStream(scores, result?.stream || '');
             const P          = PROFILES[primary];
+            const isDirectPromoStream = primary === 'commerce';
             const sci        = Math.max(0, Number(scores.science)  || 0);
             const com        = Math.max(0, Number(scores.commerce) || 0);
             const art        = Math.max(0, Number(scores.arts)     || 0);
@@ -572,7 +573,9 @@ export const generateReportPDF = (student: any, contactConfig?: ReportContactCon
             const contactNumber = String(contactConfig?.contactNumber || '8651014840').replace(/\D/g, '').slice(0, 15) || '8651014840';
             const brandFooter = reportSource === 'dubey'
                 ? 'Dubey Tutorials  |  Class 10 -> 11th Career Counseling  |  ' + contactNumber
-                : 'Ednovate  |  Class 10 -> 11th Career Counseling  |  FYJC/SYJC Commerce  |  CA Foundation  |  letsednovate.com  |  ' + contactNumber;
+                : isDirectPromoStream
+                    ? 'Ednovate  |  Class 10 -> 11th Career Counseling  |  FYJC/SYJC Commerce  |  CA Foundation  |  letsednovate.com  |  ' + contactNumber
+                    : 'Ednovate  |  Class 10 -> 11th Career Counseling  |  Mentorship Support  |  Stream Roadmap Guidance  |  letsednovate.com  |  ' + contactNumber;
 
             const aptBars = [
                 { label: 'Analytical Aptitude',  pct: Math.min(97, sciPct + 12), color: '#059669', desc: 'Logical breakdown of complex problems'     },
@@ -584,6 +587,133 @@ export const generateReportPDF = (student: any, contactConfig?: ReportContactCon
                 { label: 'Research Orientation', pct: Math.min(97, Math.round(sciPct * 0.8 + artPct * 0.15 + 8)), color: '#0891B2', desc: 'Drive to investigate and discover insights' },
                 { label: 'Social Intelligence',  pct: Math.min(97, Math.round(artPct * 0.7 + comPct * 0.2 + 12)), color: '#D97706', desc: 'Empathy and interpersonal awareness depth'  },
             ];
+
+            const page10HeaderTitle = isDirectPromoStream
+                ? 'EDNOVATE — YOUR 10th -> 11th CAREER PARTNER'
+                : 'EDNOVATE MENTORSHIP SUPPORT FOR YOUR STREAM';
+            const page10HeaderSub = isDirectPromoStream
+                ? 'FYJC/SYJC Commerce  |  CA Foundation  |  Professional Courses  |  Career Mentorship'
+                : 'Mentorship  |  Skill-building  |  Career Roadmap Guidance  |  Progress Tracking';
+            const page10HeroTitle = isDirectPromoStream
+                ? "India's #1 Career Counseling & Coaching for Class 10 -> 11th Students"
+                : 'A structured guidance ecosystem for Class 10 -> 11th students';
+            const page10HeroSub = isDirectPromoStream
+                ? 'FYJC / SYJC Commerce  |  CA Foundation  |  Professional Courses  |  AI Assessment'
+                : 'Stream Mentorship  |  Aptitude Development  |  Portfolio Building  |  AI Assessment';
+            const page10AboutHeading = isDirectPromoStream ? 'About Ednovate' : 'How Ednovate Supports Students';
+            const page10AboutText = isDirectPromoStream
+                ? 'Ednovate is a premier Mumbai-based coaching institute founded in 2020, specializing in FYJC/SYJC Commerce, Chartered Accountancy (CA), and professional course education for students transitioning from Class 10 to 11th and beyond. Led by experienced faculty, Ednovate is known for high pass percentages and 51+ All India Ranks (AIRs). The institute offers FYJC/SYJC Commerce coaching, CA Foundation to Final programs, global certifications (CFA, ACCA, CMA-US), and personalized career mentorship — all designed to give Class 10 students the strongest possible start in their 11th-12th journey. With 24x7 doubt support, KYM (Know Your Mistake) reports, and hybrid learning (classroom + live + recorded), Ednovate ensures every student reaches their full potential.'
+                : 'Ednovate provides structured mentorship support for students moving from Class 10 to 11th, with a focus on stream clarity, skill development, and long-term career direction. For Science and Arts students, the approach is guidance-first: clear action plans, performance tracking, and expert feedback to help families make better decisions at each stage. Students can use mentorship sessions to build stronger study systems, improve communication and problem-solving skills, and prepare confidently for college and career pathways.';
+            const page10ProgramsTitle = isDirectPromoStream
+                ? 'Programs for Class 10 -> 11th Students & Beyond'
+                : 'Support Tracks for Class 10 -> 11th Progression';
+            const page10Programs = isDirectPromoStream
+                ? [
+                    {
+                        stream: 'FYJC/SYJC + CA TRACK',
+                        color: '#2563EB',
+                        courses: [
+                            'FYJC Commerce (Class 11)',
+                            'SYJC Commerce (Class 12)',
+                            'CA Foundation (after 10th/12th)',
+                            'CA Intermediate',
+                            'CA Final',
+                            'Board Exam Toppers Program',
+                        ],
+                        price: 'Starting INR 999',
+                    },
+                    {
+                        stream: 'PROFESSIONAL COURSES',
+                        color: '#7C3AED',
+                        courses: [
+                            'CFA (Chartered Financial Analyst)',
+                            'ACCA (UK Accounting)',
+                            'CMA-US (Cost Management)',
+                            'FRM (Financial Risk Mgmt)',
+                            'CS Foundation (Company Sec)',
+                            'Career Mentorship Program',
+                        ],
+                        price: 'Starting INR 999',
+                    },
+                    {
+                        stream: 'EDNOVATE ADVANTAGE',
+                        color: '#059669',
+                        courses: [
+                            '24x7 Doubt Support System',
+                            'Personal Mentor (1-on-1)',
+                            'KYM Report Tracking',
+                            'Live + Recorded Hybrid Classes',
+                            'Mumbai Classroom Programs',
+                            'AIR-Focused Test Series',
+                        ],
+                        price: 'Starting INR 999',
+                    },
+                ]
+                : [
+                    {
+                        stream: 'SCIENCE SUPPORT TRACK',
+                        color: '#2563EB',
+                        courses: [
+                            'Subject Clarity + Chapter Planning',
+                            'Mock-test Analysis Framework',
+                            'Revision System for PCM/PCB',
+                            'Mentor Check-ins for Progress',
+                            'Exam Readiness Tracking',
+                            'Career Pathway Guidance Sessions',
+                        ],
+                        price: 'Guidance-first model',
+                    },
+                    {
+                        stream: 'ARTS SUPPORT TRACK',
+                        color: '#7C3AED',
+                        courses: [
+                            'Portfolio and Profile Building',
+                            'Communication and Writing Development',
+                            'CLAT/CUET/Design Pathway Mapping',
+                            'Mentor-led Goal Setting',
+                            'Current Affairs Strategy Setup',
+                            'College Decision Support',
+                        ],
+                        price: 'Guidance-first model',
+                    },
+                    {
+                        stream: 'COMMON ADVANTAGE',
+                        color: '#059669',
+                        courses: [
+                            '1-on-1 Mentorship Sessions',
+                            'Progress Review Dashboard',
+                            'Structured 90-day Action Plans',
+                            'Parent-Student Guidance Meetings',
+                            'AI-based Assessment Insights',
+                            'Hybrid Support Access',
+                        ],
+                        price: 'Explore via counseling',
+                    },
+                ];
+            const page10WhyTitle = isDirectPromoStream
+                ? 'Why 10,000+ Students Choose Ednovate After 10th'
+                : 'Why Students Value Structured Mentorship After 10th';
+            const page10WhyPoints = isDirectPromoStream
+                ? [
+                    { icon: '10->11', title: 'Class 10 -> 11th Specialists', desc: 'Purpose-built programs for students transitioning from 10th to FYJC/SYJC Commerce and professional courses.', color: BRAND },
+                    { icon: 'AIR', title: '51+ All India Ranks', desc: 'Proven results with structured, exam-focused preparation that produces top rankers consistently.', color: '#2563EB' },
+                    { icon: 'CA', title: 'CA + Professional Courses', desc: 'Complete pathway: FYJC/SYJC Commerce -> CA Foundation -> CA Inter -> CA Final + CFA, ACCA, CMA-US.', color: '#7C3AED' },
+                    { icon: 'KYM', title: 'KYM Report System', desc: 'Know Your Mistake reports track weak areas after every test - ensures continuous improvement.', color: '#059669' },
+                    { icon: '24x7', title: '24x7 Mentorship + Doubt Support', desc: 'Personal mentor, round-the-clock doubt resolution, and writing practice from day one of 11th.', color: '#D97706' },
+                ]
+                : [
+                    { icon: 'PLAN', title: 'Actionable Roadmaps', desc: 'Students receive clear weekly and monthly goals aligned to their stream and future pathway.', color: BRAND },
+                    { icon: 'MENT', title: 'Mentor-led Reviews', desc: 'Regular expert review cycles help students stay on track and fix weak areas early.', color: '#2563EB' },
+                    { icon: 'SKILL', title: 'Skill-first Development', desc: 'Focus on communication, analysis, and portfolio depth that improves long-term outcomes.', color: '#7C3AED' },
+                    { icon: 'FAM', title: 'Parent Alignment', desc: 'Guided parent-student sessions reduce confusion and improve career decision quality.', color: '#059669' },
+                    { icon: 'DATA', title: 'Data-backed Insights', desc: 'Assessment-driven recommendations make stream and pathway planning more objective.', color: '#D97706' },
+                ];
+            const page10CtaTitle = isDirectPromoStream
+                ? 'Choose the Right Path After Class 10 with Ednovate'
+                : 'Get a Personalized Stream Guidance Conversation';
+            const page10CtaSub = isDirectPromoStream
+                ? 'FYJC/SYJC Commerce  |  CA Foundation  |  Professional Courses  |  Free 1-on-1 Career Counseling Session'
+                : 'Science/Arts Mentorship  |  Career Roadmap Clarity  |  Parent-Student Guidance Conversation';
 
             // ── drawing helpers ───────────────────────────────────────────────
             const fp = () => doc.rect(0, 0, W, H).fill('#FFFFFF');
@@ -1234,7 +1364,7 @@ export const generateReportPDF = (student: any, contactConfig?: ReportContactCon
             // PAGE 10 — EDNOVATE BRANDING & PROGRAMS
             // ─────────────────────────────────────────────────────────────────
             doc.addPage();
-            hdr('EDNOVATE — YOUR 10th → 11th CAREER PARTNER', 'FYJC/SYJC Commerce  |  CA Foundation  |  Professional Courses  |  Career Mentorship', 'Page 10 of 10');
+            hdr(page10HeaderTitle, page10HeaderSub, 'Page 10 of 10');
             y = Y0;
 
             // Big logo banner
@@ -1247,62 +1377,20 @@ export const generateReportPDF = (student: any, contactConfig?: ReportContactCon
             } else {
                 doc.fillColor(BRAND).font('Helvetica-Bold').fontSize(26).text('EDNOVATE', M + 20, y + 20);
             }
-            doc.fillColor(DARK).font('Helvetica-Bold').fontSize(11).text('India\'s #1 Career Counseling & Coaching for Class 10 → 11th Students', M + 220, y + 18, { width: CW - 240 });
-            doc.fillColor('#6B7280').font('Helvetica').fontSize(8).text('FYJC / SYJC Commerce  |  CA Foundation  |  Professional Courses  |  AI Assessment', M + 220, y + 40, { width: CW - 240 });
+            doc.fillColor(DARK).font('Helvetica-Bold').fontSize(11).text(page10HeroTitle, M + 220, y + 18, { width: CW - 240 });
+            doc.fillColor('#6B7280').font('Helvetica').fontSize(8).text(page10HeroSub, M + 220, y + 40, { width: CW - 240 });
             doc.fillColor(BRAND).font('Helvetica-Bold').fontSize(9).text('letsednovate.com  |  WhatsApp: ' + contactNumber, M + 220, y + 55, { width: CW - 240 });
             y += 78;
 
             // About section
-            y = st(y, 'About Ednovate');
-            const aboutText = 'Ednovate is a premier Mumbai-based coaching institute founded in 2020, specializing in FYJC/SYJC Commerce, Chartered Accountancy (CA), and professional course education for students transitioning from Class 10 to 11th and beyond. Led by experienced faculty, Ednovate is known for high pass percentages and 51+ All India Ranks (AIRs). The institute offers FYJC/SYJC Commerce coaching, CA Foundation to Final programs, global certifications (CFA, ACCA, CMA-US), and personalized career mentorship — all designed to give Class 10 students the strongest possible start in their 11th-12th journey. With 24x7 doubt support, KYM (Know Your Mistake) reports, and hybrid learning (classroom + live + recorded), Ednovate ensures every student reaches their full potential.';
-            doc.fillColor(GRAY).font('Helvetica').fontSize(8.5).text(aboutText, M, y, { width: CW, lineGap: 2, align: 'justify' });
+            y = st(y, page10AboutHeading);
+            doc.fillColor(GRAY).font('Helvetica').fontSize(8.5).text(page10AboutText, M, y, { width: CW, lineGap: 2, align: 'justify' });
             y = doc.y + 12;
 
             // Programs in 3 columns
-            y = st(y, 'Programs for Class 10 → 11th Students & Beyond');
+            y = st(y, page10ProgramsTitle);
             const progW = (CW - 16) / 3;
-            const programs = [
-                {
-                    stream: 'FYJC/SYJC + CA TRACK',
-                    color: '#2563EB',
-                    courses: [
-                        'FYJC Commerce (Class 11)',
-                        'SYJC Commerce (Class 12)',
-                        'CA Foundation (after 10th/12th)',
-                        'CA Intermediate',
-                        'CA Final',
-                        'Board Exam Toppers Program',
-                    ],
-                    price: 'Starting INR 999',
-                },
-                {
-                    stream: 'PROFESSIONAL COURSES',
-                    color: '#7C3AED',
-                    courses: [
-                        'CFA (Chartered Financial Analyst)',
-                        'ACCA (UK Accounting)',
-                        'CMA-US (Cost Management)',
-                        'FRM (Financial Risk Mgmt)',
-                        'CS Foundation (Company Sec)',
-                        'Career Mentorship Program',
-                    ],
-                    price: 'Starting INR 999',
-                },
-                {
-                    stream: 'EDNOVATE ADVANTAGE',
-                    color: '#059669',
-                    courses: [
-                        '24x7 Doubt Support System',
-                        'Personal Mentor (1-on-1)',
-                        'KYM Report Tracking',
-                        'Live + Recorded Hybrid Classes',
-                        'Mumbai Classroom Programs',
-                        'AIR-Focused Test Series',
-                    ],
-                    price: 'Starting INR 999',
-                },
-            ];
-            programs.forEach((prog, pi) => {
+            page10Programs.forEach((prog, pi) => {
                 const px = M + pi * (progW + 8);
                 const pH = 190;
                 doc.roundedRect(px, y, progW, pH, 7).fill(tintHex(prog.color, 0.94)).strokeColor(prog.color).lineWidth(0.8).stroke();
@@ -1322,17 +1410,10 @@ export const generateReportPDF = (student: any, contactConfig?: ReportContactCon
             y += 198;
 
             // Why choose Ednovate
-            y = st(y, 'Why 10,000+ Students Choose Ednovate After 10th');
-            const whyPoints = [
-                { icon: '10→11', title: 'Class 10 → 11th Specialists', desc: 'Purpose-built programs for students transitioning from 10th to FYJC/SYJC Commerce and professional courses.', color: BRAND },
-                { icon: 'AIR', title: '51+ All India Ranks', desc: 'Proven results with structured, exam-focused preparation that produces top rankers consistently.', color: '#2563EB' },
-                { icon: 'CA', title: 'CA + Professional Courses', desc: 'Complete pathway: FYJC/SYJC Commerce → CA Foundation → CA Inter → CA Final + CFA, ACCA, CMA-US.', color: '#7C3AED' },
-                { icon: 'KYM', title: 'KYM Report System', desc: 'Know Your Mistake reports track weak areas after every test — ensures continuous improvement.', color: '#059669' },
-                { icon: '24x7', title: '24x7 Mentorship + Doubt Support', desc: 'Personal mentor, round-the-clock doubt resolution, and writing practice from day one of 11th.', color: '#D97706' },
-            ];
+            y = st(y, page10WhyTitle);
             const wyW = (CW - 8) / 2;
             const wyH = 44;
-            whyPoints.forEach((wp, wi) => {
+            page10WhyPoints.forEach((wp, wi) => {
                 const wx = M + (wi % 2) * (wyW + 8);
                 const wy = y + Math.floor(wi / 2) * (wyH + 6);
                 card(wx, wy, wyW, wyH, tintHex(wp.color, 0.94));
@@ -1341,7 +1422,7 @@ export const generateReportPDF = (student: any, contactConfig?: ReportContactCon
                 doc.fillColor(DARK).font('Helvetica-Bold').fontSize(8.5).text(wp.title, wx + 42, wy + 9);
                 doc.fillColor(GRAY).font('Helvetica').fontSize(7).text(wp.desc, wx + 42, wy + 22, { width: wyW - 50 });
             });
-            y += Math.ceil(whyPoints.length / 2) * (wyH + 6) + 12;
+            y += Math.ceil(page10WhyPoints.length / 2) * (wyH + 6) + 12;
 
             // Final CTA
             if (y + 70 < YE) {
@@ -1349,9 +1430,9 @@ export const generateReportPDF = (student: any, contactConfig?: ReportContactCon
                 doc.rect(M, y, CW, 6).fill(BRAND);
                 doc.roundedRect(M, y, CW, 8, 4).fill(BRAND);
                 doc.fillColor(BRAND).font('Helvetica-Bold').fontSize(14)
-                   .text('10th Ke Baad Sahi Raasta — Ednovate Ke Saath!', M, y + 16, { width: CW, align: 'center' });
+                         .text(page10CtaTitle, M, y + 16, { width: CW, align: 'center' });
                 doc.fillColor(GRAY).font('Helvetica').fontSize(9)
-                   .text('FYJC/SYJC Commerce  |  CA Foundation  |  Professional Courses  |  Free 1-on-1 Career Counseling Session', M, y + 36, { width: CW, align: 'center' });
+                         .text(page10CtaSub, M, y + 36, { width: CW, align: 'center' });
                 doc.fillColor(BRAND).font('Helvetica-Bold').fontSize(12)
                    .text('Call / WhatsApp: ' + contactNumber + '   |   letsednovate.com', M, y + 52, { width: CW, align: 'center' });
             }
