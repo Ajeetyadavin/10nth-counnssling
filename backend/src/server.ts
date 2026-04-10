@@ -64,9 +64,12 @@ app.get('/api/quiz/settings', async (_req, res) => {
   try {
     const appSource = getAppSource(_req.headers['x-app-source']);
     const result = await pool.query(
-      'SELECT "questionLimit", "otpRequired", "ednovateContactNumber", "dubeyContactNumber", "ednovateWhatsappMessage", "dubeyWhatsappMessage" FROM "AdminSettings" WHERE id = 1'
+      'SELECT "questionLimit", "otpRequired", "ednovateOtpRequired", "dubeyOtpRequired", "ednovateContactNumber", "dubeyContactNumber", "ednovateWhatsappMessage", "dubeyWhatsappMessage" FROM "AdminSettings" WHERE id = 1'
     );
     const row = result.rows[0] || { questionLimit: 45, otpRequired: true };
+    const otpRequired = appSource === 'dubey'
+      ? (row.dubeyOtpRequired === undefined ? true : row.dubeyOtpRequired !== false)
+      : (row.ednovateOtpRequired === undefined ? row.otpRequired !== false : row.ednovateOtpRequired !== false);
     const contactNumber = String(appSource === 'dubey' ? row.dubeyContactNumber : row.ednovateContactNumber || '')
       .replace(/\D/g, '')
       .slice(0, 15) || '8651014840';
@@ -76,7 +79,7 @@ app.get('/api/quiz/settings', async (_req, res) => {
 
     return res.json({
       questionLimit: Number(row.questionLimit) || 45,
-      otpRequired: row.otpRequired !== false,
+      otpRequired,
       contactNumber,
       whatsappMessage
     });
@@ -243,8 +246,11 @@ app.post('/api/student/register', async (req, res) => {
       return res.status(400).json({ error: 'Valid mobile number is required.' });
     }
 
-    const settingsResult = await pool.query('SELECT "otpRequired" FROM "AdminSettings" WHERE id = 1');
-    const otpRequired = settingsResult.rows[0]?.otpRequired !== false;
+    const settingsResult = await pool.query('SELECT "otpRequired", "ednovateOtpRequired", "dubeyOtpRequired" FROM "AdminSettings" WHERE id = 1');
+    const settingsRow = settingsResult.rows[0] || { otpRequired: true };
+    const otpRequired = appSource === 'dubey'
+      ? (settingsRow.dubeyOtpRequired === undefined ? true : settingsRow.dubeyOtpRequired !== false)
+      : (settingsRow.ednovateOtpRequired === undefined ? settingsRow.otpRequired !== false : settingsRow.ednovateOtpRequired !== false);
 
     if (otpRequired) {
       if (!otpToken) {

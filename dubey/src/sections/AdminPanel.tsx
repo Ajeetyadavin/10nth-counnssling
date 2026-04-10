@@ -62,7 +62,8 @@ const AdminPanel = ({
   const [isConnected, setIsConnected] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [questionLimit, setQuestionLimit] = useState<number>(45);
-  const [otpRequired, setOtpRequired] = useState<boolean>(true);
+  const [ednovateOtpRequired, setEdnovateOtpRequired] = useState<boolean>(true);
+  const [dubeyOtpRequired, setDubeyOtpRequired] = useState<boolean>(true);
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [settingsMsg, setSettingsMsg] = useState('');
   const [ednovateContactSettings, setEdnovateContactSettings] = useState<BrandContactSettings>({
@@ -172,7 +173,8 @@ const AdminPanel = ({
       const res = await adminFetch(`${API_BASE}/api/admin/settings`);
       const data = await res.json();
       setQuestionLimit(Number(data?.questionLimit) || 45);
-      setOtpRequired(data?.otpRequired !== false);
+      setEdnovateOtpRequired(data?.otpSettings?.ednovate === undefined ? (data?.otpRequired !== false) : (data?.otpSettings?.ednovate !== false));
+      setDubeyOtpRequired(data?.otpSettings?.dubey === undefined ? true : (data?.otpSettings?.dubey !== false));
       if (data?.contactSettings?.ednovate) {
         setEdnovateContactSettings({
           contactNumber: String(data.contactSettings.ednovate.contactNumber || '8651014840'),
@@ -529,6 +531,10 @@ const AdminPanel = ({
       setSettingsSaving(true);
       setSettingsMsg('');
       const payload: Record<string, unknown> = {
+        otpSettings: {
+          dubey: dubeyOtpRequired,
+          ...(adminScope === 'all' ? { ednovate: ednovateOtpRequired } : {})
+        },
         contactSettings: {
           dubey: {
             contactNumber: nextDubeyNumber,
@@ -547,7 +553,7 @@ const AdminPanel = ({
 
       if (adminScope === 'all') {
         payload.questionLimit = safeLimit;
-        payload.otpRequired = otpRequired;
+        payload.otpRequired = ednovateOtpRequired;
       }
 
       const res = await adminFetch(`${API_BASE}/api/admin/settings`, {
@@ -559,7 +565,8 @@ const AdminPanel = ({
       if (!res.ok) throw new Error('Save failed');
       const data = await res.json();
       setQuestionLimit(Number(data?.questionLimit) || safeLimit || 45);
-      setOtpRequired(data?.otpRequired !== false);
+      setEdnovateOtpRequired(data?.otpSettings?.ednovate === undefined ? (data?.otpRequired !== false) : (data?.otpSettings?.ednovate !== false));
+      setDubeyOtpRequired(data?.otpSettings?.dubey === undefined ? dubeyOtpRequired : (data?.otpSettings?.dubey !== false));
       if (data?.contactSettings?.ednovate) {
         setEdnovateContactSettings({
           contactNumber: String(data.contactSettings.ednovate.contactNumber || nextEdnovateNumber || '8651014840'),
@@ -769,7 +776,10 @@ const AdminPanel = ({
                 <tbody>
                   {students
                     .filter((s) => s.name.toLowerCase().includes(search.toLowerCase()) || s.mobile.includes(search))
-                    .filter((s) => sourceFilter === 'all' ? true : (s.source || 'ednovate') === sourceFilter)
+                    .filter((s) => {
+                      const sourceKey = String(s.source || 'ednovate').trim().toLowerCase();
+                      return sourceFilter === 'all' ? true : sourceKey === sourceFilter;
+                    })
                     .map((student) => {
                       const answersArray = Array.isArray(student.answers) ? student.answers : (typeof student.answers === 'string' ? JSON.parse(student.answers || '[]') : []);
                       const progress = answersArray.length;
@@ -777,7 +787,8 @@ const AdminPanel = ({
                       const created = student.createdAt ? new Date(student.createdAt) : null;
                       const createdDate = created && !Number.isNaN(created.getTime()) ? created.toLocaleDateString('en-IN') : '-';
                       const createdTime = created && !Number.isNaN(created.getTime()) ? created.toLocaleTimeString('en-IN') : '-';
-                      const brand = (student.source || 'ednovate') === 'dubey' ? 'Dubey' : 'Ednovate';
+                      const sourceKey = String(student.source || 'ednovate').trim().toLowerCase();
+                      const brand = sourceKey === 'dubey' ? 'Dubey' : 'Ednovate';
                       
                       return (
                         <tr key={student.id} className="border-t border-slate-200">
@@ -1277,15 +1288,46 @@ const AdminPanel = ({
               <div className="border border-slate-200 rounded-md p-4 bg-slate-50">
                 <h3 className="text-base font-semibold text-slate-900 mb-2">OTP Requirement</h3>
                 <p className="text-sm text-slate-600 mb-3">
-                  OTP disable karne par user bina OTP ke test start kar sakta hai (testing mode).
+                  Brand-wise OTP control: Ednovate aur Dubey ke liye alag toggle.
+                </p>
+                <div className="space-y-2">
+                  <label className="inline-flex items-center gap-2 text-sm text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={ednovateOtpRequired}
+                      onChange={(e) => {
+                        setEdnovateOtpRequired(e.target.checked);
+                      }}
+                    />
+                    Ednovate OTP Required
+                  </label>
+                  <label className="inline-flex items-center gap-2 text-sm text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={dubeyOtpRequired}
+                      onChange={(e) => setDubeyOtpRequired(e.target.checked)}
+                    />
+                    Dubey OTP Required
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {adminScope === 'dubey' && (
+              <div className="border border-slate-200 rounded-md p-4 bg-slate-50">
+                <h3 className="text-base font-semibold text-slate-900 mb-2">OTP Requirement (Dubey)</h3>
+                <p className="text-sm text-slate-600 mb-3">
+                  Dubey panel se aap Dubey users ke liye OTP on/off kar sakte ho.
                 </p>
                 <label className="inline-flex items-center gap-2 text-sm text-slate-700">
                   <input
                     type="checkbox"
-                    checked={otpRequired}
-                    onChange={(e) => setOtpRequired(e.target.checked)}
+                    checked={dubeyOtpRequired}
+                    onChange={(e) => {
+                      setDubeyOtpRequired(e.target.checked);
+                    }}
                   />
-                  OTP Required
+                  Dubey OTP Required
                 </label>
               </div>
             )}
