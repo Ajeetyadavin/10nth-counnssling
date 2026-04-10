@@ -154,6 +154,9 @@ export const setupAdminRoutes = (app: Express) => {
   app.post('/api/admin/auth/login', async (req, res) => {
     const username = String(req.body?.username || '').trim();
     const password = String(req.body?.password || '').trim();
+    const requestedSource = String(req.body?.source || req.headers['x-app-source'] || '')
+      .trim()
+      .toLowerCase();
     const allUsername = String(process.env.ADMIN_USERNAME || '').trim();
     const allPassword = String(process.env.ADMIN_PASSWORD || '').trim();
     const dubeyUsername = String(process.env.DUBEY_ADMIN_USERNAME || '').trim();
@@ -164,7 +167,11 @@ export const setupAdminRoutes = (app: Express) => {
     }
 
     let scope: 'all' | 'dubey' | null = null;
-    if (allUsername && allPassword && username === allUsername && password === allPassword) {
+    if (requestedSource === 'dubey') {
+      if (dubeyUsername && dubeyPassword && username === dubeyUsername && password === dubeyPassword) {
+        scope = 'dubey';
+      }
+    } else if (allUsername && allPassword && username === allUsername && password === allPassword) {
       scope = 'all';
     } else if (dubeyUsername && dubeyPassword && username === dubeyUsername && password === dubeyPassword) {
       scope = 'dubey';

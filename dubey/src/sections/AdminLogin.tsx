@@ -3,6 +3,7 @@ import { ArrowLeft } from 'lucide-react';
 
 const DEFAULT_API_BASE = import.meta.env.DEV ? '' : 'http://localhost:5001';
 const API_BASE = import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE;
+const APP_SOURCE = import.meta.env.VITE_APP_SOURCE === 'dubey' ? 'dubey' : 'ednovate';
 
 const AdminLogin = ({ onLogin, onBack }: { onLogin: (token: string, scope: 'all' | 'dubey') => void, onBack: () => void }) => {
   const [username, setUsername] = useState('');
@@ -19,7 +20,7 @@ const AdminLogin = ({ onLogin, onBack }: { onLogin: (token: string, scope: 'all'
       const res = await fetch(`${API_BASE}/api/admin/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ username, password, source: APP_SOURCE })
       });
 
       const data = await res.json().catch(() => ({}));
@@ -27,7 +28,12 @@ const AdminLogin = ({ onLogin, onBack }: { onLogin: (token: string, scope: 'all'
         throw new Error(data?.error || 'Invalid username or password');
       }
 
-      onLogin(String(data.token), data?.scope === 'dubey' ? 'dubey' : 'all');
+      const scope = data?.scope === 'dubey' ? 'dubey' : 'all';
+      if (scope !== 'dubey') {
+        throw new Error('Dubey panel ke liye Dubey admin credentials use karein.');
+      }
+
+      onLogin(String(data.token), scope);
     } catch (err: any) {
       setError(err?.message || 'Invalid username or password');
     } finally {
