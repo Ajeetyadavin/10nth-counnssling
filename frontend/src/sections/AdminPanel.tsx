@@ -16,6 +16,12 @@ type Student = {
 };
 
 type SourceFilter = 'all' | 'ednovate' | 'dubey';
+type AdminScope = 'all' | 'dubey';
+
+type BrandContactSettings = {
+  contactNumber: string;
+  whatsappMessage: string;
+};
 
 type QuestionOption = {
   text: string;
@@ -39,10 +45,12 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE;
 const AdminPanel = ({
   onBack,
   adminToken,
+  adminScope,
   onUnauthorized
 }: {
   onBack: () => void;
   adminToken: string | null;
+  adminScope: AdminScope;
   onUnauthorized: () => void;
 }) => {
   const [activeTab, setActiveTab] = useState<Tab>('students');
@@ -57,6 +65,14 @@ const AdminPanel = ({
   const [otpRequired, setOtpRequired] = useState<boolean>(true);
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [settingsMsg, setSettingsMsg] = useState('');
+  const [ednovateContactSettings, setEdnovateContactSettings] = useState<BrandContactSettings>({
+    contactNumber: '8651014840',
+    whatsappMessage: 'Hey, I need my Career Counselling Report'
+  });
+  const [dubeyContactSettings, setDubeyContactSettings] = useState<BrandContactSettings>({
+    contactNumber: '8651014840',
+    whatsappMessage: 'Hey, I need my Career Counselling Report'
+  });
   const [importingQuestions, setImportingQuestions] = useState(false);
   const [questionLanguageFilter, setQuestionLanguageFilter] = useState<'all' | 'hinglish' | 'english'>('all');
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -157,6 +173,18 @@ const AdminPanel = ({
       const data = await res.json();
       setQuestionLimit(Number(data?.questionLimit) || 45);
       setOtpRequired(data?.otpRequired !== false);
+      if (data?.contactSettings?.ednovate) {
+        setEdnovateContactSettings({
+          contactNumber: String(data.contactSettings.ednovate.contactNumber || '8651014840'),
+          whatsappMessage: String(data.contactSettings.ednovate.whatsappMessage || 'Hey, I need my Career Counselling Report')
+        });
+      }
+      if (data?.contactSettings?.dubey) {
+        setDubeyContactSettings({
+          contactNumber: String(data.contactSettings.dubey.contactNumber || '8651014840'),
+          whatsappMessage: String(data.contactSettings.dubey.whatsappMessage || 'Hey, I need my Career Counselling Report')
+        });
+      }
       setIsConnected(true);
     } catch {
       setIsConnected(false);
@@ -475,26 +503,76 @@ const AdminPanel = ({
   };
 
   const saveSettings = async () => {
+    const cleanPhone = (value: string) => String(value || '').replace(/\D/g, '').slice(0, 15);
+    const cleanMessage = (value: string) => String(value || '').replace(/\s+/g, ' ').trim();
     const safeLimit = Number(questionLimit);
-    if (!Number.isInteger(safeLimit) || safeLimit < 1 || safeLimit > 200) {
+    if (adminScope === 'all' && (!Number.isInteger(safeLimit) || safeLimit < 1 || safeLimit > 200)) {
       setSettingsMsg('Question limit 1 to 200 ke beech hona chahiye.');
       return;
     }
 
+    const nextEdnovateNumber = cleanPhone(ednovateContactSettings.contactNumber);
+    const nextDubeyNumber = cleanPhone(dubeyContactSettings.contactNumber);
+    if (adminScope === 'all' && nextEdnovateNumber.length < 8) {
+      setSettingsMsg('Ednovate contact number valid rakho (minimum 8 digits).');
+      return;
+    }
+    if (nextDubeyNumber.length < 8) {
+      setSettingsMsg('Dubey contact number valid rakho (minimum 8 digits).');
+      return;
+    }
+
+    const nextEdnovateMessage = cleanMessage(ednovateContactSettings.whatsappMessage) || 'Hey, I need my Career Counselling Report';
+    const nextDubeyMessage = cleanMessage(dubeyContactSettings.whatsappMessage) || 'Hey, I need my Career Counselling Report';
+
     try {
       setSettingsSaving(true);
       setSettingsMsg('');
+      const payload: Record<string, unknown> = {
+        contactSettings: {
+          dubey: {
+            contactNumber: nextDubeyNumber,
+            whatsappMessage: nextDubeyMessage
+          },
+          ...(adminScope === 'all'
+            ? {
+                ednovate: {
+                  contactNumber: nextEdnovateNumber,
+                  whatsappMessage: nextEdnovateMessage
+                }
+              }
+            : {})
+        }
+      };
+
+      if (adminScope === 'all') {
+        payload.questionLimit = safeLimit;
+        payload.otpRequired = otpRequired;
+      }
+
       const res = await adminFetch(`${API_BASE}/api/admin/settings`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ questionLimit: safeLimit, otpRequired })
+        body: JSON.stringify(payload)
       });
 
       if (!res.ok) throw new Error('Save failed');
       const data = await res.json();
-      setQuestionLimit(Number(data?.questionLimit) || safeLimit);
+      setQuestionLimit(Number(data?.questionLimit) || safeLimit || 45);
       setOtpRequired(data?.otpRequired !== false);
-      setSettingsMsg('Settings saved. Test count aur OTP preference update ho gaya.');
+      if (data?.contactSettings?.ednovate) {
+        setEdnovateContactSettings({
+          contactNumber: String(data.contactSettings.ednovate.contactNumber || nextEdnovateNumber || '8651014840'),
+          whatsappMessage: String(data.contactSettings.ednovate.whatsappMessage || nextEdnovateMessage)
+        });
+      }
+      if (data?.contactSettings?.dubey) {
+        setDubeyContactSettings({
+          contactNumber: String(data.contactSettings.dubey.contactNumber || nextDubeyNumber || '8651014840'),
+          whatsappMessage: String(data.contactSettings.dubey.whatsappMessage || nextDubeyMessage)
+        });
+      }
+      setSettingsMsg('Settings saved. Contact/WhatsApp config update ho gaya.');
     } catch {
       setSettingsMsg('Settings save nahi hua.');
     } finally {
@@ -544,6 +622,12 @@ const AdminPanel = ({
     if (activeTab === 'settings') fetchSettings();
     if (activeTab === 'otp') fetchOtpData();
   }, [activeTab, filter, questionLanguageFilter, adminToken]);
+
+  useEffect(() => {
+    if (adminScope === 'dubey') {
+      setSourceFilter('dubey');
+    }
+  }, [adminScope]);
 
   return (
     <div className="h-full w-full overflow-y-auto bg-slate-50 p-4 md:p-6">
@@ -644,11 +728,13 @@ const AdminPanel = ({
                     {opt}
                   </button>
                 ))}
-                {([
-                  { key: 'all', label: 'All Brands' },
-                  { key: 'ednovate', label: 'Ednovate' },
-                  { key: 'dubey', label: 'Dubey' }
-                ] as const).map((opt) => (
+                {(adminScope === 'dubey'
+                  ? [{ key: 'dubey' as SourceFilter, label: 'Dubey' }]
+                  : [
+                      { key: 'all' as SourceFilter, label: 'All Brands' },
+                      { key: 'ednovate' as SourceFilter, label: 'Ednovate' },
+                      { key: 'dubey' as SourceFilter, label: 'Dubey' }
+                    ]).map((opt) => (
                   <button
                     key={opt.key}
                     onClick={() => setSourceFilter(opt.key)}
@@ -1168,36 +1254,78 @@ const AdminPanel = ({
           </div>
         ) : (
           <div className="space-y-4 max-w-xl">
-            <div className="border border-slate-200 rounded-md p-4 bg-slate-50">
-              <h3 className="text-base font-semibold text-slate-900 mb-2">Test Question Count</h3>
-              <p className="text-sm text-slate-600 mb-3">
-                Admin yahan set karega kitne questions user test me dikhne chahiye.
-              </p>
-              <div className="flex items-center gap-2">
+            {adminScope === 'all' && (
+              <div className="border border-slate-200 rounded-md p-4 bg-slate-50">
+                <h3 className="text-base font-semibold text-slate-900 mb-2">Test Question Count</h3>
+                <p className="text-sm text-slate-600 mb-3">
+                  Admin yahan set karega kitne questions user test me dikhne chahiye.
+                </p>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min={1}
+                    max={200}
+                    value={questionLimit}
+                    onChange={(e) => setQuestionLimit(Number(e.target.value))}
+                    className="w-32 border border-slate-300 rounded-md p-2 text-sm"
+                  />
+                </div>
+              </div>
+            )}
+
+            {adminScope === 'all' && (
+              <div className="border border-slate-200 rounded-md p-4 bg-slate-50">
+                <h3 className="text-base font-semibold text-slate-900 mb-2">OTP Requirement</h3>
+                <p className="text-sm text-slate-600 mb-3">
+                  OTP disable karne par user bina OTP ke test start kar sakta hai (testing mode).
+                </p>
+                <label className="inline-flex items-center gap-2 text-sm text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={otpRequired}
+                    onChange={(e) => setOtpRequired(e.target.checked)}
+                  />
+                  OTP Required
+                </label>
+              </div>
+            )}
+
+            {adminScope === 'all' && (
+              <div className="border border-slate-200 rounded-md p-4 bg-slate-50 space-y-3">
+                <h3 className="text-base font-semibold text-slate-900">Ednovate Contact Settings</h3>
                 <input
-                  type="number"
-                  min={1}
-                  max={200}
-                  value={questionLimit}
-                  onChange={(e) => setQuestionLimit(Number(e.target.value))}
-                  className="w-32 border border-slate-300 rounded-md p-2 text-sm"
+                  type="text"
+                  value={ednovateContactSettings.contactNumber}
+                  onChange={(e) => setEdnovateContactSettings((prev) => ({ ...prev, contactNumber: e.target.value }))}
+                  placeholder="Ednovate WhatsApp Number"
+                  className="w-full border border-slate-300 rounded-md p-2 text-sm"
+                />
+                <textarea
+                  value={ednovateContactSettings.whatsappMessage}
+                  onChange={(e) => setEdnovateContactSettings((prev) => ({ ...prev, whatsappMessage: e.target.value }))}
+                  placeholder="WhatsApp Prefilled Message"
+                  rows={3}
+                  className="w-full border border-slate-300 rounded-md p-2 text-sm"
                 />
               </div>
-            </div>
+            )}
 
-            <div className="border border-slate-200 rounded-md p-4 bg-slate-50">
-              <h3 className="text-base font-semibold text-slate-900 mb-2">OTP Requirement</h3>
-              <p className="text-sm text-slate-600 mb-3">
-                OTP disable karne par user bina OTP ke test start kar sakta hai (testing mode).
-              </p>
-              <label className="inline-flex items-center gap-2 text-sm text-slate-700">
-                <input
-                  type="checkbox"
-                  checked={otpRequired}
-                  onChange={(e) => setOtpRequired(e.target.checked)}
-                />
-                OTP Required
-              </label>
+            <div className="border border-slate-200 rounded-md p-4 bg-slate-50 space-y-3">
+              <h3 className="text-base font-semibold text-slate-900">Dubey Contact Settings</h3>
+              <input
+                type="text"
+                value={dubeyContactSettings.contactNumber}
+                onChange={(e) => setDubeyContactSettings((prev) => ({ ...prev, contactNumber: e.target.value }))}
+                placeholder="Dubey WhatsApp Number"
+                className="w-full border border-slate-300 rounded-md p-2 text-sm"
+              />
+              <textarea
+                value={dubeyContactSettings.whatsappMessage}
+                onChange={(e) => setDubeyContactSettings((prev) => ({ ...prev, whatsappMessage: e.target.value }))}
+                placeholder="WhatsApp Prefilled Message"
+                rows={3}
+                className="w-full border border-slate-300 rounded-md p-2 text-sm"
+              />
             </div>
 
             <div>

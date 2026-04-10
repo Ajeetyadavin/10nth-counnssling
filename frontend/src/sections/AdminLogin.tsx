@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 const DEFAULT_API_BASE = import.meta.env.DEV ? '' : 'http://localhost:5001';
 const API_BASE = import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE;
 
-const AdminLogin = ({ onLogin, onBack }: { onLogin: (token: string) => void, onBack: () => void }) => {
+const AdminLogin = ({ onLogin, onBack }: { onLogin: (token: string, scope: 'all' | 'dubey') => void, onBack: () => void }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -27,7 +27,7 @@ const AdminLogin = ({ onLogin, onBack }: { onLogin: (token: string) => void, onB
         throw new Error(data?.error || 'Invalid username or password');
       }
 
-      onLogin(String(data.token));
+      onLogin(String(data.token), data?.scope === 'dubey' ? 'dubey' : 'all');
     } catch (err: any) {
       setError(err?.message || 'Invalid username or password');
     } finally {

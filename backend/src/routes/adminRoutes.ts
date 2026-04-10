@@ -4,6 +4,9 @@ import { seedQuestionsIfEmpty } from '../seeds.js';
 import { signAdminToken } from '../middleware/adminAuth.js';
 import type { Express, Request } from 'express';
 
+const DEFAULT_CTA_MESSAGE = 'Hey, I need my Career Counselling Report';
+const DEFAULT_CONTACT_NUMBER = '8651014840';
+
 const ensureTables = async () => {
   // Student table
   await pool.query(`
@@ -48,10 +51,29 @@ const ensureTables = async () => {
       id INT PRIMARY KEY,
       "questionLimit" INT NOT NULL DEFAULT 45,
       "otpRequired" BOOLEAN NOT NULL DEFAULT TRUE,
+      "ednovateContactNumber" TEXT NOT NULL DEFAULT '8651014840',
+      "dubeyContactNumber" TEXT NOT NULL DEFAULT '8651014840',
+      "ednovateWhatsappMessage" TEXT NOT NULL DEFAULT 'Hey, I need my Career Counselling Report',
+      "dubeyWhatsappMessage" TEXT NOT NULL DEFAULT 'Hey, I need my Career Counselling Report',
       "updatedAt" TIMESTAMP DEFAULT NOW()
     )
   `);
   await pool.query('ALTER TABLE "AdminSettings" ADD COLUMN IF NOT EXISTS "otpRequired" BOOLEAN NOT NULL DEFAULT TRUE');
+  await pool.query('ALTER TABLE "AdminSettings" ADD COLUMN IF NOT EXISTS "ednovateContactNumber" TEXT NOT NULL DEFAULT \'8651014840\'');
+  await pool.query('ALTER TABLE "AdminSettings" ADD COLUMN IF NOT EXISTS "dubeyContactNumber" TEXT NOT NULL DEFAULT \'8651014840\'');
+  await pool.query('ALTER TABLE "AdminSettings" ADD COLUMN IF NOT EXISTS "ednovateWhatsappMessage" TEXT NOT NULL DEFAULT \'Hey, I need my Career Counselling Report\'');
+  await pool.query('ALTER TABLE "AdminSettings" ADD COLUMN IF NOT EXISTS "dubeyWhatsappMessage" TEXT NOT NULL DEFAULT \'Hey, I need my Career Counselling Report\'');
+
+  await pool.query(
+    `UPDATE "AdminSettings"
+     SET
+       "ednovateContactNumber" = COALESCE(NULLIF(TRIM("ednovateContactNumber"), ''), $1),
+       "dubeyContactNumber" = COALESCE(NULLIF(TRIM("dubeyContactNumber"), ''), $1),
+       "ednovateWhatsappMessage" = COALESCE(NULLIF(TRIM("ednovateWhatsappMessage"), ''), $2),
+       "dubeyWhatsappMessage" = COALESCE(NULLIF(TRIM("dubeyWhatsappMessage"), ''), $2)
+     WHERE id = 1`,
+    [DEFAULT_CONTACT_NUMBER, DEFAULT_CTA_MESSAGE]
+  );
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS "MobileVerification" (
@@ -76,8 +98,9 @@ const ensureTables = async () => {
   await pool.query('CREATE INDEX IF NOT EXISTS idx_mobile_verification_token ON "MobileVerification" ("verificationToken")');
 
   await pool.query(`
-    INSERT INTO "AdminSettings" (id, "questionLimit", "otpRequired", "updatedAt")
-    VALUES (1, 45, TRUE, NOW())
+    INSERT INTO "AdminSettings"
+      (id, "questionLimit", "otpRequired", "ednovateContactNumber", "dubeyContactNumber", "ednovateWhatsappMessage", "dubeyWhatsappMessage", "updatedAt")
+    VALUES (1, 45, TRUE, '8651014840', '8651014840', 'Hey, I need my Career Counselling Report', 'Hey, I need my Career Counselling Report', NOW())
     ON CONFLICT (id) DO NOTHING
   `);
 };
@@ -93,6 +116,34 @@ const csvEscape = (value: unknown) => {
 const getAdminScope = (req: Request): 'all' | 'dubey' => {
   const scope = (req as any)?.adminAuth?.scope;
   return scope === 'dubey' ? 'dubey' : 'all';
+};
+
+const normalizeContactNumber = (value: unknown): string => String(value || '').replace(/\D/g, '').slice(0, 15);
+
+const normalizeWhatsappMessage = (value: unknown): string => {
+  const cleaned = String(value || '').replace(/\s+/g, ' ').trim();
+  return cleaned.length > 0 ? cleaned.slice(0, 300) : DEFAULT_CTA_MESSAGE;
+};
+
+const getSourceContactConfig = async (source: 'ednovate' | 'dubey') => {
+  const result = await pool.query(
+    'SELECT "ednovateContactNumber", "dubeyContactNumber", "ednovateWhatsappMessage", "dubeyWhatsappMessage" FROM "AdminSettings" WHERE id = 1'
+  );
+  const row = result.rows[0] || {};
+
+  if (source === 'dubey') {
+    const contactNumber = normalizeContactNumber(row.dubeyContactNumber) || DEFAULT_CONTACT_NUMBER;
+    return {
+      contactNumber,
+      whatsappMessage: normalizeWhatsappMessage(row.dubeyWhatsappMessage)
+    };
+  }
+
+  const contactNumber = normalizeContactNumber(row.ednovateContactNumber) || DEFAULT_CONTACT_NUMBER;
+  return {
+    contactNumber,
+    whatsappMessage: normalizeWhatsappMessage(row.ednovateWhatsappMessage)
+  };
 };
 
 export const setupAdminRoutes = (app: Express) => {
@@ -125,7 +176,7 @@ export const setupAdminRoutes = (app: Express) => {
 
     try {
       const token = signAdminToken(username, scope);
-      return res.json({ ok: true, token });
+      return res.json({ ok: true, token, scope });
     } catch (err: any) {
       console.error('Admin login token error:', err?.message || err);
       return res.status(503).json({ error: 'Admin auth is not configured on server.' });
@@ -177,7 +228,7 @@ export const setupAdminRoutes = (app: Express) => {
           : await pool.query('SELECT * FROM "Student"');
       const students = result.rows;
       const csv =
-        'Name,Mobile,Email,Location,Status,Result,CreatedDate,CreatedTime,CreatedTimestamp\n' +
+        'Name,Brand,Mobile,Email,Location,Status,Result,CreatedDate,CreatedTime,CreatedTimestamp\n' +
         students
           .map((s: any) => {
             const createdAt = new Date(s.createdAt);
@@ -188,6 +239,7 @@ export const setupAdminRoutes = (app: Express) => {
 
             return [
               csvEscape(s.name),
+              csvEscape((s.source || 'ednovate') === 'dubey' ? 'Dubey' : 'Ednovate'),
               csvEscape(s.mobile),
               csvEscape(s.email),
               csvEscape(s.location),
@@ -229,7 +281,9 @@ export const setupAdminRoutes = (app: Express) => {
       if (!student) return res.status(404).send('No completed test found for this mobile number');
       if (student.status !== 'Completed' || !student.result)
         return res.status(403).send('Test not completed yet');
-      const pdfBuffer = await generateReportPDF(student);
+      const source = String(student.source || '').toLowerCase() === 'dubey' ? 'dubey' : 'ednovate';
+      const contactConfig = await getSourceContactConfig(source);
+      const pdfBuffer = await generateReportPDF(student, contactConfig);
       res.contentType('application/pdf');
       res.attachment(`Report_${student.name}.pdf`);
       res.send(pdfBuffer);
@@ -248,8 +302,10 @@ export const setupAdminRoutes = (app: Express) => {
           : await pool.query('SELECT * FROM "Student" WHERE id = $1', [req.params.id]);
       const student = result.rows[0];
       if (!student) return res.status(404).send('Student not found');
-      
-      const pdfBuffer = await generateReportPDF(student);
+
+      const source = String(student.source || '').toLowerCase() === 'dubey' ? 'dubey' : 'ednovate';
+      const contactConfig = await getSourceContactConfig(source);
+      const pdfBuffer = await generateReportPDF(student, contactConfig);
       res.contentType('application/pdf');
       res.attachment(`Report_${student.name}.pdf`);
       res.send(pdfBuffer);
@@ -498,13 +554,33 @@ export const setupAdminRoutes = (app: Express) => {
   });
 
   // Settings: question count for test
-  app.get('/api/admin/settings', async (_req, res) => {
+  app.get('/api/admin/settings', async (req, res) => {
     try {
-      const result = await pool.query('SELECT "questionLimit", "otpRequired", "updatedAt" FROM "AdminSettings" WHERE id = 1');
+      const scope = getAdminScope(req);
+      const result = await pool.query(
+        'SELECT "questionLimit", "otpRequired", "ednovateContactNumber", "dubeyContactNumber", "ednovateWhatsappMessage", "dubeyWhatsappMessage", "updatedAt" FROM "AdminSettings" WHERE id = 1'
+      );
       const row = result.rows[0] || { questionLimit: 45, otpRequired: true };
+
+      const ednovateContactNumber = normalizeContactNumber(row.ednovateContactNumber) || DEFAULT_CONTACT_NUMBER;
+      const dubeyContactNumber = normalizeContactNumber(row.dubeyContactNumber) || DEFAULT_CONTACT_NUMBER;
+
       res.json({
         questionLimit: Number(row.questionLimit) || 45,
         otpRequired: row.otpRequired !== false,
+        scope,
+        contactSettings: {
+          ednovate: scope === 'all'
+            ? {
+                contactNumber: ednovateContactNumber,
+                whatsappMessage: normalizeWhatsappMessage(row.ednovateWhatsappMessage)
+              }
+            : undefined,
+          dubey: {
+            contactNumber: dubeyContactNumber,
+            whatsappMessage: normalizeWhatsappMessage(row.dubeyWhatsappMessage)
+          }
+        },
         updatedAt: row.updatedAt
       });
     } catch (err: any) {
@@ -515,30 +591,74 @@ export const setupAdminRoutes = (app: Express) => {
 
   app.put('/api/admin/settings', async (req, res) => {
     try {
-      const existing = await pool.query('SELECT "questionLimit", "otpRequired" FROM "AdminSettings" WHERE id = 1');
-      const current = existing.rows[0] || { questionLimit: 45, otpRequired: true };
+      const scope = getAdminScope(req);
+      const existing = await pool.query(
+        'SELECT "questionLimit", "otpRequired", "ednovateContactNumber", "dubeyContactNumber", "ednovateWhatsappMessage", "dubeyWhatsappMessage" FROM "AdminSettings" WHERE id = 1'
+      );
+      const current = existing.rows[0] || {
+        questionLimit: 45,
+        otpRequired: true,
+        ednovateContactNumber: DEFAULT_CONTACT_NUMBER,
+        dubeyContactNumber: DEFAULT_CONTACT_NUMBER,
+        ednovateWhatsappMessage: DEFAULT_CTA_MESSAGE,
+        dubeyWhatsappMessage: DEFAULT_CTA_MESSAGE
+      };
 
-      const nextLimitRaw = req.body?.questionLimit ?? current.questionLimit;
-      const nextLimit = Number(nextLimitRaw);
-      if (!Number.isInteger(nextLimit) || nextLimit < 1 || nextLimit > 200) {
-        return res.status(400).json({ error: 'questionLimit must be an integer between 1 and 200' });
+      let nextLimit = Number(current.questionLimit) || 45;
+      let nextOtpRequired = current.otpRequired !== false;
+      if (scope === 'all') {
+        const nextLimitRaw = req.body?.questionLimit ?? current.questionLimit;
+        const parsedLimit = Number(nextLimitRaw);
+        if (!Number.isInteger(parsedLimit) || parsedLimit < 1 || parsedLimit > 200) {
+          return res.status(400).json({ error: 'questionLimit must be an integer between 1 and 200' });
+        }
+        nextLimit = parsedLimit;
+        nextOtpRequired = req.body?.otpRequired === undefined ? (current.otpRequired !== false) : Boolean(req.body.otpRequired);
       }
 
-      const nextOtpRequired = req.body?.otpRequired === undefined
-        ? (current.otpRequired !== false)
-        : Boolean(req.body.otpRequired);
+      const incomingContactSettings = req.body?.contactSettings || {};
+      const resolvedEdnovateNumber = scope === 'all'
+        ? (normalizeContactNumber(incomingContactSettings?.ednovate?.contactNumber) || normalizeContactNumber(current.ednovateContactNumber) || DEFAULT_CONTACT_NUMBER)
+        : (normalizeContactNumber(current.ednovateContactNumber) || DEFAULT_CONTACT_NUMBER);
+      const resolvedDubeyNumber = normalizeContactNumber(incomingContactSettings?.dubey?.contactNumber)
+        || normalizeContactNumber(current.dubeyContactNumber)
+        || DEFAULT_CONTACT_NUMBER;
+
+      const resolvedEdnovateMessage = scope === 'all'
+        ? normalizeWhatsappMessage(incomingContactSettings?.ednovate?.whatsappMessage ?? current.ednovateWhatsappMessage)
+        : normalizeWhatsappMessage(current.ednovateWhatsappMessage);
+      const resolvedDubeyMessage = normalizeWhatsappMessage(incomingContactSettings?.dubey?.whatsappMessage ?? current.dubeyWhatsappMessage);
 
       const result = await pool.query(
         `UPDATE "AdminSettings"
-         SET "questionLimit" = $1, "otpRequired" = $2, "updatedAt" = NOW()
+         SET "questionLimit" = $1,
+             "otpRequired" = $2,
+             "ednovateContactNumber" = $3,
+             "dubeyContactNumber" = $4,
+             "ednovateWhatsappMessage" = $5,
+             "dubeyWhatsappMessage" = $6,
+             "updatedAt" = NOW()
          WHERE id = 1
-         RETURNING "questionLimit", "otpRequired", "updatedAt"`,
-        [nextLimit, nextOtpRequired]
+         RETURNING "questionLimit", "otpRequired", "ednovateContactNumber", "dubeyContactNumber", "ednovateWhatsappMessage", "dubeyWhatsappMessage", "updatedAt"`,
+        [nextLimit, nextOtpRequired, resolvedEdnovateNumber, resolvedDubeyNumber, resolvedEdnovateMessage, resolvedDubeyMessage]
       );
 
       res.json({
         questionLimit: Number(result.rows[0]?.questionLimit) || nextLimit,
         otpRequired: result.rows[0]?.otpRequired !== false,
+        scope,
+        contactSettings: {
+          ednovate: scope === 'all'
+            ? {
+                contactNumber: normalizeContactNumber(result.rows[0]?.ednovateContactNumber) || DEFAULT_CONTACT_NUMBER,
+                whatsappMessage: normalizeWhatsappMessage(result.rows[0]?.ednovateWhatsappMessage)
+              }
+            : undefined,
+          dubey: {
+            contactNumber: normalizeContactNumber(result.rows[0]?.dubeyContactNumber) || DEFAULT_CONTACT_NUMBER,
+            whatsappMessage: normalizeWhatsappMessage(result.rows[0]?.dubeyWhatsappMessage)
+          }
+        },
         updatedAt: result.rows[0]?.updatedAt
       });
     } catch (err: any) {

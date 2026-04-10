@@ -8,10 +8,15 @@ interface BlurredReportProps {
   result: ReturnType<typeof getRecommendedStream>;
   onRestart: () => void;
   language?: 'hinglish' | 'english';
+  contactNumber?: string;
+  whatsappMessage?: string;
 }
 
-const BlurredReport = ({ userData, result, onRestart, language = 'hinglish' }: BlurredReportProps) => {
+const BlurredReport = ({ userData, result, onRestart, language = 'hinglish', contactNumber = '8651014840', whatsappMessage = 'Hey, I need my Career Counselling Report' }: BlurredReportProps) => {
   const isEn = language === 'english';
+  const cleanContactNumber = String(contactNumber || '').replace(/\D/g, '').slice(0, 15) || '8651014840';
+  const encodedMessage = encodeURIComponent(String(whatsappMessage || 'Hey, I need my Career Counselling Report').trim() || 'Hey, I need my Career Counselling Report');
+  const whatsappHref = `https://wa.me/${cleanContactNumber}?text=${encodedMessage}`;
   const streamDetails = {
     science: {
       title: "Science Stream",
@@ -195,7 +200,7 @@ const BlurredReport = ({ userData, result, onRestart, language = 'hinglish' }: B
           className="text-center mt-auto py-4 px-2"
         >
           <p className="text-sm font-bold text-slate-600 mb-4 px-4">
-            {isEn ? 'Call us for your full career report and college guidance:' : 'Aapki full career report aur college guidance ke liye call karein:'}
+            {isEn ? 'Message us on WhatsApp for your full career report and college guidance:' : 'Aapki full career report aur college guidance ke liye WhatsApp karein:'}
           </p>
           
           <div className="relative inline-block w-full max-w-[280px]">
@@ -210,7 +215,9 @@ const BlurredReport = ({ userData, result, onRestart, language = 'hinglish' }: B
             />
             
             <motion.a
-              href="tel:865101484"
+              href={whatsappHref}
+              target="_blank"
+              rel="noopener noreferrer"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className="relative flex items-center justify-center gap-3 w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black py-4 px-6 rounded-2xl text-lg shadow-[0_10px_25px_-5px_rgba(16,185,129,0.4)] border border-emerald-400/20"
@@ -218,7 +225,7 @@ const BlurredReport = ({ userData, result, onRestart, language = 'hinglish' }: B
               <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
                 <Phone className="w-5 h-5 fill-white" />
               </div>
-              <span className="tracking-wide">865101484</span>
+              <span className="tracking-wide">{cleanContactNumber}</span>
             </motion.a>
           </div>
 

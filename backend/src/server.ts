@@ -62,14 +62,31 @@ app.get('/api/health', (_req, res) => {
 
 app.get('/api/quiz/settings', async (_req, res) => {
   try {
-    const result = await pool.query('SELECT "questionLimit", "otpRequired" FROM "AdminSettings" WHERE id = 1');
+    const appSource = getAppSource(_req.headers['x-app-source']);
+    const result = await pool.query(
+      'SELECT "questionLimit", "otpRequired", "ednovateContactNumber", "dubeyContactNumber", "ednovateWhatsappMessage", "dubeyWhatsappMessage" FROM "AdminSettings" WHERE id = 1'
+    );
     const row = result.rows[0] || { questionLimit: 45, otpRequired: true };
+    const contactNumber = String(appSource === 'dubey' ? row.dubeyContactNumber : row.ednovateContactNumber || '')
+      .replace(/\D/g, '')
+      .slice(0, 15) || '8651014840';
+    const whatsappMessage = String(appSource === 'dubey' ? row.dubeyWhatsappMessage : row.ednovateWhatsappMessage || '')
+      .replace(/\s+/g, ' ')
+      .trim() || 'Hey, I need my Career Counselling Report';
+
     return res.json({
       questionLimit: Number(row.questionLimit) || 45,
-      otpRequired: row.otpRequired !== false
+      otpRequired: row.otpRequired !== false,
+      contactNumber,
+      whatsappMessage
     });
   } catch {
-    return res.json({ questionLimit: 45, otpRequired: true });
+    return res.json({
+      questionLimit: 45,
+      otpRequired: true,
+      contactNumber: '8651014840',
+      whatsappMessage: 'Hey, I need my Career Counselling Report'
+    });
   }
 });
 

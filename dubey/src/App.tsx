@@ -27,6 +27,7 @@ export interface UserData {
 const STORAGE_KEY = 'career_counselor_state';
 const LANGUAGE_KEY = 'career_counselor_language';
 const ADMIN_TOKEN_KEY = 'career_counselor_admin_token';
+type AdminScope = 'all' | 'dubey';
 
 const getErrorMessage = async (res: Response, fallback: string) => {
   try {
@@ -41,6 +42,20 @@ const withAppSourceHeaders = (headers: Record<string, string> = {}) => ({
   ...headers,
   'x-app-source': APP_SOURCE
 });
+
+const parseAdminScopeFromToken = (token: string | null): AdminScope => {
+  if (!token) return 'all';
+  try {
+    const payload = token.split('.')[1];
+    if (!payload) return 'all';
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
+    const decoded = JSON.parse(atob(padded));
+    return decoded?.scope === 'dubey' ? 'dubey' : 'all';
+  } catch {
+    return 'all';
+  }
+};
 
 // Helper to shuffle array
 const shuffleArray = <T,>(array: T[]): T[] => {
@@ -181,6 +196,9 @@ function App() {
   const [otpRequired, setOtpRequired] = useState<boolean>(true);
   const [showOtpPopup, setShowOtpPopup] = useState<boolean>(savedState?.appState === 'otp');
   const [adminToken, setAdminToken] = useState<string | null>(() => localStorage.getItem(ADMIN_TOKEN_KEY));
+  const [adminScope, setAdminScope] = useState<AdminScope>(() => parseAdminScopeFromToken(localStorage.getItem(ADMIN_TOKEN_KEY)));
+  const [ctaContactNumber, setCtaContactNumber] = useState<string>('8651014840');
+  const [ctaWhatsappMessage, setCtaWhatsappMessage] = useState<string>('Hey, I need my Career Counselling Report');
 
   // Fetch Questions from DB on mount
   useEffect(() => {
@@ -188,13 +206,15 @@ function App() {
       try {
         const [qRes, settingsRes] = await Promise.all([
           fetch(`${API_BASE}/api/quiz/questions?language=${language}`),
-          fetch(`${API_BASE}/api/quiz/settings`)
+          fetch(`${API_BASE}/api/quiz/settings`, { headers: withAppSourceHeaders() })
         ]);
 
         if (!qRes.ok) throw new Error('Question API error');
         const data = await qRes.json();
         const settings = settingsRes.ok ? await settingsRes.json() : { questionLimit: 45, otpRequired: true };
         setOtpRequired(settings?.otpRequired !== false);
+        setCtaContactNumber(String(settings?.contactNumber || '8651014840'));
+        setCtaWhatsappMessage(String(settings?.whatsappMessage || 'Hey, I need my Career Counselling Report'));
         const dynamicPool = normalizeQuestionPool(data);
         
         // If DB has questions, use them. Otherwise fallback to static.
@@ -436,12 +456,14 @@ function App() {
     try {
       const [qRes, settingsRes] = await Promise.all([
         fetch(`${API_BASE}/api/quiz/questions?language=${language}`),
-        fetch(`${API_BASE}/api/quiz/settings`)
+        fetch(`${API_BASE}/api/quiz/settings`, { headers: withAppSourceHeaders() })
       ]);
 
       const data = qRes.ok ? await qRes.json() : [];
       const settings = settingsRes.ok ? await settingsRes.json() : { questionLimit: 45, otpRequired: true };
       setOtpRequired(settings?.otpRequired !== false);
+      setCtaContactNumber(String(settings?.contactNumber || '8651014840'));
+      setCtaWhatsappMessage(String(settings?.whatsappMessage || 'Hey, I need my Career Counselling Report'));
       const dynamicPool = normalizeQuestionPool(data);
       
       // Fallback to multiLanguageQuestions filtered by language
@@ -564,6 +586,8 @@ function App() {
               result={result}
               onRestart={handleRestart}
               language={language}
+              contactNumber={ctaContactNumber}
+              whatsappMessage={ctaWhatsappMessage}
             />
           </motion.div>
         )}
@@ -577,9 +601,11 @@ function App() {
           >
             <AdminPanel
               adminToken={adminToken}
+              adminScope={adminScope}
               onUnauthorized={() => {
                 localStorage.removeItem(ADMIN_TOKEN_KEY);
                 setAdminToken(null);
+                setAdminScope('all');
                 setAppState('admin-login');
               }}
               onBack={() => setAppState('landing')}
@@ -595,9 +621,10 @@ function App() {
             className="h-full"
           >
             <AdminLogin 
-              onLogin={(token) => {
+              onLogin={(token, scope) => {
                 localStorage.setItem(ADMIN_TOKEN_KEY, token);
                 setAdminToken(token);
+                setAdminScope(scope);
                 setAppState('admin');
               }} 
               onBack={() => setAppState('landing')} 

@@ -29,6 +29,11 @@ interface Profile {
     color: string; lightColor: string; darkColor: string;
 }
 
+type ReportContactConfig = {
+    contactNumber?: string;
+    whatsappMessage?: string;
+};
+
 // ─── Page constants ───────────────────────────────────────────────────────────
 const W = 595.28, H = 841.89, M = 36, CW = W - M * 2;
 const BRAND = '#E74623', DARK = '#0F172A', GRAY = '#374151';
@@ -114,7 +119,7 @@ const PROFILES: Record<StreamKey, Profile> = {
               tasks: ['Confirm your Class 11 subject combination: PCM (Engineering/Tech) or PCB (Medical) or PCMB.',
                       'Enroll in a coaching program (Ednovate for Commerce, ALLEN/FIITJEE for Science) or structured online batch.',
                       'Get Class 11 NCERT textbooks for Physics, Chemistry and Maths/Biology — start Chapter 1 immediately.',
-                      'Connect with Ednovate career mentors (WhatsApp 8651014840) for a free 1-on-1 guidance session.',
+                      'Connect with Ednovate career mentors on WhatsApp for a free 1-on-1 guidance session.',
                       'Set a daily 4-5 hour study schedule — use Pomodoro technique (50 min study, 10 min break).'] },
             { period: 'PHASE 2 — Days 31-60: Practice & Testing', focus: 'Problem solving + chapter tests', color: '#2563EB',
               tasks: ['Solve minimum 20-30 problems per day from HC Verma, DC Pandey or equivalent books.',
@@ -145,7 +150,7 @@ const PROFILES: Record<StreamKey, Profile> = {
         resources: [
             'JEE: HC Verma (Physics) + MS Chauhan (Organic) + SL Loney (Maths)',
             'NEET: NCERT BIO + DC Pandey (Physics) + OP Tandon (Chemistry)',
-            'Career Guidance: Ednovate 1-on-1 mentorship (WhatsApp 8651014840)',
+            'Career Guidance: Ednovate 1-on-1 mentorship via WhatsApp support',
             'Mock Tests: NTA Official JEE/NEET mock (free), Aakash test series',
             'Apps: Embibe, Toppr, Doubtnut for instant doubt clearing',
         ],
@@ -247,7 +252,7 @@ const PROFILES: Record<StreamKey, Profile> = {
         phases: [
             { period: 'PHASE 1 — Days 1-30: Foundation Setup', focus: 'FYJC admission + CA/course registration', color: '#2563EB',
               tasks: ['Secure FYJC Commerce admission — select Accountancy, Economics, Business Studies, Maths.',
-                      'Enroll in Ednovate\'s FYJC Commerce + CA Foundation combo program (WhatsApp 8651014840).',
+                      'Enroll in Ednovate\'s FYJC Commerce + CA Foundation combo program via WhatsApp support.',
                       'Register for CA Foundation with ICAI — registration opens after Class 10 board results.',
                       'Start building Excel, Tally ERP, and Google Sheets skills — these are career basics.',
                       'Read 2 business news articles daily (Economic Times, Mint) to build financial awareness.'] },
@@ -383,7 +388,7 @@ const PROFILES: Record<StreamKey, Profile> = {
             { period: 'PHASE 1 — Days 1-30: Foundation & Direction', focus: 'Stream confirmation + goal setting', color: '#7C3AED',
               tasks: ['Confirm Class 11 subject selection: History, Political Science, Economics, Psychology based on career goal.',
                       'Research 3 career options deeply: UPSC / Law / Design / Psychology / Journalism.',
-                      'Connect with Ednovate career mentors (WhatsApp 8651014840) for free Arts career guidance.',
+                      'Connect with Ednovate career mentors on WhatsApp for free Arts career guidance.',
                       'Start a personal journal or blog — daily writing is the #1 arts career skill builder.',
                       'For law: download CLAT syllabus and prepare a 12-month study timeline.'] },
             { period: 'PHASE 2 — Days 31-60: Skill + Experience Building', focus: 'Portfolio development', color: '#D97706',
@@ -409,7 +414,7 @@ const PROFILES: Record<StreamKey, Profile> = {
             'Read one newspaper editorial daily and write a 150-word opinion — builds depth of thinking.',
             'Keep a "current affairs" notebook with monthly summaries — essential for UPSC and law.',
             'Take every speech, debate, and presentation opportunity — vocal confidence is irreplaceable.',
-            'Connect with Ednovate career mentors for Arts stream guidance (WhatsApp 8651014840).',
+            'Connect with Ednovate career mentors for Arts stream guidance via WhatsApp support.',
             'Take online courses in design (Canva, Figma), psychology, or public policy to supplement degree.',
         ],
         resources: [
@@ -516,7 +521,7 @@ const tintHex = (hex: string, whiteMix = 0.9): string => {
 };
 
 // ─── Export ───────────────────────────────────────────────────────────────────
-export const generateReportPDF = (student: any): Promise<Buffer> =>
+export const generateReportPDF = (student: any, contactConfig?: ReportContactConfig): Promise<Buffer> =>
     new Promise((resolve, reject) => {
         void (async () => {
             const logoSvg = await getLogoSvg();
@@ -554,6 +559,7 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
             const sMobile    = String(student?.mobile   || '—');
             const sEmail     = String(student?.email    || '—');
             const sLocation  = String(student?.location || '—');
+            const contactNumber = String(contactConfig?.contactNumber || '8651014840').replace(/\D/g, '').slice(0, 15) || '8651014840';
 
             const aptBars = [
                 { label: 'Analytical Aptitude',  pct: Math.min(97, sciPct + 12), color: '#059669', desc: 'Logical breakdown of complex problems'     },
@@ -591,7 +597,7 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
                 doc.rect(0, H - 26, W, 26).fill('#F9FAFB');
                 doc.moveTo(0, H - 26).lineTo(W, H - 26).strokeColor(BORD).lineWidth(0.4).stroke();
                 doc.fillColor(LGRAY).font('Helvetica').fontSize(6.5)
-                   .text('Ednovate  |  Class 10 → 11th Career Counseling  |  FYJC/SYJC Commerce  |  CA Foundation  |  letsednovate.com  |  8651014840', M, H - 16, { width: CW, align: 'center' });
+                   .text('Ednovate  |  Class 10 → 11th Career Counseling  |  FYJC/SYJC Commerce  |  CA Foundation  |  letsednovate.com  |  ' + contactNumber, M, H - 16, { width: CW, align: 'center' });
             };
 
             const st = (y: number, title: string, col = BRAND): number => {
@@ -1230,7 +1236,7 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
             }
             doc.fillColor(DARK).font('Helvetica-Bold').fontSize(11).text('India\'s #1 Career Counseling & Coaching for Class 10 → 11th Students', M + 220, y + 18, { width: CW - 240 });
             doc.fillColor('#6B7280').font('Helvetica').fontSize(8).text('FYJC / SYJC Commerce  |  CA Foundation  |  Professional Courses  |  AI Assessment', M + 220, y + 40, { width: CW - 240 });
-            doc.fillColor(BRAND).font('Helvetica-Bold').fontSize(9).text('letsednovate.com  |  WhatsApp: 8651014840', M + 220, y + 55, { width: CW - 240 });
+            doc.fillColor(BRAND).font('Helvetica-Bold').fontSize(9).text('letsednovate.com  |  WhatsApp: ' + contactNumber, M + 220, y + 55, { width: CW - 240 });
             y += 78;
 
             // About section
@@ -1334,7 +1340,7 @@ export const generateReportPDF = (student: any): Promise<Buffer> =>
                 doc.fillColor(GRAY).font('Helvetica').fontSize(9)
                    .text('FYJC/SYJC Commerce  |  CA Foundation  |  Professional Courses  |  Free 1-on-1 Career Counseling Session', M, y + 36, { width: CW, align: 'center' });
                 doc.fillColor(BRAND).font('Helvetica-Bold').fontSize(12)
-                   .text('Call / WhatsApp: 8651014840   |   letsednovate.com', M, y + 52, { width: CW, align: 'center' });
+                   .text('Call / WhatsApp: ' + contactNumber + '   |   letsednovate.com', M, y + 52, { width: CW, align: 'center' });
             }
 
             ftr();
