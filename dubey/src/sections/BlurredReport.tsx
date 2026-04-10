@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Lock, Phone, Users, Star, TrendingUp, CheckCircle, Sparkles, X, Zap } from 'lucide-react';
+import { ArrowRight, Lock, Phone, Users, Star, TrendingUp, CheckCircle, Sparkles, X, Zap } from 'lucide-react';
 import type { UserData } from '../App';
 import type { getRecommendedStream } from '../data/multiLanguageQuestions';
 
@@ -15,6 +15,7 @@ interface BlurredReportProps {
 const BlurredReport = ({ userData, result, onRestart, language = 'hinglish', contactNumber = '8651014840', whatsappMessage = 'Hey, I need my Career Counselling Report' }: BlurredReportProps) => {
   const isEn = language === 'english';
   const cleanContactNumber = String(contactNumber || '').replace(/\D/g, '').slice(0, 15) || '8651014840';
+  const displayContactNumber = cleanContactNumber.length > 10 ? cleanContactNumber.slice(-10) : cleanContactNumber;
   const encodedMessage = encodeURIComponent(String(whatsappMessage || 'Hey, I need my Career Counselling Report').trim() || 'Hey, I need my Career Counselling Report');
   const whatsappHref = `https://wa.me/${cleanContactNumber}?text=${encodedMessage}`;
   const streamDetails = {
@@ -222,10 +223,19 @@ const BlurredReport = ({ userData, result, onRestart, language = 'hinglish', con
               whileTap={{ scale: 0.98 }}
               className="relative flex items-center justify-center gap-3 w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black py-4 px-6 rounded-2xl text-lg shadow-[0_10px_25px_-5px_rgba(16,185,129,0.4)] border border-emerald-400/20"
             >
-              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                <Phone className="w-5 h-5 fill-white" />
-              </div>
-              <span className="tracking-wide">{cleanContactNumber}</span>
+              {isEn ? (
+                <>
+                  <span className="tracking-wide">Click here to message</span>
+                  <ArrowRight className="w-5 h-5" />
+                </>
+              ) : (
+                <>
+                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                    <Phone className="w-5 h-5 fill-white" />
+                  </div>
+                  <span className="tracking-wide">{displayContactNumber}</span>
+                </>
+              )}
             </motion.a>
           </div>
 

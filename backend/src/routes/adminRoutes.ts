@@ -427,7 +427,10 @@ export const setupAdminRoutes = (app: Express) => {
     const client = await pool.connect();
     try {
       const scope = getAdminScope(req);
-      const targetSource = scope === 'dubey' ? 'dubey' : String(req.body?.source || 'ednovate').trim().toLowerCase() === 'dubey' ? 'dubey' : 'ednovate';
+      if (scope !== 'all') {
+        return res.status(403).json({ error: 'Questions can be managed only from Ednovate admin.' });
+      }
+      const targetSource = String(req.body?.source || 'ednovate').trim().toLowerCase() === 'dubey' ? 'dubey' : 'ednovate';
       const mode = req.body?.mode === 'replace' ? 'replace' : 'merge';
       const incoming = Array.isArray(req.body?.questions)
         ? req.body.questions
@@ -469,16 +472,10 @@ export const setupAdminRoutes = (app: Express) => {
       await client.query('BEGIN');
 
       if (mode === 'replace') {
-        if (scope === 'dubey') {
-          await client.query('DELETE FROM "Question" WHERE LOWER(TRIM(source)) = $1', ['dubey']);
-        } else {
-          await client.query('DELETE FROM "Question"');
-        }
+        await client.query('DELETE FROM "Question"');
       }
 
-      const existingRows = scope === 'dubey'
-        ? await client.query('SELECT id, text FROM "Question" WHERE LOWER(TRIM(source)) = $1', ['dubey'])
-        : await client.query('SELECT id, text FROM "Question"');
+      const existingRows = await client.query('SELECT id, text FROM "Question"');
       const existingByText = new Map(
         existingRows.rows.map((r: any) => [String(r.text).trim().toLowerCase(), r.id])
       );
@@ -524,8 +521,11 @@ export const setupAdminRoutes = (app: Express) => {
   app.post('/api/admin/questions', async (req, res) => {
     try {
       const scope = getAdminScope(req);
+      if (scope !== 'all') {
+        return res.status(403).json({ error: 'Questions can be managed only from Ednovate admin.' });
+      }
       const { text, options, category, hidden, fixed, language } = req.body;
-      const source = scope === 'dubey' ? 'dubey' : (String(req.body?.source || 'ednovate').trim().toLowerCase() === 'dubey' ? 'dubey' : 'ednovate');
+      const source = String(req.body?.source || 'ednovate').trim().toLowerCase() === 'dubey' ? 'dubey' : 'ednovate';
       console.log('Adding new question:', text);
       const result = await pool.query(
         'INSERT INTO "Question" (text, options, category, hidden, fixed, language, source) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
@@ -541,17 +541,16 @@ export const setupAdminRoutes = (app: Express) => {
   app.put('/api/admin/questions/:id', async (req, res) => {
     try {
       const scope = getAdminScope(req);
+      if (scope !== 'all') {
+        return res.status(403).json({ error: 'Questions can be managed only from Ednovate admin.' });
+      }
       const { text, options, category, hidden, fixed, language } = req.body;
+      const source = String(req.body?.source || 'ednovate').trim().toLowerCase() === 'dubey' ? 'dubey' : 'ednovate';
       console.log('Updating question:', req.params.id);
-      const result = scope === 'dubey'
-        ? await pool.query(
-            'UPDATE "Question" SET text = $1, options = $2, category = $3, hidden = $4, fixed = $5, language = $6 WHERE id = $7 AND LOWER(TRIM(source)) = $8 RETURNING *',
-            [text, JSON.stringify(options), category, Boolean(hidden), Boolean(fixed), language || 'hinglish', req.params.id, 'dubey']
-          )
-        : await pool.query(
-            'UPDATE "Question" SET text = $1, options = $2, category = $3, hidden = $4, fixed = $5, language = $6 WHERE id = $7 RETURNING *',
-            [text, JSON.stringify(options), category, Boolean(hidden), Boolean(fixed), language || 'hinglish', req.params.id]
-          );
+      const result = await pool.query(
+        'UPDATE "Question" SET text = $1, options = $2, category = $3, hidden = $4, fixed = $5, language = $6, source = $7 WHERE id = $8 RETURNING *',
+        [text, JSON.stringify(options), category, Boolean(hidden), Boolean(fixed), language || 'hinglish', source, req.params.id]
+      );
       if (result.rowCount === 0) {
         return res.status(404).json({ error: 'Question not found in current scope' });
       }
@@ -565,11 +564,10 @@ export const setupAdminRoutes = (app: Express) => {
   app.delete('/api/admin/questions/:id', async (req, res) => {
     try {
       const scope = getAdminScope(req);
-      if (scope === 'dubey') {
-        await pool.query('DELETE FROM "Question" WHERE id = $1 AND LOWER(TRIM(source)) = $2', [req.params.id, 'dubey']);
-      } else {
-        await pool.query('DELETE FROM "Question" WHERE id = $1', [req.params.id]);
+      if (scope !== 'all') {
+        return res.status(403).json({ error: 'Questions can be managed only from Ednovate admin.' });
       }
+      await pool.query('DELETE FROM "Question" WHERE id = $1', [req.params.id]);
       res.json({ message: 'Question deleted' });
     } catch (err) {
       res.status(500).json({ error: 'Failed to delete question' });
@@ -579,6 +577,9 @@ export const setupAdminRoutes = (app: Express) => {
   app.put('/api/admin/questions/visibility/bulk', async (req, res) => {
     try {
       const scope = getAdminScope(req);
+      if (scope !== 'all') {
+        return res.status(403).json({ error: 'Questions can be managed only from Ednovate admin.' });
+      }
       const { ids, hidden } = req.body;
 
       if (!Array.isArray(ids) || ids.length === 0) {
@@ -590,15 +591,10 @@ export const setupAdminRoutes = (app: Express) => {
         return res.status(400).json({ error: 'No valid ids provided' });
       }
 
-      const result = scope === 'dubey'
-        ? await pool.query(
-            'UPDATE "Question" SET hidden = $1 WHERE id = ANY($2::text[]) AND LOWER(TRIM(source)) = $3 RETURNING *',
-            [Boolean(hidden), sanitizedIds, 'dubey']
-          )
-        : await pool.query(
-            'UPDATE "Question" SET hidden = $1 WHERE id = ANY($2::text[]) RETURNING *',
-            [Boolean(hidden), sanitizedIds]
-          );
+      const result = await pool.query(
+        'UPDATE "Question" SET hidden = $1 WHERE id = ANY($2::text[]) RETURNING *',
+        [Boolean(hidden), sanitizedIds]
+      );
 
       res.json({ updatedCount: result.rowCount, rows: result.rows });
     } catch (err: any) {
@@ -610,6 +606,9 @@ export const setupAdminRoutes = (app: Express) => {
   app.put('/api/admin/questions/fixed/bulk', async (req, res) => {
     try {
       const scope = getAdminScope(req);
+      if (scope !== 'all') {
+        return res.status(403).json({ error: 'Questions can be managed only from Ednovate admin.' });
+      }
       const { ids, fixed } = req.body;
 
       if (!Array.isArray(ids) || ids.length === 0) {
@@ -621,20 +620,45 @@ export const setupAdminRoutes = (app: Express) => {
         return res.status(400).json({ error: 'No valid ids provided' });
       }
 
-      const result = scope === 'dubey'
-        ? await pool.query(
-            'UPDATE "Question" SET fixed = $1 WHERE id = ANY($2::text[]) AND LOWER(TRIM(source)) = $3 RETURNING *',
-            [Boolean(fixed), sanitizedIds, 'dubey']
-          )
-        : await pool.query(
-            'UPDATE "Question" SET fixed = $1 WHERE id = ANY($2::text[]) RETURNING *',
-            [Boolean(fixed), sanitizedIds]
-          );
+      const result = await pool.query(
+        'UPDATE "Question" SET fixed = $1 WHERE id = ANY($2::text[]) RETURNING *',
+        [Boolean(fixed), sanitizedIds]
+      );
 
       res.json({ updatedCount: result.rowCount, rows: result.rows });
     } catch (err: any) {
       console.error('Error bulk updating question fixed flag:', err);
       res.status(500).json({ error: 'Failed to update fixed flag' });
+    }
+  });
+
+  app.put('/api/admin/questions/source/bulk', async (req, res) => {
+    try {
+      const scope = getAdminScope(req);
+      if (scope !== 'all') {
+        return res.status(403).json({ error: 'Questions can be managed only from Ednovate admin.' });
+      }
+
+      const { ids, source } = req.body;
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ error: 'ids array is required' });
+      }
+
+      const sanitizedIds = ids.filter((id) => typeof id === 'string' && id.trim().length > 0);
+      if (sanitizedIds.length === 0) {
+        return res.status(400).json({ error: 'No valid ids provided' });
+      }
+
+      const targetSource = String(source || '').trim().toLowerCase() === 'dubey' ? 'dubey' : 'ednovate';
+      const result = await pool.query(
+        'UPDATE "Question" SET source = $1 WHERE id = ANY($2::text[]) RETURNING *',
+        [targetSource, sanitizedIds]
+      );
+
+      res.json({ updatedCount: result.rowCount, rows: result.rows, source: targetSource });
+    } catch (err: any) {
+      console.error('Error bulk updating question source:', err);
+      res.status(500).json({ error: 'Failed to update question source' });
     }
   });
 

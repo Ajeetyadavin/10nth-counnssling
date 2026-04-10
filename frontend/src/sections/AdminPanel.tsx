@@ -32,6 +32,7 @@ type QuestionOption = {
 type Question = {
   id: string;
   text: string;
+  source?: 'ednovate' | 'dubey' | string;
   category?: string;
   language?: 'hinglish' | 'english' | string;
   options: QuestionOption[] | string;
@@ -86,9 +87,11 @@ const AdminPanel = ({
   const [otpVerified, setOtpVerified] = useState<any[]>([]);
   const [otpFailed, setOtpFailed] = useState<any[]>([]);
   const [otpStats, setOtpStats] = useState({ verifiedCount: 0, failedCount: 0, totalAttempts: 0 });
+  const canManageQuestions = adminScope === 'all';
 
   const [newQ, setNewQ] = useState({
     text: '',
+    source: 'ednovate' as 'ednovate' | 'dubey',
     category: 'neutral',
     language: 'hinglish' as 'hinglish' | 'english',
     hidden: false,
@@ -114,6 +117,7 @@ const AdminPanel = ({
     setEditingQuestion(null);
     setNewQ({
       text: '',
+      source: 'ednovate',
       category: 'neutral',
       language: 'hinglish',
       hidden: false,
@@ -224,6 +228,7 @@ const AdminPanel = ({
   };
 
   const deleteQuestion = async (id: string) => {
+    if (!canManageQuestions) return alert('Questions sirf Ednovate admin manage kar sakta hai.');
     if (!window.confirm('Delete question?')) return;
     try {
       await adminFetch(`${API_BASE}/api/admin/questions/${id}`, { method: 'DELETE' });
@@ -234,6 +239,7 @@ const AdminPanel = ({
   };
 
   const addQuestion = async () => {
+    if (!canManageQuestions) return alert('Questions sirf Ednovate admin manage kar sakta hai.');
     if (!newQ.text.trim()) return alert('Question text is required');
     try {
       const res = await adminFetch(`${API_BASE}/api/admin/questions`, {
@@ -251,6 +257,7 @@ const AdminPanel = ({
   };
 
   const updateQuestion = async () => {
+    if (!canManageQuestions) return alert('Questions sirf Ednovate admin manage kar sakta hai.');
     if (!editingQuestion || !editingQuestion.text.trim()) return alert('Question text is required');
     try {
       const res = await adminFetch(`${API_BASE}/api/admin/questions/${editingQuestion.id}`, {
@@ -282,6 +289,7 @@ const AdminPanel = ({
   };
 
   const updateSelectedVisibility = async (hidden: boolean) => {
+    if (!canManageQuestions) return alert('Questions sirf Ednovate admin manage kar sakta hai.');
     if (selectedQuestionIds.length === 0) {
       alert('Pehle questions select karo');
       return;
@@ -308,6 +316,7 @@ const AdminPanel = ({
   };
 
   const updateSelectedFixed = async (fixed: boolean) => {
+    if (!canManageQuestions) return alert('Questions sirf Ednovate admin manage kar sakta hai.');
     if (selectedQuestionIds.length === 0) {
       alert('Pehle questions select karo');
       return;
@@ -332,6 +341,7 @@ const AdminPanel = ({
   };
 
   const updateSingleVisibility = async (id: string, hidden: boolean) => {
+    if (!canManageQuestions) return alert('Questions sirf Ednovate admin manage kar sakta hai.');
     try {
       const res = await adminFetch(`${API_BASE}/api/admin/questions/visibility/bulk`, {
         method: 'PUT',
@@ -347,6 +357,7 @@ const AdminPanel = ({
   };
 
   const updateSingleFixed = async (id: string, fixed: boolean) => {
+    if (!canManageQuestions) return alert('Questions sirf Ednovate admin manage kar sakta hai.');
     try {
       const res = await adminFetch(`${API_BASE}/api/admin/questions/fixed/bulk`, {
         method: 'PUT',
@@ -399,7 +410,7 @@ const AdminPanel = ({
 
   const exportQuestionsCSV = () => {
     const header = [
-      'text', 'category', 'hidden', 'fixed', 'order',
+      'source', 'text', 'category', 'hidden', 'fixed', 'order',
       'opt1_text', 'opt1_stream', 'opt1_weight',
       'opt2_text', 'opt2_stream', 'opt2_weight',
       'opt3_text', 'opt3_stream', 'opt3_weight',
@@ -411,6 +422,7 @@ const AdminPanel = ({
     const rows = questions.map((q, index) => {
       const opts = parseOptions(q.options);
       const row = [
+        String(q.source || 'ednovate').trim().toLowerCase() === 'dubey' ? 'dubey' : 'ednovate',
         q.text,
         q.category || 'neutral',
         Boolean(q.hidden),
@@ -472,6 +484,7 @@ const AdminPanel = ({
         }
 
         return {
+          source: String(get('source')).trim().toLowerCase() === 'dubey' ? 'dubey' : 'ednovate',
           text: get('text').trim(),
           category: (get('category') || 'neutral').trim(),
           hidden: String(get('hidden')).toLowerCase() === 'true',
@@ -846,30 +859,35 @@ const AdminPanel = ({
               <div className="flex items-center gap-2">
                 <button
                   onClick={toggleSelectAllQuestions}
+                  disabled={!canManageQuestions}
                   className="inline-flex items-center gap-1.5 border border-slate-300 px-3 py-2 rounded-md text-sm text-slate-700 hover:bg-slate-100"
                 >
                   {selectedQuestionIds.length === questions.length && questions.length > 0 ? 'Unselect All' : 'Select All'}
                 </button>
                 <button
                   onClick={() => updateSelectedVisibility(true)}
+                  disabled={!canManageQuestions}
                   className="inline-flex items-center gap-1.5 border border-amber-300 px-3 py-2 rounded-md text-sm text-amber-700 hover:bg-amber-50"
                 >
                   Hide Selected
                 </button>
                 <button
                   onClick={() => updateSelectedVisibility(false)}
+                  disabled={!canManageQuestions}
                   className="inline-flex items-center gap-1.5 border border-emerald-300 px-3 py-2 rounded-md text-sm text-emerald-700 hover:bg-emerald-50"
                 >
                   Unhide Selected
                 </button>
                 <button
                   onClick={() => updateSelectedFixed(true)}
+                  disabled={!canManageQuestions}
                   className="inline-flex items-center gap-1.5 border border-indigo-300 px-3 py-2 rounded-md text-sm text-indigo-700 hover:bg-indigo-50"
                 >
                   Mark Fixed
                 </button>
                 <button
                   onClick={() => updateSelectedFixed(false)}
+                  disabled={!canManageQuestions}
                   className="inline-flex items-center gap-1.5 border border-slate-300 px-3 py-2 rounded-md text-sm text-slate-700 hover:bg-slate-100"
                 >
                   Unfix Selected
@@ -913,6 +931,7 @@ const AdminPanel = ({
                     setShowAddQuestion(true);
                     setEditingQuestion(null);
                   }}
+                  disabled={!canManageQuestions}
                   className="inline-flex items-center gap-1.5 border border-slate-300 px-3 py-2 rounded-md text-sm text-slate-700 hover:bg-slate-100"
                 >
                   <Plus className="w-4 h-4" />
@@ -936,6 +955,26 @@ const AdminPanel = ({
                         : setNewQ({ ...newQ, text: e.target.value })}
                       className="w-full border border-slate-300 rounded-md p-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-200"
                     />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Target Brand</label>
+                    <select
+                      value={editingQuestion ? (String(editingQuestion.source || 'ednovate').trim().toLowerCase() === 'dubey' ? 'dubey' : 'ednovate') : newQ.source}
+                      onChange={(e) => {
+                        const source = e.target.value === 'dubey' ? 'dubey' : 'ednovate';
+                        if (editingQuestion) {
+                          setEditingQuestion({ ...editingQuestion, source });
+                        } else {
+                          setNewQ({ ...newQ, source });
+                        }
+                      }}
+                      disabled={!canManageQuestions}
+                      className="w-full border border-slate-300 rounded-md p-2.5 text-sm"
+                    >
+                      <option value="ednovate">Ednovate</option>
+                      <option value="dubey">Dubey</option>
+                    </select>
                   </div>
 
                   <div>
@@ -1073,10 +1112,14 @@ const AdminPanel = ({
                           type="checkbox"
                           checked={selectedQuestionIds.includes(q.id)}
                           onChange={() => toggleQuestionSelection(q.id)}
+                          disabled={!canManageQuestions}
                         />
                         <span className="text-xs text-slate-500 uppercase">{q.category || 'neutral'}</span>
                         <span className="text-[10px] px-2 py-0.5 rounded bg-blue-100 text-blue-700 uppercase">
                           {q.language || 'hinglish'}
+                        </span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded ${String(q.source || 'ednovate').trim().toLowerCase() === 'dubey' ? 'bg-orange-100 text-orange-700' : 'bg-cyan-100 text-cyan-700'}`}>
+                          {String(q.source || 'ednovate').trim().toLowerCase() === 'dubey' ? 'Dubey' : 'Ednovate'}
                         </span>
                         <span className={`text-[10px] px-2 py-0.5 rounded ${q.hidden ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
                           {q.hidden ? 'Hidden' : 'Visible'}
@@ -1100,10 +1143,11 @@ const AdminPanel = ({
                     <div className="flex flex-col gap-2 shrink-0">
                       <button
                         onClick={() => {
-                          setEditingQuestion({ ...q, options: parseOptions(q.options) });
+                          setEditingQuestion({ ...q, source: String(q.source || 'ednovate').trim().toLowerCase() === 'dubey' ? 'dubey' : 'ednovate', options: parseOptions(q.options) });
                           setShowAddQuestion(false);
                           window.scrollTo({ top: 0, behavior: 'smooth' });
                         }}
+                        disabled={!canManageQuestions}
                         className="inline-flex items-center gap-1 border border-slate-300 px-2 py-1 rounded text-xs text-slate-700 hover:bg-slate-100"
                       >
                         <Pencil className="w-3.5 h-3.5" />
@@ -1111,6 +1155,7 @@ const AdminPanel = ({
                       </button>
                       <button
                         onClick={() => deleteQuestion(q.id)}
+                        disabled={!canManageQuestions}
                         className="inline-flex items-center gap-1 border border-rose-300 px-2 py-1 rounded text-xs text-rose-600 hover:bg-rose-50"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -1118,12 +1163,14 @@ const AdminPanel = ({
                       </button>
                       <button
                         onClick={() => updateSingleVisibility(q.id, !q.hidden)}
+                        disabled={!canManageQuestions}
                         className="inline-flex items-center gap-1 border border-slate-300 px-2 py-1 rounded text-xs text-slate-700 hover:bg-slate-100"
                       >
                         {q.hidden ? 'Unhide' : 'Hide'}
                       </button>
                       <button
                         onClick={() => updateSingleFixed(q.id, !q.fixed)}
+                        disabled={!canManageQuestions}
                         className="inline-flex items-center gap-1 border border-indigo-300 px-2 py-1 rounded text-xs text-indigo-700 hover:bg-indigo-50"
                       >
                         {q.fixed ? 'Unfix' : 'Fix'}
