@@ -13,7 +13,7 @@ import { ArrowRight } from 'lucide-react';
 
 const DEFAULT_API_BASE = import.meta.env.DEV ? '' : 'http://localhost:5001';
 const API_BASE = import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE;
-const APP_SOURCE = import.meta.env.VITE_APP_SOURCE === 'ednovate' ? 'ednovate' : 'dubey';
+const APP_SOURCE: 'dubey' = 'dubey';
 
 export type AppState = 'landing' | 'form' | 'otp' | 'quiz' | 'analyzing' | 'report' | 'admin' | 'admin-login';
 
@@ -313,7 +313,7 @@ function App() {
     const res = await fetch(`${API_BASE}/api/otp/send`, {
       method: 'POST',
       headers: withAppSourceHeaders({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ mobile })
+      body: JSON.stringify({ mobile, source: APP_SOURCE })
     });
 
     if (!res.ok) {
@@ -338,7 +338,7 @@ function App() {
       const registerRes = await fetch(`${API_BASE}/api/student/register`, {
         method: 'POST',
         headers: withAppSourceHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify({ ...data })
+        body: JSON.stringify({ ...data, source: APP_SOURCE })
       });
 
       if (!registerRes.ok) {
@@ -361,7 +361,7 @@ function App() {
     const verifyRes = await fetch(`${API_BASE}/api/otp/verify`, {
       method: 'POST',
       headers: withAppSourceHeaders({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ mobile: userData.mobile, otp })
+      body: JSON.stringify({ mobile: userData.mobile, otp, source: APP_SOURCE })
     });
 
     if (!verifyRes.ok) {
@@ -378,7 +378,7 @@ function App() {
     const registerRes = await fetch(`${API_BASE}/api/student/register`, {
       method: 'POST',
       headers: withAppSourceHeaders({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ ...userData, otpToken: verifyData.verificationToken })
+      body: JSON.stringify({ ...userData, otpToken: verifyData.verificationToken, source: APP_SOURCE })
     });
 
     if (!registerRes.ok) {

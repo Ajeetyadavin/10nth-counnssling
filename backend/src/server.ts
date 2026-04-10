@@ -50,6 +50,10 @@ const getAppSource = (value: unknown): 'ednovate' | 'dubey' => {
   return normalized === 'dubey' ? 'dubey' : 'ednovate';
 };
 
+const getRequestSource = (req: any): 'ednovate' | 'dubey' => {
+  return getAppSource(req?.headers?.['x-app-source'] || req?.body?.source || req?.query?.source);
+};
+
 const isValidMobile = (mobile: string) => /^\d{10}$/.test(String(mobile || '').trim());
 const makeOtp = () => String(Math.floor(100000 + Math.random() * 900000));
 const hashOtp = (otp: string) => crypto.createHash('sha256').update(String(otp)).digest('hex');
@@ -62,7 +66,7 @@ app.get('/api/health', (_req, res) => {
 
 app.get('/api/quiz/settings', async (_req, res) => {
   try {
-    const appSource = getAppSource(_req.headers['x-app-source']);
+    const appSource = getRequestSource(_req);
     const result = await pool.query(
       'SELECT "questionLimit", "otpRequired", "ednovateOtpRequired", "dubeyOtpRequired", "ednovateContactNumber", "dubeyContactNumber", "ednovateWhatsappMessage", "dubeyWhatsappMessage" FROM "AdminSettings" WHERE id = 1'
     );
@@ -115,7 +119,7 @@ app.get('/api/quiz/questions', async (req, res) => {
 app.post('/api/otp/send', async (req, res) => {
   try {
     const mobile = String(req.body?.mobile || '').trim();
-    const appSource = getAppSource(req.headers['x-app-source']);
+    const appSource = getRequestSource(req);
     if (!isValidMobile(mobile)) {
       return res.status(400).json({ error: 'Please provide a valid 10-digit mobile number.' });
     }
@@ -181,7 +185,7 @@ app.post('/api/otp/verify', async (req, res) => {
   try {
     const mobile = String(req.body?.mobile || '').trim();
     const otp = String(req.body?.otp || '').trim();
-    const appSource = getAppSource(req.headers['x-app-source']);
+    const appSource = getRequestSource(req);
 
     if (!isValidMobile(mobile)) {
       return res.status(400).json({ error: 'Please provide a valid 10-digit mobile number.' });
@@ -240,7 +244,7 @@ app.post('/api/student/register', async (req, res) => {
   console.log('Register called:', req.body);
   try {
     const { name, mobile, email, location, otpToken } = req.body;
-    const appSource = getAppSource(req.headers['x-app-source']);
+    const appSource = getRequestSource(req);
 
     if (!isValidMobile(String(mobile || ''))) {
       return res.status(400).json({ error: 'Valid mobile number is required.' });
