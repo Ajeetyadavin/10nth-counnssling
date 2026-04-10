@@ -687,7 +687,7 @@ export const setupAdminRoutes = (app: Express) => {
          RETURNING "questionLimit", "otpRequired", "ednovateOtpRequired", "dubeyOtpRequired", "ednovateContactNumber", "dubeyContactNumber", "ednovateWhatsappMessage", "dubeyWhatsappMessage", "updatedAt"`,
         [
           nextLimit,
-          nextEdnovateOtpRequired,
+          true,
           nextEdnovateOtpRequired,
           nextDubeyOtpRequired,
           resolvedEdnovateNumber,
