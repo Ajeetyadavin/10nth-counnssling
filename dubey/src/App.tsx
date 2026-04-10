@@ -205,7 +205,7 @@ function App() {
     const fetchQuestions = async () => {
       try {
         const [qRes, settingsRes] = await Promise.all([
-          fetch(`${API_BASE}/api/quiz/questions?language=${language}`),
+          fetch(`${API_BASE}/api/quiz/questions?language=${language}`, { headers: withAppSourceHeaders() }),
           fetch(`${API_BASE}/api/quiz/settings`, { headers: withAppSourceHeaders() })
         ]);
 
@@ -455,7 +455,7 @@ function App() {
     // Refresh questions from DB on restart
     try {
       const [qRes, settingsRes] = await Promise.all([
-        fetch(`${API_BASE}/api/quiz/questions?language=${language}`),
+        fetch(`${API_BASE}/api/quiz/questions?language=${language}`, { headers: withAppSourceHeaders() }),
         fetch(`${API_BASE}/api/quiz/settings`, { headers: withAppSourceHeaders() })
       ]);
 

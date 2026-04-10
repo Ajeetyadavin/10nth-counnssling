@@ -68,9 +68,12 @@ app.get('/api/quiz/settings', async (_req, res) => {
   try {
     const appSource = getRequestSource(_req);
     const result = await pool.query(
-      'SELECT "questionLimit", "otpRequired", "ednovateOtpRequired", "dubeyOtpRequired", "ednovateContactNumber", "dubeyContactNumber", "ednovateWhatsappMessage", "dubeyWhatsappMessage" FROM "AdminSettings" WHERE id = 1'
+      'SELECT "questionLimit", "ednovateQuestionLimit", "dubeyQuestionLimit", "otpRequired", "ednovateOtpRequired", "dubeyOtpRequired", "ednovateContactNumber", "dubeyContactNumber", "ednovateWhatsappMessage", "dubeyWhatsappMessage" FROM "AdminSettings" WHERE id = 1'
     );
     const row = result.rows[0] || { questionLimit: 45, otpRequired: true };
+    const questionLimit = appSource === 'dubey'
+      ? (Number(row.dubeyQuestionLimit ?? row.questionLimit) || 45)
+      : (Number(row.ednovateQuestionLimit ?? row.questionLimit) || 45);
     const otpRequired = appSource === 'dubey'
       ? (row.dubeyOtpRequired === undefined ? true : row.dubeyOtpRequired !== false)
       : (row.ednovateOtpRequired === undefined ? row.otpRequired !== false : row.ednovateOtpRequired !== false);
@@ -82,7 +85,7 @@ app.get('/api/quiz/settings', async (_req, res) => {
       .trim() || 'Hey, I need my Career Counselling Report';
 
     return res.json({
-      questionLimit: Number(row.questionLimit) || 45,
+      questionLimit,
       otpRequired,
       contactNumber,
       whatsappMessage
@@ -99,9 +102,13 @@ app.get('/api/quiz/settings', async (_req, res) => {
 
 app.get('/api/quiz/questions', async (req, res) => {
   try {
+    const appSource = getRequestSource(req);
     const language = req.query.language as string | undefined;
     const params: any[] = [];
     let query = 'SELECT * FROM "Question" WHERE "hidden" = FALSE';
+
+    params.push(appSource);
+    query += ` AND LOWER(TRIM(source)) = $${params.length}`;
 
     if (language && (language === 'hinglish' || language === 'english')) {
       params.push(language);

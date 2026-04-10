@@ -34,6 +34,10 @@ type ReportContactConfig = {
     whatsappMessage?: string;
 };
 
+type ReportRenderOptions = {
+    source?: 'ednovate' | 'dubey';
+};
+
 // ─── Page constants ───────────────────────────────────────────────────────────
 const W = 595.28, H = 841.89, M = 36, CW = W - M * 2;
 const BRAND = '#E74623', DARK = '#0F172A', GRAY = '#374151';
@@ -451,6 +455,7 @@ const PROFILES: Record<StreamKey, Profile> = {
 
 // ─── Logo / fetch helpers ─────────────────────────────────────────────────────
 const LOGO_URL = 'https://letsednovate.com/images/ednovate-logo.svg';
+const DUBEY_INLINE_LOGO = `<svg xmlns="http://www.w3.org/2000/svg" width="420" height="96" viewBox="0 0 420 96"><rect width="420" height="96" rx="14" fill="#0f172a"/><text x="24" y="42" font-family="Arial" font-size="28" fill="#f59e0b" font-weight="700">DUBEY</text><text x="24" y="72" font-family="Arial" font-size="22" fill="#ffffff" font-weight="600">TUTORIALS</text></svg>`;
 let logoSvgCache: string | null | undefined;
 
 const fetchText = (url: string): Promise<string> =>
@@ -467,7 +472,8 @@ const fetchText = (url: string): Promise<string> =>
         }).on('error', reject);
     });
 
-const getLogoSvg = async (): Promise<string | null> => {
+const getLogoSvg = async (source: 'ednovate' | 'dubey'): Promise<string | null> => {
+    if (source === 'dubey') return DUBEY_INLINE_LOGO;
     if (logoSvgCache !== undefined) return logoSvgCache;
     try {
         const s = await fetchText(LOGO_URL);
@@ -521,10 +527,14 @@ const tintHex = (hex: string, whiteMix = 0.9): string => {
 };
 
 // ─── Export ───────────────────────────────────────────────────────────────────
-export const generateReportPDF = (student: any, contactConfig?: ReportContactConfig): Promise<Buffer> =>
+export const generateReportPDF = (student: any, contactConfig?: ReportContactConfig, options?: ReportRenderOptions): Promise<Buffer> =>
     new Promise((resolve, reject) => {
         void (async () => {
-            const logoSvg = await getLogoSvg();
+            const reportSource: 'ednovate' | 'dubey' = options?.source === 'dubey'
+                ? 'dubey'
+                : (String(student?.source || '').trim().toLowerCase() === 'dubey' ? 'dubey' : 'ednovate');
+            const brandTitle = reportSource === 'dubey' ? 'DUBEY TUTORIALS' : 'EDNOVATE';
+            const logoSvg = await getLogoSvg(reportSource);
             const doc = new PDFDocument({ margin: 0, size: 'A4', bufferPages: true });
             const chunks: Buffer[] = [];
             doc.on('data', (c: Buffer) => chunks.push(c));
@@ -560,6 +570,9 @@ export const generateReportPDF = (student: any, contactConfig?: ReportContactCon
             const sEmail     = String(student?.email    || '—');
             const sLocation  = String(student?.location || '—');
             const contactNumber = String(contactConfig?.contactNumber || '8651014840').replace(/\D/g, '').slice(0, 15) || '8651014840';
+            const brandFooter = reportSource === 'dubey'
+                ? 'Dubey Tutorials  |  Class 10 -> 11th Career Counseling  |  ' + contactNumber
+                : 'Ednovate  |  Class 10 -> 11th Career Counseling  |  FYJC/SYJC Commerce  |  CA Foundation  |  letsednovate.com  |  ' + contactNumber;
 
             const aptBars = [
                 { label: 'Analytical Aptitude',  pct: Math.min(97, sciPct + 12), color: '#059669', desc: 'Logical breakdown of complex problems'     },
@@ -583,9 +596,9 @@ export const generateReportPDF = (student: any, contactConfig?: ReportContactCon
                 // logo
                 if (logoSvg) {
                     try { SVGtoPDF(doc as any, logoSvg, M, 14, { width: 148, height: 40, preserveAspectRatio: 'xMinYMid meet' }); }
-                    catch { doc.fillColor(BRAND).font('Helvetica-Bold').fontSize(17).text('EDNOVATE', M, 22); }
+                    catch { doc.fillColor(BRAND).font('Helvetica-Bold').fontSize(17).text(brandTitle, M, 22); }
                 } else {
-                    doc.fillColor(BRAND).font('Helvetica-Bold').fontSize(17).text('EDNOVATE', M, 22);
+                    doc.fillColor(BRAND).font('Helvetica-Bold').fontSize(17).text(brandTitle, M, 22);
                 }
                 doc.fillColor(DARK).font('Helvetica-Bold').fontSize(12).text(title, M + 170, 16);
                 doc.fillColor('#6B7280').font('Helvetica').fontSize(7.5).text(sub, M + 170, 36);
@@ -597,7 +610,7 @@ export const generateReportPDF = (student: any, contactConfig?: ReportContactCon
                 doc.rect(0, H - 26, W, 26).fill('#F9FAFB');
                 doc.moveTo(0, H - 26).lineTo(W, H - 26).strokeColor(BORD).lineWidth(0.4).stroke();
                 doc.fillColor(LGRAY).font('Helvetica').fontSize(6.5)
-                   .text('Ednovate  |  Class 10 → 11th Career Counseling  |  FYJC/SYJC Commerce  |  CA Foundation  |  letsednovate.com  |  ' + contactNumber, M, H - 16, { width: CW, align: 'center' });
+                         .text(brandFooter, M, H - 16, { width: CW, align: 'center' });
             };
 
             const st = (y: number, title: string, col = BRAND): number => {

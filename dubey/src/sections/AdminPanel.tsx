@@ -508,7 +508,7 @@ const AdminPanel = ({
     const cleanPhone = (value: string) => String(value || '').replace(/\D/g, '').slice(0, 15);
     const cleanMessage = (value: string) => String(value || '').replace(/\s+/g, ' ').trim();
     const safeLimit = Number(questionLimit);
-    if (adminScope === 'all' && (!Number.isInteger(safeLimit) || safeLimit < 1 || safeLimit > 200)) {
+    if (!Number.isInteger(safeLimit) || safeLimit < 1 || safeLimit > 200) {
       setSettingsMsg('Question limit 1 to 200 ke beech hona chahiye.');
       return;
     }
@@ -531,6 +531,7 @@ const AdminPanel = ({
       setSettingsSaving(true);
       setSettingsMsg('');
       const payload: Record<string, unknown> = {
+        questionLimit: safeLimit,
         otpSettings: {
           dubey: dubeyOtpRequired,
           ...(adminScope === 'all' ? { ednovate: ednovateOtpRequired } : {})
@@ -552,7 +553,6 @@ const AdminPanel = ({
       };
 
       if (adminScope === 'all') {
-        payload.questionLimit = safeLimit;
         payload.otpRequired = ednovateOtpRequired;
       }
 
@@ -1265,11 +1265,13 @@ const AdminPanel = ({
           </div>
         ) : (
           <div className="space-y-4 max-w-xl">
-            {adminScope === 'all' && (
+            {(
               <div className="border border-slate-200 rounded-md p-4 bg-slate-50">
                 <h3 className="text-base font-semibold text-slate-900 mb-2">Test Question Count</h3>
                 <p className="text-sm text-slate-600 mb-3">
-                  Admin yahan set karega kitne questions user test me dikhne chahiye.
+                  {adminScope === 'dubey'
+                    ? 'Dubey panel se sirf Dubey test ke question count ko set karein.'
+                    : 'Admin yahan set karega kitne questions user test me dikhne chahiye.'}
                 </p>
                 <div className="flex items-center gap-2">
                   <input

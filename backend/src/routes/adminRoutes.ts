@@ -31,6 +31,7 @@ const ensureTables = async () => {
       id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
       text TEXT NOT NULL,
       options JSONB NOT NULL,
+      source TEXT NOT NULL DEFAULT 'ednovate',
       category TEXT DEFAULT 'neutral',
       "order" INT NOT NULL DEFAULT 0,
       hidden BOOLEAN NOT NULL DEFAULT FALSE,
@@ -43,6 +44,12 @@ const ensureTables = async () => {
   await pool.query('ALTER TABLE "Question" ADD COLUMN IF NOT EXISTS fixed BOOLEAN NOT NULL DEFAULT FALSE');
   await pool.query('ALTER TABLE "Question" ADD COLUMN IF NOT EXISTS hidden BOOLEAN NOT NULL DEFAULT FALSE');
   await pool.query('ALTER TABLE "Question" ADD COLUMN IF NOT EXISTS language TEXT NOT NULL DEFAULT \'hinglish\'');
+  await pool.query('ALTER TABLE "Question" ADD COLUMN IF NOT EXISTS source TEXT NOT NULL DEFAULT \'ednovate\'');
+  await pool.query(
+    `UPDATE "Question"
+     SET source = CASE WHEN LOWER(TRIM(source)) = 'dubey' THEN 'dubey' ELSE 'ednovate' END
+     WHERE source IS NULL OR source <> CASE WHEN LOWER(TRIM(source)) = 'dubey' THEN 'dubey' ELSE 'ednovate' END`
+  );
   await pool.query('ALTER TABLE "Student" ADD COLUMN IF NOT EXISTS source TEXT NOT NULL DEFAULT \'ednovate\'');
   await pool.query(
     `UPDATE "Student"
@@ -55,6 +62,8 @@ const ensureTables = async () => {
     CREATE TABLE IF NOT EXISTS "AdminSettings" (
       id INT PRIMARY KEY,
       "questionLimit" INT NOT NULL DEFAULT 45,
+      "ednovateQuestionLimit" INT NOT NULL DEFAULT 45,
+      "dubeyQuestionLimit" INT NOT NULL DEFAULT 45,
       "otpRequired" BOOLEAN NOT NULL DEFAULT TRUE,
       "ednovateOtpRequired" BOOLEAN NOT NULL DEFAULT TRUE,
       "dubeyOtpRequired" BOOLEAN NOT NULL DEFAULT TRUE,
@@ -65,6 +74,8 @@ const ensureTables = async () => {
       "updatedAt" TIMESTAMP DEFAULT NOW()
     )
   `);
+  await pool.query('ALTER TABLE "AdminSettings" ADD COLUMN IF NOT EXISTS "ednovateQuestionLimit" INT NOT NULL DEFAULT 45');
+  await pool.query('ALTER TABLE "AdminSettings" ADD COLUMN IF NOT EXISTS "dubeyQuestionLimit" INT NOT NULL DEFAULT 45');
   await pool.query('ALTER TABLE "AdminSettings" ADD COLUMN IF NOT EXISTS "otpRequired" BOOLEAN NOT NULL DEFAULT TRUE');
   await pool.query('ALTER TABLE "AdminSettings" ADD COLUMN IF NOT EXISTS "ednovateOtpRequired" BOOLEAN NOT NULL DEFAULT TRUE');
   await pool.query('ALTER TABLE "AdminSettings" ADD COLUMN IF NOT EXISTS "dubeyOtpRequired" BOOLEAN NOT NULL DEFAULT TRUE');
@@ -76,6 +87,8 @@ const ensureTables = async () => {
   await pool.query(
     `UPDATE "AdminSettings"
      SET
+       "ednovateQuestionLimit" = COALESCE("ednovateQuestionLimit", "questionLimit", 45),
+       "dubeyQuestionLimit" = COALESCE("dubeyQuestionLimit", "questionLimit", 45),
        "ednovateOtpRequired" = COALESCE("ednovateOtpRequired", "otpRequired", TRUE),
        "dubeyOtpRequired" = COALESCE("dubeyOtpRequired", TRUE),
        "ednovateContactNumber" = COALESCE(NULLIF(TRIM("ednovateContactNumber"), ''), $1),
@@ -115,8 +128,8 @@ const ensureTables = async () => {
 
   await pool.query(`
     INSERT INTO "AdminSettings"
-      (id, "questionLimit", "otpRequired", "ednovateOtpRequired", "dubeyOtpRequired", "ednovateContactNumber", "dubeyContactNumber", "ednovateWhatsappMessage", "dubeyWhatsappMessage", "updatedAt")
-    VALUES (1, 45, TRUE, TRUE, TRUE, '8651014840', '8651014840', 'Hey, I need my Career Counselling Report', 'Hey, I need my Career Counselling Report', NOW())
+      (id, "questionLimit", "ednovateQuestionLimit", "dubeyQuestionLimit", "otpRequired", "ednovateOtpRequired", "dubeyOtpRequired", "ednovateContactNumber", "dubeyContactNumber", "ednovateWhatsappMessage", "dubeyWhatsappMessage", "updatedAt")
+    VALUES (1, 45, 45, 45, TRUE, TRUE, TRUE, '8651014840', '8651014840', 'Hey, I need my Career Counselling Report', 'Hey, I need my Career Counselling Report', NOW())
     ON CONFLICT (id) DO NOTHING
   `);
 };
@@ -306,7 +319,7 @@ export const setupAdminRoutes = (app: Express) => {
         return res.status(403).send('Test not completed yet');
       const source = String(student.source || '').toLowerCase() === 'dubey' ? 'dubey' : 'ednovate';
       const contactConfig = await getSourceContactConfig(source);
-      const pdfBuffer = await generateReportPDF(student, contactConfig);
+      const pdfBuffer = await generateReportPDF(student, contactConfig, { source });
       res.contentType('application/pdf');
       res.attachment(`Report_${student.name}.pdf`);
       res.send(pdfBuffer);
@@ -328,7 +341,7 @@ export const setupAdminRoutes = (app: Express) => {
 
       const source = String(student.source || '').toLowerCase() === 'dubey' ? 'dubey' : 'ednovate';
       const contactConfig = await getSourceContactConfig(source);
-      const pdfBuffer = await generateReportPDF(student, contactConfig);
+      const pdfBuffer = await generateReportPDF(student, contactConfig, { source });
       res.contentType('application/pdf');
       res.attachment(`Report_${student.name}.pdf`);
       res.send(pdfBuffer);
@@ -344,6 +357,7 @@ export const setupAdminRoutes = (app: Express) => {
       console.log('Fetching questions from PostgreSQL...');
       const includeHidden = req.query.includeHidden === '1' || req.query.includeHidden === 'true';
       const language = req.query.language as string | undefined;
+      const scope = getAdminScope(req);
 
       const conditions: string[] = [];
       const params: any[] = [];
@@ -355,6 +369,11 @@ export const setupAdminRoutes = (app: Express) => {
       if (language && (language === 'hinglish' || language === 'english')) {
         params.push(language);
         conditions.push(`language = $${params.length}`);
+      }
+
+      if (scope === 'dubey') {
+        params.push('dubey');
+        conditions.push(`LOWER(TRIM(source)) = $${params.length}`);
       }
 
       const whereClause = conditions.length > 0 ? ` WHERE ${conditions.join(' AND ')}` : '';
@@ -369,11 +388,17 @@ export const setupAdminRoutes = (app: Express) => {
     }
   });
 
-  app.get('/api/admin/questions/export', async (_req, res) => {
+  app.get('/api/admin/questions/export', async (req, res) => {
     try {
-      const result = await pool.query(
-        'SELECT text, options, category, hidden, fixed, "order" FROM "Question" ORDER BY "order" ASC, "createdAt" ASC'
-      );
+      const scope = getAdminScope(req);
+      const result = scope === 'dubey'
+        ? await pool.query(
+            'SELECT text, options, category, hidden, fixed, "order", source FROM "Question" WHERE LOWER(TRIM(source)) = $1 ORDER BY "order" ASC, "createdAt" ASC',
+            ['dubey']
+          )
+        : await pool.query(
+            'SELECT text, options, category, hidden, fixed, "order", source FROM "Question" ORDER BY "order" ASC, "createdAt" ASC'
+          );
 
       const payload = {
         exportedAt: new Date().toISOString(),
@@ -385,6 +410,7 @@ export const setupAdminRoutes = (app: Express) => {
           hidden: Boolean(q.hidden),
           fixed: Boolean(q.fixed),
           order: Number(q.order) || 0
+          , source: String(q.source || 'ednovate').trim().toLowerCase() === 'dubey' ? 'dubey' : 'ednovate'
         }))
       };
 
@@ -400,6 +426,8 @@ export const setupAdminRoutes = (app: Express) => {
   app.post('/api/admin/questions/import', async (req, res) => {
     const client = await pool.connect();
     try {
+      const scope = getAdminScope(req);
+      const targetSource = scope === 'dubey' ? 'dubey' : String(req.body?.source || 'ednovate').trim().toLowerCase() === 'dubey' ? 'dubey' : 'ednovate';
       const mode = req.body?.mode === 'replace' ? 'replace' : 'merge';
       const incoming = Array.isArray(req.body?.questions)
         ? req.body.questions
@@ -441,10 +469,16 @@ export const setupAdminRoutes = (app: Express) => {
       await client.query('BEGIN');
 
       if (mode === 'replace') {
-        await client.query('DELETE FROM "Question"');
+        if (scope === 'dubey') {
+          await client.query('DELETE FROM "Question" WHERE LOWER(TRIM(source)) = $1', ['dubey']);
+        } else {
+          await client.query('DELETE FROM "Question"');
+        }
       }
 
-      const existingRows = await client.query('SELECT id, text FROM "Question"');
+      const existingRows = scope === 'dubey'
+        ? await client.query('SELECT id, text FROM "Question" WHERE LOWER(TRIM(source)) = $1', ['dubey'])
+        : await client.query('SELECT id, text FROM "Question"');
       const existingByText = new Map(
         existingRows.rows.map((r: any) => [String(r.text).trim().toLowerCase(), r.id])
       );
@@ -466,10 +500,10 @@ export const setupAdminRoutes = (app: Express) => {
           continue;
         }
 
-        await client.query(
-          'INSERT INTO "Question" (text, options, category, hidden, fixed, "order") VALUES ($1, $2, $3, $4, $5, $6)',
-          [q.text, JSON.stringify(q.options), q.category, q.hidden, q.fixed, q.order]
-        );
+          await client.query(
+            'INSERT INTO "Question" (text, options, category, hidden, fixed, "order", source) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+            [q.text, JSON.stringify(q.options), q.category, q.hidden, q.fixed, q.order, targetSource]
+          );
         inserted += 1;
         existingByText.set(key, true as any);
       }
@@ -489,11 +523,13 @@ export const setupAdminRoutes = (app: Express) => {
 
   app.post('/api/admin/questions', async (req, res) => {
     try {
+      const scope = getAdminScope(req);
       const { text, options, category, hidden, fixed, language } = req.body;
+      const source = scope === 'dubey' ? 'dubey' : (String(req.body?.source || 'ednovate').trim().toLowerCase() === 'dubey' ? 'dubey' : 'ednovate');
       console.log('Adding new question:', text);
       const result = await pool.query(
-        'INSERT INTO "Question" (text, options, category, hidden, fixed, language) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-        [text, JSON.stringify(options), category, Boolean(hidden), Boolean(fixed), language || 'hinglish']
+        'INSERT INTO "Question" (text, options, category, hidden, fixed, language, source) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+        [text, JSON.stringify(options), category, Boolean(hidden), Boolean(fixed), language || 'hinglish', source]
       );
       res.json(result.rows[0]);
     } catch (err: any) {
@@ -504,12 +540,21 @@ export const setupAdminRoutes = (app: Express) => {
 
   app.put('/api/admin/questions/:id', async (req, res) => {
     try {
+      const scope = getAdminScope(req);
       const { text, options, category, hidden, fixed, language } = req.body;
       console.log('Updating question:', req.params.id);
-      const result = await pool.query(
-        'UPDATE "Question" SET text = $1, options = $2, category = $3, hidden = $4, fixed = $5, language = $6 WHERE id = $7 RETURNING *',
-        [text, JSON.stringify(options), category, Boolean(hidden), Boolean(fixed), language || 'hinglish', req.params.id]
-      );
+      const result = scope === 'dubey'
+        ? await pool.query(
+            'UPDATE "Question" SET text = $1, options = $2, category = $3, hidden = $4, fixed = $5, language = $6 WHERE id = $7 AND LOWER(TRIM(source)) = $8 RETURNING *',
+            [text, JSON.stringify(options), category, Boolean(hidden), Boolean(fixed), language || 'hinglish', req.params.id, 'dubey']
+          )
+        : await pool.query(
+            'UPDATE "Question" SET text = $1, options = $2, category = $3, hidden = $4, fixed = $5, language = $6 WHERE id = $7 RETURNING *',
+            [text, JSON.stringify(options), category, Boolean(hidden), Boolean(fixed), language || 'hinglish', req.params.id]
+          );
+      if (result.rowCount === 0) {
+        return res.status(404).json({ error: 'Question not found in current scope' });
+      }
       res.json(result.rows[0]);
     } catch (err: any) {
       console.error('Error updating question:', err);
@@ -519,7 +564,12 @@ export const setupAdminRoutes = (app: Express) => {
 
   app.delete('/api/admin/questions/:id', async (req, res) => {
     try {
-      await pool.query('DELETE FROM "Question" WHERE id = $1', [req.params.id]);
+      const scope = getAdminScope(req);
+      if (scope === 'dubey') {
+        await pool.query('DELETE FROM "Question" WHERE id = $1 AND LOWER(TRIM(source)) = $2', [req.params.id, 'dubey']);
+      } else {
+        await pool.query('DELETE FROM "Question" WHERE id = $1', [req.params.id]);
+      }
       res.json({ message: 'Question deleted' });
     } catch (err) {
       res.status(500).json({ error: 'Failed to delete question' });
@@ -528,6 +578,7 @@ export const setupAdminRoutes = (app: Express) => {
 
   app.put('/api/admin/questions/visibility/bulk', async (req, res) => {
     try {
+      const scope = getAdminScope(req);
       const { ids, hidden } = req.body;
 
       if (!Array.isArray(ids) || ids.length === 0) {
@@ -539,10 +590,15 @@ export const setupAdminRoutes = (app: Express) => {
         return res.status(400).json({ error: 'No valid ids provided' });
       }
 
-      const result = await pool.query(
-        'UPDATE "Question" SET hidden = $1 WHERE id = ANY($2::text[]) RETURNING *',
-        [Boolean(hidden), sanitizedIds]
-      );
+      const result = scope === 'dubey'
+        ? await pool.query(
+            'UPDATE "Question" SET hidden = $1 WHERE id = ANY($2::text[]) AND LOWER(TRIM(source)) = $3 RETURNING *',
+            [Boolean(hidden), sanitizedIds, 'dubey']
+          )
+        : await pool.query(
+            'UPDATE "Question" SET hidden = $1 WHERE id = ANY($2::text[]) RETURNING *',
+            [Boolean(hidden), sanitizedIds]
+          );
 
       res.json({ updatedCount: result.rowCount, rows: result.rows });
     } catch (err: any) {
@@ -553,6 +609,7 @@ export const setupAdminRoutes = (app: Express) => {
 
   app.put('/api/admin/questions/fixed/bulk', async (req, res) => {
     try {
+      const scope = getAdminScope(req);
       const { ids, fixed } = req.body;
 
       if (!Array.isArray(ids) || ids.length === 0) {
@@ -564,10 +621,15 @@ export const setupAdminRoutes = (app: Express) => {
         return res.status(400).json({ error: 'No valid ids provided' });
       }
 
-      const result = await pool.query(
-        'UPDATE "Question" SET fixed = $1 WHERE id = ANY($2::text[]) RETURNING *',
-        [Boolean(fixed), sanitizedIds]
-      );
+      const result = scope === 'dubey'
+        ? await pool.query(
+            'UPDATE "Question" SET fixed = $1 WHERE id = ANY($2::text[]) AND LOWER(TRIM(source)) = $3 RETURNING *',
+            [Boolean(fixed), sanitizedIds, 'dubey']
+          )
+        : await pool.query(
+            'UPDATE "Question" SET fixed = $1 WHERE id = ANY($2::text[]) RETURNING *',
+            [Boolean(fixed), sanitizedIds]
+          );
 
       res.json({ updatedCount: result.rowCount, rows: result.rows });
     } catch (err: any) {
@@ -581,9 +643,11 @@ export const setupAdminRoutes = (app: Express) => {
     try {
       const scope = getAdminScope(req);
       const result = await pool.query(
-        'SELECT "questionLimit", "otpRequired", "ednovateOtpRequired", "dubeyOtpRequired", "ednovateContactNumber", "dubeyContactNumber", "ednovateWhatsappMessage", "dubeyWhatsappMessage", "updatedAt" FROM "AdminSettings" WHERE id = 1'
+        'SELECT "questionLimit", "ednovateQuestionLimit", "dubeyQuestionLimit", "otpRequired", "ednovateOtpRequired", "dubeyOtpRequired", "ednovateContactNumber", "dubeyContactNumber", "ednovateWhatsappMessage", "dubeyWhatsappMessage", "updatedAt" FROM "AdminSettings" WHERE id = 1'
       );
       const row = result.rows[0] || { questionLimit: 45, otpRequired: true };
+      const ednovateQuestionLimit = Number(row.ednovateQuestionLimit ?? row.questionLimit) || 45;
+      const dubeyQuestionLimit = Number(row.dubeyQuestionLimit ?? row.questionLimit) || 45;
 
       const ednovateContactNumber = normalizeContactNumber(row.ednovateContactNumber) || DEFAULT_CONTACT_NUMBER;
       const dubeyContactNumber = normalizeContactNumber(row.dubeyContactNumber) || DEFAULT_CONTACT_NUMBER;
@@ -591,9 +655,13 @@ export const setupAdminRoutes = (app: Express) => {
       const dubeyOtpRequired = row.dubeyOtpRequired === undefined ? true : row.dubeyOtpRequired !== false;
 
       res.json({
-        questionLimit: Number(row.questionLimit) || 45,
+        questionLimit: scope === 'dubey' ? dubeyQuestionLimit : ednovateQuestionLimit,
         otpRequired: scope === 'dubey' ? dubeyOtpRequired : ednovateOtpRequired,
         scope,
+        questionLimits: {
+          ednovate: scope === 'all' ? ednovateQuestionLimit : undefined,
+          dubey: dubeyQuestionLimit
+        },
         otpSettings: {
           ednovate: scope === 'all' ? ednovateOtpRequired : undefined,
           dubey: dubeyOtpRequired
@@ -622,10 +690,12 @@ export const setupAdminRoutes = (app: Express) => {
     try {
       const scope = getAdminScope(req);
       const existing = await pool.query(
-        'SELECT "questionLimit", "otpRequired", "ednovateOtpRequired", "dubeyOtpRequired", "ednovateContactNumber", "dubeyContactNumber", "ednovateWhatsappMessage", "dubeyWhatsappMessage" FROM "AdminSettings" WHERE id = 1'
+        'SELECT "questionLimit", "ednovateQuestionLimit", "dubeyQuestionLimit", "otpRequired", "ednovateOtpRequired", "dubeyOtpRequired", "ednovateContactNumber", "dubeyContactNumber", "ednovateWhatsappMessage", "dubeyWhatsappMessage" FROM "AdminSettings" WHERE id = 1'
       );
       const current = existing.rows[0] || {
         questionLimit: 45,
+        ednovateQuestionLimit: 45,
+        dubeyQuestionLimit: 45,
         otpRequired: true,
         ednovateOtpRequired: true,
         dubeyOtpRequired: true,
@@ -635,7 +705,8 @@ export const setupAdminRoutes = (app: Express) => {
         dubeyWhatsappMessage: DEFAULT_CTA_MESSAGE
       };
 
-      let nextLimit = Number(current.questionLimit) || 45;
+      let nextEdnovateQuestionLimit = Number(current.ednovateQuestionLimit ?? current.questionLimit) || 45;
+      let nextDubeyQuestionLimit = Number(current.dubeyQuestionLimit ?? current.questionLimit) || 45;
       const currentEdnovateOtpRequired = current.ednovateOtpRequired === undefined ? (current.otpRequired !== false) : (current.ednovateOtpRequired !== false);
       const currentDubeyOtpRequired = current.dubeyOtpRequired === undefined ? true : (current.dubeyOtpRequired !== false);
       let nextEdnovateOtpRequired = currentEdnovateOtpRequired;
@@ -643,17 +714,31 @@ export const setupAdminRoutes = (app: Express) => {
       const incomingOtpSettings = req.body?.otpSettings || {};
 
       if (scope === 'all') {
-        const nextLimitRaw = req.body?.questionLimit ?? current.questionLimit;
-        const parsedLimit = Number(nextLimitRaw);
-        if (!Number.isInteger(parsedLimit) || parsedLimit < 1 || parsedLimit > 200) {
+        const nextEdnovateLimitRaw = req.body?.questionLimit ?? current.ednovateQuestionLimit ?? current.questionLimit;
+        const parsedEdnovateLimit = Number(nextEdnovateLimitRaw);
+        if (!Number.isInteger(parsedEdnovateLimit) || parsedEdnovateLimit < 1 || parsedEdnovateLimit > 200) {
           return res.status(400).json({ error: 'questionLimit must be an integer between 1 and 200' });
         }
-        nextLimit = parsedLimit;
+        nextEdnovateQuestionLimit = parsedEdnovateLimit;
+
+        const nextDubeyLimitRaw = req.body?.dubeyQuestionLimit ?? current.dubeyQuestionLimit ?? current.questionLimit;
+        const parsedDubeyLimit = Number(nextDubeyLimitRaw);
+        if (!Number.isInteger(parsedDubeyLimit) || parsedDubeyLimit < 1 || parsedDubeyLimit > 200) {
+          return res.status(400).json({ error: 'dubeyQuestionLimit must be an integer between 1 and 200' });
+        }
+        nextDubeyQuestionLimit = parsedDubeyLimit;
+
         nextEdnovateOtpRequired = incomingOtpSettings?.ednovate === undefined
           ? (req.body?.otpRequired === undefined ? currentEdnovateOtpRequired : Boolean(req.body.otpRequired))
           : Boolean(incomingOtpSettings.ednovate);
         nextDubeyOtpRequired = incomingOtpSettings?.dubey === undefined ? currentDubeyOtpRequired : Boolean(incomingOtpSettings.dubey);
       } else {
+        const nextDubeyLimitRaw = req.body?.questionLimit ?? current.dubeyQuestionLimit ?? current.questionLimit;
+        const parsedDubeyLimit = Number(nextDubeyLimitRaw);
+        if (!Number.isInteger(parsedDubeyLimit) || parsedDubeyLimit < 1 || parsedDubeyLimit > 200) {
+          return res.status(400).json({ error: 'questionLimit must be an integer between 1 and 200' });
+        }
+        nextDubeyQuestionLimit = parsedDubeyLimit;
         nextDubeyOtpRequired = incomingOtpSettings?.dubey === undefined
           ? (req.body?.otpRequired === undefined ? currentDubeyOtpRequired : Boolean(req.body.otpRequired))
           : Boolean(incomingOtpSettings.dubey);
@@ -675,18 +760,22 @@ export const setupAdminRoutes = (app: Express) => {
       const result = await pool.query(
         `UPDATE "AdminSettings"
          SET "questionLimit" = $1,
-             "otpRequired" = $2,
-             "ednovateOtpRequired" = $3,
-             "dubeyOtpRequired" = $4,
-             "ednovateContactNumber" = $5,
-             "dubeyContactNumber" = $6,
-             "ednovateWhatsappMessage" = $7,
-             "dubeyWhatsappMessage" = $8,
+             "ednovateQuestionLimit" = $2,
+             "dubeyQuestionLimit" = $3,
+             "otpRequired" = $4,
+             "ednovateOtpRequired" = $5,
+             "dubeyOtpRequired" = $6,
+             "ednovateContactNumber" = $7,
+             "dubeyContactNumber" = $8,
+             "ednovateWhatsappMessage" = $9,
+             "dubeyWhatsappMessage" = $10,
              "updatedAt" = NOW()
          WHERE id = 1
-         RETURNING "questionLimit", "otpRequired", "ednovateOtpRequired", "dubeyOtpRequired", "ednovateContactNumber", "dubeyContactNumber", "ednovateWhatsappMessage", "dubeyWhatsappMessage", "updatedAt"`,
+         RETURNING "questionLimit", "ednovateQuestionLimit", "dubeyQuestionLimit", "otpRequired", "ednovateOtpRequired", "dubeyOtpRequired", "ednovateContactNumber", "dubeyContactNumber", "ednovateWhatsappMessage", "dubeyWhatsappMessage", "updatedAt"`,
         [
-          nextLimit,
+          nextEdnovateQuestionLimit,
+          nextEdnovateQuestionLimit,
+          nextDubeyQuestionLimit,
           true,
           nextEdnovateOtpRequired,
           nextDubeyOtpRequired,
@@ -697,6 +786,9 @@ export const setupAdminRoutes = (app: Express) => {
         ]
       );
 
+      const updatedEdnovateQuestionLimit = Number(result.rows[0]?.ednovateQuestionLimit ?? result.rows[0]?.questionLimit) || nextEdnovateQuestionLimit;
+      const updatedDubeyQuestionLimit = Number(result.rows[0]?.dubeyQuestionLimit ?? result.rows[0]?.questionLimit) || nextDubeyQuestionLimit;
+
       const updatedEdnovateOtpRequired = result.rows[0]?.ednovateOtpRequired === undefined
         ? (result.rows[0]?.otpRequired !== false)
         : result.rows[0]?.ednovateOtpRequired !== false;
@@ -705,9 +797,13 @@ export const setupAdminRoutes = (app: Express) => {
         : result.rows[0]?.dubeyOtpRequired !== false;
 
       res.json({
-        questionLimit: Number(result.rows[0]?.questionLimit) || nextLimit,
+        questionLimit: scope === 'dubey' ? updatedDubeyQuestionLimit : updatedEdnovateQuestionLimit,
         otpRequired: scope === 'dubey' ? updatedDubeyOtpRequired : updatedEdnovateOtpRequired,
         scope,
+        questionLimits: {
+          ednovate: scope === 'all' ? updatedEdnovateQuestionLimit : undefined,
+          dubey: updatedDubeyQuestionLimit
+        },
         otpSettings: {
           ednovate: scope === 'all' ? updatedEdnovateOtpRequired : undefined,
           dubey: updatedDubeyOtpRequired
