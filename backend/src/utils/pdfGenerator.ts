@@ -785,21 +785,39 @@ export const generateReportPDF = (student: any, contactConfig?: ReportContactCon
                 }
             };
 
-            const pieChart = (cx: number, cy: number, r: number, segments: { value: number; color: string }[]) => {
+            const pieChart = (
+                cx: number,
+                cy: number,
+                r: number,
+                innerR: number,
+                segments: { value: number; color: string }[]
+            ) => {
                 const total = Math.max(segments.reduce((sum, s) => sum + Math.max(0, s.value), 0), 1);
                 let start = -Math.PI / 2;
                 const pdoc = doc as any;
                 segments.forEach((s) => {
                     const part = Math.max(0, s.value) / total;
                     const end = start + part * Math.PI * 2;
+                    if (part <= 0) {
+                        return;
+                    }
                     pdoc.moveTo(cx, cy)
                         .lineTo(cx + r * Math.cos(start), cy + r * Math.sin(start))
                         .arc(cx, cy, r, start, end)
                         .closePath()
                         .fill(s.color);
+
+                    // Thin white separator improves readability between adjacent slices.
+                    doc.moveTo(cx, cy)
+                        .lineTo(cx + r * Math.cos(start), cy + r * Math.sin(start))
+                        .strokeColor('#FFFFFF')
+                        .lineWidth(1)
+                        .stroke();
                     start = end;
                 });
-                doc.circle(cx, cy, Math.max(8, Math.round(r * 0.42))).fill('#FFFFFF');
+
+                doc.circle(cx, cy, Math.max(8, innerR)).fill('#FFFFFF');
+                doc.circle(cx, cy, r).lineWidth(0.8).strokeColor('#E5E7EB').stroke();
             };
 
             // ─────────────────────────────────────────────────────────────────
@@ -842,30 +860,54 @@ export const generateReportPDF = (student: any, contactConfig?: ReportContactCon
             y += 98;
 
             // Stream score bars + pie chart
-            y = st(y, 'Recommended Stream Distribution (Bar and Pie Chart)');
+            y = st(y, 'Recommended Stream Distribution');
             const scoreRows = [
                 { label: 'Science  (Engineering, Medical, Research)',        pct: sciPct, score: sci, color: '#059669' },
                 { label: 'Commerce  (Finance, Business, Entrepreneurship)',  pct: comPct, score: com, color: '#2563EB' },
                 { label: 'Arts & Humanities  (Law, Design, Media, UPSC)',    pct: artPct, score: art, color: '#7C3AED' },
             ];
-            const chartCardH = 122;
+            const chartCardH = 138;
             card(M, y, CW, chartCardH, '#FFFFFF');
-            let ry = y + 14;
+
+            doc.fillColor('#6B7280').font('Helvetica-Bold').fontSize(7)
+                .text('BAR VIEW', M + 12, y + 8, { width: 220 });
+            doc.fillColor('#6B7280').font('Helvetica-Bold').fontSize(7)
+                .text('PIE VIEW', M + CW - 146, y + 8, { width: 130, align: 'center' });
+
+            let ry = y + 22;
             scoreRows.forEach(r => {
-                doc.fillColor(GRAY).font('Helvetica-Bold').fontSize(8.5).text(r.label, M + 12, ry + 2, { width: 250 });
-                hbar(M + 268, ry, 136, 12, r.pct, r.color);
-                doc.fillColor(DARK).font('Helvetica-Bold').fontSize(8).text(String(r.pct) + '%  (' + String(r.score) + ')', M + 410, ry + 2);
-                ry += 26;
+                doc.fillColor(GRAY).font('Helvetica-Bold').fontSize(8.2).text(r.label, M + 12, ry + 2, { width: 218 });
+                hbar(M + 234, ry, 132, 12, r.pct, r.color);
+                doc.fillColor(DARK).font('Helvetica-Bold').fontSize(8).text(String(r.pct) + '% (' + String(r.score) + ')', M + 372, ry + 2, { width: 72 });
+                ry += 28;
             });
 
-            const pieCx = M + CW - 72;
-            const pieCy = y + 56;
-            pieChart(pieCx, pieCy, 34, [
+            const pieCx = M + CW - 80;
+            const pieCy = y + 60;
+            pieChart(pieCx, pieCy, 36, 15, [
                 { value: sci, color: '#059669' },
                 { value: com, color: '#2563EB' },
                 { value: art, color: '#7C3AED' },
             ]);
-            doc.fillColor('#111827').font('Helvetica-Bold').fontSize(7).text('Distribution', pieCx - 28, y + 96, { width: 56, align: 'center' });
+
+            doc.fillColor('#111827').font('Helvetica-Bold').fontSize(7.5)
+                .text(primary.toUpperCase(), pieCx - 28, pieCy - 5, { width: 56, align: 'center' });
+            doc.fillColor('#6B7280').font('Helvetica').fontSize(6.5)
+                .text('Top Match', pieCx - 28, pieCy + 7, { width: 56, align: 'center' });
+
+            const legend = [
+                { name: 'Science', color: '#059669', value: sciPct },
+                { name: 'Commerce', color: '#2563EB', value: comPct },
+                { name: 'Arts', color: '#7C3AED', value: artPct },
+            ];
+            let ly = y + 96;
+            legend.forEach((l) => {
+                doc.circle(M + CW - 146, ly + 3.5, 3.5).fill(l.color);
+                doc.fillColor('#374151').font('Helvetica').fontSize(7)
+                    .text(l.name + ' ' + String(l.value) + '%', M + CW - 138, ly, { width: 122 });
+                ly += 13;
+            });
+
             y += chartCardH + 8;
 
             // Personality trait pills
