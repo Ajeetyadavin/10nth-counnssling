@@ -12,12 +12,13 @@ interface BlurredReportProps {
   whatsappMessage?: string;
 }
 
-const BlurredReport = ({ userData, result, onRestart, language = 'hinglish', contactNumber = '8651014840', whatsappMessage = 'Hey, I need my Career Counselling Report' }: BlurredReportProps) => {
+const BlurredReport = ({ userData, result, onRestart, language = 'hinglish', contactNumber = '7784873873', whatsappMessage = 'Hello, I want to get my career counselling report on WhatsApp.' }: BlurredReportProps) => {
   const isEn = language === 'english';
-  const cleanContactNumber = String(contactNumber || '').replace(/\D/g, '').slice(0, 15) || '8651014840';
+  const cleanContactNumber = String(contactNumber || '').replace(/\D/g, '').slice(0, 15) || '7784873873';
   const displayContactNumber = cleanContactNumber.length > 10 ? cleanContactNumber.slice(-10) : cleanContactNumber;
-  const encodedMessage = encodeURIComponent(String(whatsappMessage || 'Hey, I need my Career Counselling Report').trim() || 'Hey, I need my Career Counselling Report');
+  const encodedMessage = encodeURIComponent(String(whatsappMessage || 'Hello, I want to get my career counselling report on WhatsApp.').trim() || 'Hello, I want to get my career counselling report on WhatsApp.');
   const whatsappHref = `https://wa.me/${cleanContactNumber}?text=${encodedMessage}`;
+  const callHref = `tel:${cleanContactNumber}`;
   const streamDetails = {
     science: {
       title: "Science Stream",
@@ -200,9 +201,19 @@ const BlurredReport = ({ userData, result, onRestart, language = 'hinglish', con
           transition={{ delay: 0.8, type: "spring", damping: 20 }}
           className="text-center mt-auto py-4 px-2"
         >
-          <p className="text-sm font-bold text-slate-600 mb-4 px-4">
-            {isEn ? 'Message us on WhatsApp for your full career report and college guidance:' : 'Aapki full career report aur college guidance ke liye WhatsApp karein:'}
+          <p className="text-sm font-bold text-slate-600 mb-3 px-4">
+            {isEn ? 'Get your full report on WhatsApp or call now for guidance:' : 'Apni full report WhatsApp par pane ke liye ya guidance ke liye abhi call karein:'}
           </p>
+
+          <motion.a
+            href={callHref}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            className="mb-3 flex items-center justify-center gap-2 w-full max-w-[280px] mx-auto rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-800 shadow-sm"
+          >
+            <Phone className="w-4 h-4 text-emerald-600" />
+            <span>{isEn ? `Call now: ${displayContactNumber}` : `Call now: ${displayContactNumber}`}</span>
+          </motion.a>
           
           <div className="relative inline-block w-full max-w-[280px]">
             {/* Pulsing Outer Glow */}
@@ -225,15 +236,13 @@ const BlurredReport = ({ userData, result, onRestart, language = 'hinglish', con
             >
               {isEn ? (
                 <>
-                  <span className="tracking-wide">Click here to message</span>
+                  <span className="tracking-wide">Click here to WhatsApp and get report</span>
                   <ArrowRight className="w-5 h-5" />
                 </>
               ) : (
                 <>
-                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                    <Phone className="w-5 h-5 fill-white" />
-                  </div>
-                  <span className="tracking-wide">{displayContactNumber}</span>
+                  <span className="tracking-wide">Click here to WhatsApp and get report</span>
+                  <ArrowRight className="w-5 h-5" />
                 </>
               )}
             </motion.a>

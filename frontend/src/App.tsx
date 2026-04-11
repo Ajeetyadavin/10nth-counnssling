@@ -197,8 +197,8 @@ function App() {
   const [showOtpPopup, setShowOtpPopup] = useState<boolean>(savedState?.appState === 'otp');
   const [adminToken, setAdminToken] = useState<string | null>(() => localStorage.getItem(ADMIN_TOKEN_KEY));
   const [adminScope, setAdminScope] = useState<AdminScope>(() => parseAdminScopeFromToken(localStorage.getItem(ADMIN_TOKEN_KEY)));
-  const [ctaContactNumber, setCtaContactNumber] = useState<string>('8651014840');
-  const [ctaWhatsappMessage, setCtaWhatsappMessage] = useState<string>('Hey, I need my Career Counselling Report');
+  const [ctaContactNumber, setCtaContactNumber] = useState<string>('7784873873');
+  const [ctaWhatsappMessage, setCtaWhatsappMessage] = useState<string>('Hello, I want to get my career counselling report on WhatsApp.');
 
   // Fetch Questions from DB on mount
   useEffect(() => {
@@ -213,8 +213,8 @@ function App() {
         const data = await qRes.json();
         const settings = settingsRes.ok ? await settingsRes.json() : { questionLimit: 45, otpRequired: true };
         setOtpRequired(settings?.otpRequired !== false);
-        setCtaContactNumber(String(settings?.contactNumber || '8651014840'));
-        setCtaWhatsappMessage(String(settings?.whatsappMessage || 'Hey, I need my Career Counselling Report'));
+        setCtaContactNumber(String(settings?.contactNumber || '7784873873'));
+        setCtaWhatsappMessage(String(settings?.whatsappMessage || 'Hello, I want to get my career counselling report on WhatsApp.'));
         const dynamicPool = normalizeQuestionPool(data);
         
         // If DB has questions, use them. Otherwise fallback to static.
@@ -462,8 +462,8 @@ function App() {
       const data = qRes.ok ? await qRes.json() : [];
       const settings = settingsRes.ok ? await settingsRes.json() : { questionLimit: 45, otpRequired: true };
       setOtpRequired(settings?.otpRequired !== false);
-      setCtaContactNumber(String(settings?.contactNumber || '8651014840'));
-      setCtaWhatsappMessage(String(settings?.whatsappMessage || 'Hey, I need my Career Counselling Report'));
+      setCtaContactNumber(String(settings?.contactNumber || '7784873873'));
+      setCtaWhatsappMessage(String(settings?.whatsappMessage || 'Hello, I want to get my career counselling report on WhatsApp.'));
       const dynamicPool = normalizeQuestionPool(data);
       
       // Fallback to multiLanguageQuestions filtered by language

@@ -4,8 +4,9 @@ import { seedQuestionsIfEmpty } from '../seeds.js';
 import { signAdminToken } from '../middleware/adminAuth.js';
 import type { Express, Request } from 'express';
 
-const DEFAULT_CTA_MESSAGE = 'Hey, I need my Career Counselling Report';
+const DEFAULT_CTA_MESSAGE = 'Hello, I want to get my career counselling report on WhatsApp.';
 const DEFAULT_CONTACT_NUMBER = '8651014840';
+const DEFAULT_EDNOVATE_CONTACT_NUMBER = '7784873873';
 
 const ensureTables = async () => {
   // Student table
@@ -67,10 +68,10 @@ const ensureTables = async () => {
       "otpRequired" BOOLEAN NOT NULL DEFAULT TRUE,
       "ednovateOtpRequired" BOOLEAN NOT NULL DEFAULT TRUE,
       "dubeyOtpRequired" BOOLEAN NOT NULL DEFAULT TRUE,
-      "ednovateContactNumber" TEXT NOT NULL DEFAULT '8651014840',
+      "ednovateContactNumber" TEXT NOT NULL DEFAULT '7784873873',
       "dubeyContactNumber" TEXT NOT NULL DEFAULT '8651014840',
-      "ednovateWhatsappMessage" TEXT NOT NULL DEFAULT 'Hey, I need my Career Counselling Report',
-      "dubeyWhatsappMessage" TEXT NOT NULL DEFAULT 'Hey, I need my Career Counselling Report',
+      "ednovateWhatsappMessage" TEXT NOT NULL DEFAULT 'Hello, I want to get my career counselling report on WhatsApp.',
+      "dubeyWhatsappMessage" TEXT NOT NULL DEFAULT 'Hello, I want to get my career counselling report on WhatsApp.',
       "updatedAt" TIMESTAMP DEFAULT NOW()
     )
   `);
@@ -79,10 +80,10 @@ const ensureTables = async () => {
   await pool.query('ALTER TABLE "AdminSettings" ADD COLUMN IF NOT EXISTS "otpRequired" BOOLEAN NOT NULL DEFAULT TRUE');
   await pool.query('ALTER TABLE "AdminSettings" ADD COLUMN IF NOT EXISTS "ednovateOtpRequired" BOOLEAN NOT NULL DEFAULT TRUE');
   await pool.query('ALTER TABLE "AdminSettings" ADD COLUMN IF NOT EXISTS "dubeyOtpRequired" BOOLEAN NOT NULL DEFAULT TRUE');
-  await pool.query('ALTER TABLE "AdminSettings" ADD COLUMN IF NOT EXISTS "ednovateContactNumber" TEXT NOT NULL DEFAULT \'8651014840\'');
+  await pool.query('ALTER TABLE "AdminSettings" ADD COLUMN IF NOT EXISTS "ednovateContactNumber" TEXT NOT NULL DEFAULT \'7784873873\'');
   await pool.query('ALTER TABLE "AdminSettings" ADD COLUMN IF NOT EXISTS "dubeyContactNumber" TEXT NOT NULL DEFAULT \'8651014840\'');
-  await pool.query('ALTER TABLE "AdminSettings" ADD COLUMN IF NOT EXISTS "ednovateWhatsappMessage" TEXT NOT NULL DEFAULT \'Hey, I need my Career Counselling Report\'');
-  await pool.query('ALTER TABLE "AdminSettings" ADD COLUMN IF NOT EXISTS "dubeyWhatsappMessage" TEXT NOT NULL DEFAULT \'Hey, I need my Career Counselling Report\'');
+  await pool.query('ALTER TABLE "AdminSettings" ADD COLUMN IF NOT EXISTS "ednovateWhatsappMessage" TEXT NOT NULL DEFAULT \'Hello, I want to get my career counselling report on WhatsApp.\'');
+  await pool.query('ALTER TABLE "AdminSettings" ADD COLUMN IF NOT EXISTS "dubeyWhatsappMessage" TEXT NOT NULL DEFAULT \'Hello, I want to get my career counselling report on WhatsApp.\'');
 
   await pool.query(
     `UPDATE "AdminSettings"
@@ -91,12 +92,16 @@ const ensureTables = async () => {
        "dubeyQuestionLimit" = COALESCE("dubeyQuestionLimit", "questionLimit", 45),
        "ednovateOtpRequired" = COALESCE("ednovateOtpRequired", "otpRequired", TRUE),
        "dubeyOtpRequired" = COALESCE("dubeyOtpRequired", TRUE),
-       "ednovateContactNumber" = COALESCE(NULLIF(TRIM("ednovateContactNumber"), ''), $1),
+       "ednovateContactNumber" = CASE
+         WHEN NULLIF(TRIM("ednovateContactNumber"), '') IS NULL THEN $1
+         WHEN REGEXP_REPLACE("ednovateContactNumber", '\\D', '', 'g') = '8651014840' THEN $1
+         ELSE "ednovateContactNumber"
+       END,
        "dubeyContactNumber" = COALESCE(NULLIF(TRIM("dubeyContactNumber"), ''), $1),
-       "ednovateWhatsappMessage" = COALESCE(NULLIF(TRIM("ednovateWhatsappMessage"), ''), $2),
-       "dubeyWhatsappMessage" = COALESCE(NULLIF(TRIM("dubeyWhatsappMessage"), ''), $2)
+       "ednovateWhatsappMessage" = COALESCE(NULLIF(TRIM("ednovateWhatsappMessage"), ''), $3),
+       "dubeyWhatsappMessage" = COALESCE(NULLIF(TRIM("dubeyWhatsappMessage"), ''), $3)
      WHERE id = 1`,
-    [DEFAULT_CONTACT_NUMBER, DEFAULT_CTA_MESSAGE]
+    [DEFAULT_EDNOVATE_CONTACT_NUMBER, DEFAULT_CONTACT_NUMBER, DEFAULT_CTA_MESSAGE]
   );
 
   await pool.query(`
@@ -129,7 +134,7 @@ const ensureTables = async () => {
   await pool.query(`
     INSERT INTO "AdminSettings"
       (id, "questionLimit", "ednovateQuestionLimit", "dubeyQuestionLimit", "otpRequired", "ednovateOtpRequired", "dubeyOtpRequired", "ednovateContactNumber", "dubeyContactNumber", "ednovateWhatsappMessage", "dubeyWhatsappMessage", "updatedAt")
-    VALUES (1, 45, 45, 45, TRUE, TRUE, TRUE, '8651014840', '8651014840', 'Hey, I need my Career Counselling Report', 'Hey, I need my Career Counselling Report', NOW())
+    VALUES (1, 45, 45, 45, TRUE, TRUE, TRUE, '7784873873', '8651014840', 'Hello, I want to get my career counselling report on WhatsApp.', 'Hello, I want to get my career counselling report on WhatsApp.', NOW())
     ON CONFLICT (id) DO NOTHING
   `);
 };
@@ -168,7 +173,7 @@ const getSourceContactConfig = async (source: 'ednovate' | 'dubey') => {
     };
   }
 
-  const contactNumber = normalizeContactNumber(row.ednovateContactNumber) || DEFAULT_CONTACT_NUMBER;
+  const contactNumber = normalizeContactNumber(row.ednovateContactNumber) || DEFAULT_EDNOVATE_CONTACT_NUMBER;
   return {
     contactNumber,
     whatsappMessage: normalizeWhatsappMessage(row.ednovateWhatsappMessage)

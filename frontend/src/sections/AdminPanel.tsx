@@ -68,12 +68,12 @@ const AdminPanel = ({
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [settingsMsg, setSettingsMsg] = useState('');
   const [ednovateContactSettings, setEdnovateContactSettings] = useState<BrandContactSettings>({
-    contactNumber: '8651014840',
-    whatsappMessage: 'Hey, I need my Career Counselling Report'
+    contactNumber: '7784873873',
+    whatsappMessage: 'Hello, I want to get my career counselling report on WhatsApp.'
   });
   const [dubeyContactSettings, setDubeyContactSettings] = useState<BrandContactSettings>({
     contactNumber: '8651014840',
-    whatsappMessage: 'Hey, I need my Career Counselling Report'
+    whatsappMessage: 'Hello, I want to get my career counselling report on WhatsApp.'
   });
   const [importingQuestions, setImportingQuestions] = useState(false);
   const [questionLanguageFilter, setQuestionLanguageFilter] = useState<'all' | 'hinglish' | 'english'>('all');
@@ -181,14 +181,14 @@ const AdminPanel = ({
       setDubeyOtpRequired(data?.otpSettings?.dubey === undefined ? true : (data?.otpSettings?.dubey !== false));
       if (data?.contactSettings?.ednovate) {
         setEdnovateContactSettings({
-          contactNumber: String(data.contactSettings.ednovate.contactNumber || '8651014840'),
-          whatsappMessage: String(data.contactSettings.ednovate.whatsappMessage || 'Hey, I need my Career Counselling Report')
+          contactNumber: String(data.contactSettings.ednovate.contactNumber || '7784873873'),
+          whatsappMessage: String(data.contactSettings.ednovate.whatsappMessage || 'Hello, I want to get my career counselling report on WhatsApp.')
         });
       }
       if (data?.contactSettings?.dubey) {
         setDubeyContactSettings({
           contactNumber: String(data.contactSettings.dubey.contactNumber || '8651014840'),
-          whatsappMessage: String(data.contactSettings.dubey.whatsappMessage || 'Hey, I need my Career Counselling Report')
+          whatsappMessage: String(data.contactSettings.dubey.whatsappMessage || 'Hello, I want to get my career counselling report on WhatsApp.')
         });
       }
       setIsConnected(true);
