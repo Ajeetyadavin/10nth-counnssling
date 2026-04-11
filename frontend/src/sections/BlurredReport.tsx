@@ -203,7 +203,7 @@ const BlurredReport = ({ userData, result, onRestart, language = 'hinglish', cal
           transition={{ delay: 0.8, type: "spring", damping: 20 }}
           className="text-center mt-auto py-4 px-2"
         >
-          <p className="text-sm font-bold text-slate-600 mb-3 px-4">
+          <p className="text-sm font-bold leading-snug text-slate-600 mb-3 px-3">
             {isEn ? 'Get your full report on WhatsApp or call now for guidance:' : 'Apni full report WhatsApp par pane ke liye ya guidance ke liye abhi call karein:'}
           </p>
 
@@ -211,10 +211,18 @@ const BlurredReport = ({ userData, result, onRestart, language = 'hinglish', cal
             href={callHref}
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
-            className="mb-3 flex items-center justify-center gap-2 w-full max-w-[280px] mx-auto rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-800 shadow-sm"
+            className="mb-3 flex items-center justify-between gap-3 w-full max-w-[280px] mx-auto rounded-2xl border border-emerald-100 bg-gradient-to-r from-white to-emerald-50 px-4 py-3 text-left shadow-[0_10px_25px_-15px_rgba(16,185,129,0.45)]"
           >
-            <Phone className="w-4 h-4 text-emerald-600" />
-            <span>{isEn ? `Call now: ${displayCallNumber}` : `Call now: ${displayCallNumber}`}</span>
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm">
+                <Phone className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-600">Call Now</div>
+                <div className="truncate text-sm font-black text-slate-900">{displayCallNumber}</div>
+              </div>
+            </div>
+            <ArrowRight className="w-4 h-4 flex-shrink-0 text-emerald-600" />
           </motion.a>
           
           <div className="relative inline-block w-full max-w-[280px]">
@@ -234,19 +242,10 @@ const BlurredReport = ({ userData, result, onRestart, language = 'hinglish', cal
               rel="noopener noreferrer"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="relative flex items-center justify-center gap-3 w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black py-4 px-6 rounded-2xl text-lg shadow-[0_10px_25px_-5px_rgba(16,185,129,0.4)] border border-emerald-400/20"
+              className="relative flex items-center justify-center gap-2 w-full overflow-hidden bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black py-4 px-4 rounded-2xl text-sm sm:text-base shadow-[0_10px_25px_-5px_rgba(16,185,129,0.4)] border border-emerald-400/20"
             >
-              {isEn ? (
-                <>
-                  <span className="tracking-wide">Click here to WhatsApp and get report</span>
-                  <ArrowRight className="w-5 h-5" />
-                </>
-              ) : (
-                <>
-                  <span className="tracking-wide">Click here to WhatsApp and get report</span>
-                  <ArrowRight className="w-5 h-5" />
-                </>
-              )}
+              <span className="truncate whitespace-nowrap tracking-normal">Click here to WhatsApp & get report</span>
+              <ArrowRight className="w-4 h-4 flex-shrink-0" />
             </motion.a>
           </div>
 
