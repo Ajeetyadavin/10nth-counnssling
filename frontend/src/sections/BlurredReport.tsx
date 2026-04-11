@@ -203,8 +203,8 @@ const BlurredReport = ({ userData, result, onRestart, language = 'hinglish', cal
           transition={{ delay: 0.8, type: "spring", damping: 20 }}
           className="text-center mt-auto py-4 px-2"
         >
-          <p className="text-sm font-bold leading-snug text-slate-600 mb-3 px-3">
-            {isEn ? 'Get your full report on WhatsApp or call now for guidance:' : 'Apni full report WhatsApp par pane ke liye ya guidance ke liye abhi call karein:'}
+          <p className="mx-auto mb-3 max-w-[280px] px-2 text-center text-xs font-bold leading-tight text-slate-600 sm:text-sm whitespace-nowrap">
+            {isEn ? 'To get your full report, WhatsApp us or call now.' : 'Apni full report ke liye WhatsApp karein ya abhi call karein.'}
           </p>
 
           <motion.a
