@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ArrowRight, Lock, Phone, Users, Star, TrendingUp, CheckCircle, Sparkles, X, Zap } from 'lucide-react';
+import { ArrowRight, Lock, Phone, Users, Star, TrendingUp, CheckCircle, Sparkles, X, Zap, MessageCircle } from 'lucide-react';
 import type { UserData } from '../App';
 import type { getRecommendedStream } from '../data/multiLanguageQuestions';
 
@@ -201,11 +201,42 @@ const BlurredReport = ({ userData, result, onRestart, language = 'hinglish', cal
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8, type: "spring", damping: 20 }}
-          className="text-center mt-auto py-4 px-2"
+          className="text-center py-3 px-2"
         >
           <p className="mx-auto mb-3 max-w-[280px] px-2 text-center text-xs font-bold leading-tight text-slate-600 sm:text-sm whitespace-nowrap">
             {isEn ? 'To get your full report, WhatsApp us or call now.' : 'Apni full report ke liye WhatsApp karein ya abhi call karein.'}
           </p>
+
+          <div className="relative inline-block w-full max-w-[300px] mb-3">
+            <motion.div
+              animate={{
+                scale: [1, 1.04, 1],
+                opacity: [0.18, 0.32, 0.18]
+              }}
+              transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute -inset-1 bg-emerald-400 rounded-3xl blur-md"
+            />
+
+            <motion.a
+              href={whatsappHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="relative flex items-center justify-between w-full overflow-hidden rounded-3xl border border-emerald-300/30 bg-gradient-to-r from-emerald-500 via-emerald-500 to-teal-600 px-4 py-4 shadow-[0_14px_28px_-8px_rgba(16,185,129,0.45)]"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-white">
+                  <MessageCircle className="w-5 h-5" />
+                </div>
+                <div className="min-w-0 text-left">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-100">WhatsApp</div>
+                  <div className="truncate text-sm sm:text-base font-black text-white">Click here to WhatsApp & get report</div>
+                </div>
+              </div>
+              <ArrowRight className="w-5 h-5 flex-shrink-0 text-white" />
+            </motion.a>
+          </div>
 
           <motion.a
             href={callHref}
@@ -224,30 +255,6 @@ const BlurredReport = ({ userData, result, onRestart, language = 'hinglish', cal
             </div>
             <ArrowRight className="w-4 h-4 flex-shrink-0 text-emerald-600" />
           </motion.a>
-          
-          <div className="relative inline-block w-full max-w-[280px]">
-            {/* Pulsing Outer Glow */}
-            <motion.div
-              animate={{ 
-                scale: [1, 1.05, 1],
-                opacity: [0.2, 0.4, 0.2]
-              }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute -inset-1 bg-emerald-400 rounded-2xl blur-md"
-            />
-            
-            <motion.a
-              href={whatsappHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="relative flex items-center justify-center gap-2 w-full overflow-hidden bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black py-4 px-4 rounded-2xl text-sm sm:text-base shadow-[0_10px_25px_-5px_rgba(16,185,129,0.4)] border border-emerald-400/20"
-            >
-              <span className="truncate whitespace-nowrap tracking-normal">Click here to WhatsApp & get report</span>
-              <ArrowRight className="w-4 h-4 flex-shrink-0" />
-            </motion.a>
-          </div>
 
           {/* Removed User PDF Download Buttons */}
 
