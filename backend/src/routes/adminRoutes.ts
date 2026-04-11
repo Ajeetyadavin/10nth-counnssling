@@ -7,6 +7,8 @@ import type { Express, Request } from 'express';
 const DEFAULT_CTA_MESSAGE = 'Hello, I want to get my career counselling report on WhatsApp.';
 const DEFAULT_CONTACT_NUMBER = '8651014840';
 const DEFAULT_EDNOVATE_CONTACT_NUMBER = '7784873873';
+const DEFAULT_EDNOVATE_CALL_NUMBER = '7784873873';
+const DEFAULT_DUBEY_CALL_NUMBER = '8651014840';
 
 const ensureTables = async () => {
   // Student table
@@ -68,6 +70,8 @@ const ensureTables = async () => {
       "otpRequired" BOOLEAN NOT NULL DEFAULT TRUE,
       "ednovateOtpRequired" BOOLEAN NOT NULL DEFAULT TRUE,
       "dubeyOtpRequired" BOOLEAN NOT NULL DEFAULT TRUE,
+      "ednovateCallNumber" TEXT NOT NULL DEFAULT '7784873873',
+      "dubeyCallNumber" TEXT NOT NULL DEFAULT '8651014840',
       "ednovateContactNumber" TEXT NOT NULL DEFAULT '7784873873',
       "dubeyContactNumber" TEXT NOT NULL DEFAULT '8651014840',
       "ednovateWhatsappMessage" TEXT NOT NULL DEFAULT 'Hello, I want to get my career counselling report on WhatsApp.',
@@ -80,6 +84,8 @@ const ensureTables = async () => {
   await pool.query('ALTER TABLE "AdminSettings" ADD COLUMN IF NOT EXISTS "otpRequired" BOOLEAN NOT NULL DEFAULT TRUE');
   await pool.query('ALTER TABLE "AdminSettings" ADD COLUMN IF NOT EXISTS "ednovateOtpRequired" BOOLEAN NOT NULL DEFAULT TRUE');
   await pool.query('ALTER TABLE "AdminSettings" ADD COLUMN IF NOT EXISTS "dubeyOtpRequired" BOOLEAN NOT NULL DEFAULT TRUE');
+  await pool.query('ALTER TABLE "AdminSettings" ADD COLUMN IF NOT EXISTS "ednovateCallNumber" TEXT NOT NULL DEFAULT \'7784873873\'');
+  await pool.query('ALTER TABLE "AdminSettings" ADD COLUMN IF NOT EXISTS "dubeyCallNumber" TEXT NOT NULL DEFAULT \'8651014840\'');
   await pool.query('ALTER TABLE "AdminSettings" ADD COLUMN IF NOT EXISTS "ednovateContactNumber" TEXT NOT NULL DEFAULT \'7784873873\'');
   await pool.query('ALTER TABLE "AdminSettings" ADD COLUMN IF NOT EXISTS "dubeyContactNumber" TEXT NOT NULL DEFAULT \'8651014840\'');
   await pool.query('ALTER TABLE "AdminSettings" ADD COLUMN IF NOT EXISTS "ednovateWhatsappMessage" TEXT NOT NULL DEFAULT \'Hello, I want to get my career counselling report on WhatsApp.\'');
@@ -92,6 +98,8 @@ const ensureTables = async () => {
        "dubeyQuestionLimit" = COALESCE("dubeyQuestionLimit", "questionLimit", 45),
        "ednovateOtpRequired" = COALESCE("ednovateOtpRequired", "otpRequired", TRUE),
        "dubeyOtpRequired" = COALESCE("dubeyOtpRequired", TRUE),
+       "ednovateCallNumber" = COALESCE(NULLIF(TRIM("ednovateCallNumber"), ''), $1),
+       "dubeyCallNumber" = COALESCE(NULLIF(TRIM("dubeyCallNumber"), ''), $2),
        "ednovateContactNumber" = CASE
          WHEN NULLIF(TRIM("ednovateContactNumber"), '') IS NULL THEN $1
          WHEN REGEXP_REPLACE("ednovateContactNumber", '\\D', '', 'g') = '8651014840' THEN $1
@@ -133,8 +141,8 @@ const ensureTables = async () => {
 
   await pool.query(`
     INSERT INTO "AdminSettings"
-      (id, "questionLimit", "ednovateQuestionLimit", "dubeyQuestionLimit", "otpRequired", "ednovateOtpRequired", "dubeyOtpRequired", "ednovateContactNumber", "dubeyContactNumber", "ednovateWhatsappMessage", "dubeyWhatsappMessage", "updatedAt")
-    VALUES (1, 45, 45, 45, TRUE, TRUE, TRUE, '7784873873', '8651014840', 'Hello, I want to get my career counselling report on WhatsApp.', 'Hello, I want to get my career counselling report on WhatsApp.', NOW())
+      (id, "questionLimit", "ednovateQuestionLimit", "dubeyQuestionLimit", "otpRequired", "ednovateOtpRequired", "dubeyOtpRequired", "ednovateCallNumber", "dubeyCallNumber", "ednovateContactNumber", "dubeyContactNumber", "ednovateWhatsappMessage", "dubeyWhatsappMessage", "updatedAt")
+    VALUES (1, 45, 45, 45, TRUE, TRUE, TRUE, '7784873873', '8651014840', '7784873873', '8651014840', 'Hello, I want to get my career counselling report on WhatsApp.', 'Hello, I want to get my career counselling report on WhatsApp.', NOW())
     ON CONFLICT (id) DO NOTHING
   `);
 };
@@ -672,13 +680,15 @@ export const setupAdminRoutes = (app: Express) => {
     try {
       const scope = getAdminScope(req);
       const result = await pool.query(
-        'SELECT "questionLimit", "ednovateQuestionLimit", "dubeyQuestionLimit", "otpRequired", "ednovateOtpRequired", "dubeyOtpRequired", "ednovateContactNumber", "dubeyContactNumber", "ednovateWhatsappMessage", "dubeyWhatsappMessage", "updatedAt" FROM "AdminSettings" WHERE id = 1'
+        'SELECT "questionLimit", "ednovateQuestionLimit", "dubeyQuestionLimit", "otpRequired", "ednovateOtpRequired", "dubeyOtpRequired", "ednovateCallNumber", "dubeyCallNumber", "ednovateContactNumber", "dubeyContactNumber", "ednovateWhatsappMessage", "dubeyWhatsappMessage", "updatedAt" FROM "AdminSettings" WHERE id = 1'
       );
       const row = result.rows[0] || { questionLimit: 45, otpRequired: true };
       const ednovateQuestionLimit = Number(row.ednovateQuestionLimit ?? row.questionLimit) || 45;
       const dubeyQuestionLimit = Number(row.dubeyQuestionLimit ?? row.questionLimit) || 45;
 
-      const ednovateContactNumber = normalizeContactNumber(row.ednovateContactNumber) || DEFAULT_CONTACT_NUMBER;
+      const ednovateCallNumber = normalizeContactNumber(row.ednovateCallNumber) || DEFAULT_EDNOVATE_CALL_NUMBER;
+      const dubeyCallNumber = normalizeContactNumber(row.dubeyCallNumber) || DEFAULT_DUBEY_CALL_NUMBER;
+      const ednovateContactNumber = normalizeContactNumber(row.ednovateContactNumber) || DEFAULT_EDNOVATE_CONTACT_NUMBER;
       const dubeyContactNumber = normalizeContactNumber(row.dubeyContactNumber) || DEFAULT_CONTACT_NUMBER;
       const ednovateOtpRequired = row.ednovateOtpRequired === undefined ? row.otpRequired !== false : row.ednovateOtpRequired !== false;
       const dubeyOtpRequired = row.dubeyOtpRequired === undefined ? true : row.dubeyOtpRequired !== false;
@@ -698,11 +708,13 @@ export const setupAdminRoutes = (app: Express) => {
         contactSettings: {
           ednovate: scope === 'all'
             ? {
+                callNumber: ednovateCallNumber,
                 contactNumber: ednovateContactNumber,
                 whatsappMessage: normalizeWhatsappMessage(row.ednovateWhatsappMessage)
               }
             : undefined,
           dubey: {
+            callNumber: dubeyCallNumber,
             contactNumber: dubeyContactNumber,
             whatsappMessage: normalizeWhatsappMessage(row.dubeyWhatsappMessage)
           }
@@ -719,7 +731,7 @@ export const setupAdminRoutes = (app: Express) => {
     try {
       const scope = getAdminScope(req);
       const existing = await pool.query(
-        'SELECT "questionLimit", "ednovateQuestionLimit", "dubeyQuestionLimit", "otpRequired", "ednovateOtpRequired", "dubeyOtpRequired", "ednovateContactNumber", "dubeyContactNumber", "ednovateWhatsappMessage", "dubeyWhatsappMessage" FROM "AdminSettings" WHERE id = 1'
+        'SELECT "questionLimit", "ednovateQuestionLimit", "dubeyQuestionLimit", "otpRequired", "ednovateOtpRequired", "dubeyOtpRequired", "ednovateCallNumber", "dubeyCallNumber", "ednovateContactNumber", "dubeyContactNumber", "ednovateWhatsappMessage", "dubeyWhatsappMessage" FROM "AdminSettings" WHERE id = 1'
       );
       const current = existing.rows[0] || {
         questionLimit: 45,
@@ -728,7 +740,9 @@ export const setupAdminRoutes = (app: Express) => {
         otpRequired: true,
         ednovateOtpRequired: true,
         dubeyOtpRequired: true,
-        ednovateContactNumber: DEFAULT_CONTACT_NUMBER,
+        ednovateCallNumber: DEFAULT_EDNOVATE_CALL_NUMBER,
+        dubeyCallNumber: DEFAULT_DUBEY_CALL_NUMBER,
+        ednovateContactNumber: DEFAULT_EDNOVATE_CONTACT_NUMBER,
         dubeyContactNumber: DEFAULT_CONTACT_NUMBER,
         ednovateWhatsappMessage: DEFAULT_CTA_MESSAGE,
         dubeyWhatsappMessage: DEFAULT_CTA_MESSAGE
@@ -774,9 +788,15 @@ export const setupAdminRoutes = (app: Express) => {
       }
 
       const incomingContactSettings = req.body?.contactSettings || {};
+      const resolvedEdnovateCallNumber = scope === 'all'
+        ? (normalizeContactNumber(incomingContactSettings?.ednovate?.callNumber) || normalizeContactNumber(current.ednovateCallNumber) || DEFAULT_EDNOVATE_CALL_NUMBER)
+        : (normalizeContactNumber(current.ednovateCallNumber) || DEFAULT_EDNOVATE_CALL_NUMBER);
+      const resolvedDubeyCallNumber = normalizeContactNumber(incomingContactSettings?.dubey?.callNumber)
+        || normalizeContactNumber(current.dubeyCallNumber)
+        || DEFAULT_DUBEY_CALL_NUMBER;
       const resolvedEdnovateNumber = scope === 'all'
-        ? (normalizeContactNumber(incomingContactSettings?.ednovate?.contactNumber) || normalizeContactNumber(current.ednovateContactNumber) || DEFAULT_CONTACT_NUMBER)
-        : (normalizeContactNumber(current.ednovateContactNumber) || DEFAULT_CONTACT_NUMBER);
+        ? (normalizeContactNumber(incomingContactSettings?.ednovate?.contactNumber) || normalizeContactNumber(current.ednovateContactNumber) || DEFAULT_EDNOVATE_CONTACT_NUMBER)
+        : (normalizeContactNumber(current.ednovateContactNumber) || DEFAULT_EDNOVATE_CONTACT_NUMBER);
       const resolvedDubeyNumber = normalizeContactNumber(incomingContactSettings?.dubey?.contactNumber)
         || normalizeContactNumber(current.dubeyContactNumber)
         || DEFAULT_CONTACT_NUMBER;
@@ -794,13 +814,15 @@ export const setupAdminRoutes = (app: Express) => {
              "otpRequired" = $4,
              "ednovateOtpRequired" = $5,
              "dubeyOtpRequired" = $6,
-             "ednovateContactNumber" = $7,
-             "dubeyContactNumber" = $8,
-             "ednovateWhatsappMessage" = $9,
-             "dubeyWhatsappMessage" = $10,
+             "ednovateCallNumber" = $7,
+             "dubeyCallNumber" = $8,
+             "ednovateContactNumber" = $9,
+             "dubeyContactNumber" = $10,
+             "ednovateWhatsappMessage" = $11,
+             "dubeyWhatsappMessage" = $12,
              "updatedAt" = NOW()
          WHERE id = 1
-         RETURNING "questionLimit", "ednovateQuestionLimit", "dubeyQuestionLimit", "otpRequired", "ednovateOtpRequired", "dubeyOtpRequired", "ednovateContactNumber", "dubeyContactNumber", "ednovateWhatsappMessage", "dubeyWhatsappMessage", "updatedAt"`,
+         RETURNING "questionLimit", "ednovateQuestionLimit", "dubeyQuestionLimit", "otpRequired", "ednovateOtpRequired", "dubeyOtpRequired", "ednovateCallNumber", "dubeyCallNumber", "ednovateContactNumber", "dubeyContactNumber", "ednovateWhatsappMessage", "dubeyWhatsappMessage", "updatedAt"`,
         [
           nextEdnovateQuestionLimit,
           nextEdnovateQuestionLimit,
@@ -808,6 +830,8 @@ export const setupAdminRoutes = (app: Express) => {
           true,
           nextEdnovateOtpRequired,
           nextDubeyOtpRequired,
+          resolvedEdnovateCallNumber,
+          resolvedDubeyCallNumber,
           resolvedEdnovateNumber,
           resolvedDubeyNumber,
           resolvedEdnovateMessage,
@@ -840,11 +864,13 @@ export const setupAdminRoutes = (app: Express) => {
         contactSettings: {
           ednovate: scope === 'all'
             ? {
-                contactNumber: normalizeContactNumber(result.rows[0]?.ednovateContactNumber) || DEFAULT_CONTACT_NUMBER,
+                callNumber: normalizeContactNumber(result.rows[0]?.ednovateCallNumber) || DEFAULT_EDNOVATE_CALL_NUMBER,
+                contactNumber: normalizeContactNumber(result.rows[0]?.ednovateContactNumber) || DEFAULT_EDNOVATE_CONTACT_NUMBER,
                 whatsappMessage: normalizeWhatsappMessage(result.rows[0]?.ednovateWhatsappMessage)
               }
             : undefined,
           dubey: {
+            callNumber: normalizeContactNumber(result.rows[0]?.dubeyCallNumber) || DEFAULT_DUBEY_CALL_NUMBER,
             contactNumber: normalizeContactNumber(result.rows[0]?.dubeyContactNumber) || DEFAULT_CONTACT_NUMBER,
             whatsappMessage: normalizeWhatsappMessage(result.rows[0]?.dubeyWhatsappMessage)
           }

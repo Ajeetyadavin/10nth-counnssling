@@ -197,7 +197,8 @@ function App() {
   const [showOtpPopup, setShowOtpPopup] = useState<boolean>(savedState?.appState === 'otp');
   const [adminToken, setAdminToken] = useState<string | null>(() => localStorage.getItem(ADMIN_TOKEN_KEY));
   const [adminScope, setAdminScope] = useState<AdminScope>(() => parseAdminScopeFromToken(localStorage.getItem(ADMIN_TOKEN_KEY)));
-  const [ctaContactNumber, setCtaContactNumber] = useState<string>('7784873873');
+  const [ctaCallNumber, setCtaCallNumber] = useState<string>('7784873873');
+  const [ctaWhatsappNumber, setCtaWhatsappNumber] = useState<string>('7784873873');
   const [ctaWhatsappMessage, setCtaWhatsappMessage] = useState<string>('Hello, I want to get my career counselling report on WhatsApp.');
 
   // Fetch Questions from DB on mount
@@ -213,7 +214,8 @@ function App() {
         const data = await qRes.json();
         const settings = settingsRes.ok ? await settingsRes.json() : { questionLimit: 45, otpRequired: true };
         setOtpRequired(settings?.otpRequired !== false);
-        setCtaContactNumber(String(settings?.contactNumber || '7784873873'));
+        setCtaCallNumber(String(settings?.callNumber || settings?.contactNumber || '7784873873'));
+        setCtaWhatsappNumber(String(settings?.whatsappNumber || settings?.contactNumber || '7784873873'));
         setCtaWhatsappMessage(String(settings?.whatsappMessage || 'Hello, I want to get my career counselling report on WhatsApp.'));
         const dynamicPool = normalizeQuestionPool(data);
         
@@ -462,7 +464,8 @@ function App() {
       const data = qRes.ok ? await qRes.json() : [];
       const settings = settingsRes.ok ? await settingsRes.json() : { questionLimit: 45, otpRequired: true };
       setOtpRequired(settings?.otpRequired !== false);
-      setCtaContactNumber(String(settings?.contactNumber || '7784873873'));
+      setCtaCallNumber(String(settings?.callNumber || settings?.contactNumber || '7784873873'));
+      setCtaWhatsappNumber(String(settings?.whatsappNumber || settings?.contactNumber || '7784873873'));
       setCtaWhatsappMessage(String(settings?.whatsappMessage || 'Hello, I want to get my career counselling report on WhatsApp.'));
       const dynamicPool = normalizeQuestionPool(data);
       
@@ -586,7 +589,8 @@ function App() {
               result={result}
               onRestart={handleRestart}
               language={language}
-              contactNumber={ctaContactNumber}
+              callNumber={ctaCallNumber}
+              whatsappNumber={ctaWhatsappNumber}
               whatsappMessage={ctaWhatsappMessage}
             />
           </motion.div>

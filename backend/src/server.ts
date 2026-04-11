@@ -68,7 +68,7 @@ app.get('/api/quiz/settings', async (_req, res) => {
   try {
     const appSource = getRequestSource(_req);
     const result = await pool.query(
-      'SELECT "questionLimit", "ednovateQuestionLimit", "dubeyQuestionLimit", "otpRequired", "ednovateOtpRequired", "dubeyOtpRequired", "ednovateContactNumber", "dubeyContactNumber", "ednovateWhatsappMessage", "dubeyWhatsappMessage" FROM "AdminSettings" WHERE id = 1'
+      'SELECT "questionLimit", "ednovateQuestionLimit", "dubeyQuestionLimit", "otpRequired", "ednovateOtpRequired", "dubeyOtpRequired", "ednovateCallNumber", "dubeyCallNumber", "ednovateContactNumber", "dubeyContactNumber", "ednovateWhatsappMessage", "dubeyWhatsappMessage" FROM "AdminSettings" WHERE id = 1'
     );
     const row = result.rows[0] || { questionLimit: 45, otpRequired: true };
     const questionLimit = appSource === 'dubey'
@@ -79,7 +79,10 @@ app.get('/api/quiz/settings', async (_req, res) => {
       : (row.ednovateOtpRequired === undefined ? row.otpRequired !== false : row.ednovateOtpRequired !== false);
     const contactNumber = String(appSource === 'dubey' ? row.dubeyContactNumber : row.ednovateContactNumber || '')
       .replace(/\D/g, '')
-      .slice(0, 15) || '8651014840';
+      .slice(0, 15) || (appSource === 'dubey' ? '8651014840' : '7784873873');
+    const callNumber = String(appSource === 'dubey' ? row.dubeyCallNumber : row.ednovateCallNumber || '')
+      .replace(/\D/g, '')
+      .slice(0, 15) || contactNumber;
     const whatsappMessage = String(appSource === 'dubey' ? row.dubeyWhatsappMessage : row.ednovateWhatsappMessage || '')
       .replace(/\s+/g, ' ')
       .trim() || 'Hey, I need my Career Counselling Report';
@@ -87,6 +90,8 @@ app.get('/api/quiz/settings', async (_req, res) => {
     return res.json({
       questionLimit,
       otpRequired,
+      callNumber,
+      whatsappNumber: contactNumber,
       contactNumber,
       whatsappMessage
     });
@@ -94,8 +99,10 @@ app.get('/api/quiz/settings', async (_req, res) => {
     return res.json({
       questionLimit: 45,
       otpRequired: true,
-      contactNumber: '8651014840',
-      whatsappMessage: 'Hey, I need my Career Counselling Report'
+      callNumber: '7784873873',
+      whatsappNumber: '7784873873',
+      contactNumber: '7784873873',
+      whatsappMessage: 'Hello, I want to get my career counselling report on WhatsApp.'
     });
   }
 });

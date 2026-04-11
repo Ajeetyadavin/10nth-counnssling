@@ -19,6 +19,7 @@ type SourceFilter = 'all' | 'ednovate' | 'dubey';
 type AdminScope = 'all' | 'dubey';
 
 type BrandContactSettings = {
+  callNumber: string;
   contactNumber: string;
   whatsappMessage: string;
 };
@@ -68,10 +69,12 @@ const AdminPanel = ({
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [settingsMsg, setSettingsMsg] = useState('');
   const [ednovateContactSettings, setEdnovateContactSettings] = useState<BrandContactSettings>({
+    callNumber: '7784873873',
     contactNumber: '7784873873',
     whatsappMessage: 'Hello, I want to get my career counselling report on WhatsApp.'
   });
   const [dubeyContactSettings, setDubeyContactSettings] = useState<BrandContactSettings>({
+    callNumber: '8651014840',
     contactNumber: '8651014840',
     whatsappMessage: 'Hello, I want to get my career counselling report on WhatsApp.'
   });
@@ -181,12 +184,14 @@ const AdminPanel = ({
       setDubeyOtpRequired(data?.otpSettings?.dubey === undefined ? true : (data?.otpSettings?.dubey !== false));
       if (data?.contactSettings?.ednovate) {
         setEdnovateContactSettings({
+          callNumber: String(data.contactSettings.ednovate.callNumber || '7784873873'),
           contactNumber: String(data.contactSettings.ednovate.contactNumber || '7784873873'),
           whatsappMessage: String(data.contactSettings.ednovate.whatsappMessage || 'Hello, I want to get my career counselling report on WhatsApp.')
         });
       }
       if (data?.contactSettings?.dubey) {
         setDubeyContactSettings({
+          callNumber: String(data.contactSettings.dubey.callNumber || '8651014840'),
           contactNumber: String(data.contactSettings.dubey.contactNumber || '8651014840'),
           whatsappMessage: String(data.contactSettings.dubey.whatsappMessage || 'Hello, I want to get my career counselling report on WhatsApp.')
         });
@@ -526,14 +531,24 @@ const AdminPanel = ({
       return;
     }
 
+    const nextEdnovateCallNumber = cleanPhone(ednovateContactSettings.callNumber);
+    const nextDubeyCallNumber = cleanPhone(dubeyContactSettings.callNumber);
     const nextEdnovateNumber = cleanPhone(ednovateContactSettings.contactNumber);
     const nextDubeyNumber = cleanPhone(dubeyContactSettings.contactNumber);
+    if (adminScope === 'all' && nextEdnovateCallNumber.length < 8) {
+      setSettingsMsg('Ednovate calling number valid rakho (minimum 8 digits).');
+      return;
+    }
     if (adminScope === 'all' && nextEdnovateNumber.length < 8) {
-      setSettingsMsg('Ednovate contact number valid rakho (minimum 8 digits).');
+      setSettingsMsg('Ednovate WhatsApp number valid rakho (minimum 8 digits).');
+      return;
+    }
+    if (nextDubeyCallNumber.length < 8) {
+      setSettingsMsg('Dubey calling number valid rakho (minimum 8 digits).');
       return;
     }
     if (nextDubeyNumber.length < 8) {
-      setSettingsMsg('Dubey contact number valid rakho (minimum 8 digits).');
+      setSettingsMsg('Dubey WhatsApp number valid rakho (minimum 8 digits).');
       return;
     }
 
@@ -551,12 +566,14 @@ const AdminPanel = ({
         },
         contactSettings: {
           dubey: {
+            callNumber: nextDubeyCallNumber,
             contactNumber: nextDubeyNumber,
             whatsappMessage: nextDubeyMessage
           },
           ...(adminScope === 'all'
             ? {
                 ednovate: {
+                  callNumber: nextEdnovateCallNumber,
                   contactNumber: nextEdnovateNumber,
                   whatsappMessage: nextEdnovateMessage
                 }
@@ -582,17 +599,19 @@ const AdminPanel = ({
       setDubeyOtpRequired(data?.otpSettings?.dubey === undefined ? dubeyOtpRequired : (data?.otpSettings?.dubey !== false));
       if (data?.contactSettings?.ednovate) {
         setEdnovateContactSettings({
-          contactNumber: String(data.contactSettings.ednovate.contactNumber || nextEdnovateNumber || '8651014840'),
+          callNumber: String(data.contactSettings.ednovate.callNumber || nextEdnovateCallNumber || '7784873873'),
+          contactNumber: String(data.contactSettings.ednovate.contactNumber || nextEdnovateNumber || '7784873873'),
           whatsappMessage: String(data.contactSettings.ednovate.whatsappMessage || nextEdnovateMessage)
         });
       }
       if (data?.contactSettings?.dubey) {
         setDubeyContactSettings({
+          callNumber: String(data.contactSettings.dubey.callNumber || nextDubeyCallNumber || '8651014840'),
           contactNumber: String(data.contactSettings.dubey.contactNumber || nextDubeyNumber || '8651014840'),
           whatsappMessage: String(data.contactSettings.dubey.whatsappMessage || nextDubeyMessage)
         });
       }
-      setSettingsMsg('Settings saved. Contact/WhatsApp config update ho gaya.');
+      setSettingsMsg('Settings saved. Calling aur WhatsApp config update ho gaya.');
     } catch {
       setSettingsMsg('Settings save nahi hua.');
     } finally {
@@ -1386,6 +1405,13 @@ const AdminPanel = ({
                 <h3 className="text-base font-semibold text-slate-900">Ednovate Contact Settings</h3>
                 <input
                   type="text"
+                  value={ednovateContactSettings.callNumber}
+                  onChange={(e) => setEdnovateContactSettings((prev) => ({ ...prev, callNumber: e.target.value }))}
+                  placeholder="Ednovate Calling Number"
+                  className="w-full border border-slate-300 rounded-md p-2 text-sm"
+                />
+                <input
+                  type="text"
                   value={ednovateContactSettings.contactNumber}
                   onChange={(e) => setEdnovateContactSettings((prev) => ({ ...prev, contactNumber: e.target.value }))}
                   placeholder="Ednovate WhatsApp Number"
@@ -1403,6 +1429,13 @@ const AdminPanel = ({
 
             <div className="border border-slate-200 rounded-md p-4 bg-slate-50 space-y-3">
               <h3 className="text-base font-semibold text-slate-900">Dubey Contact Settings</h3>
+              <input
+                type="text"
+                value={dubeyContactSettings.callNumber}
+                onChange={(e) => setDubeyContactSettings((prev) => ({ ...prev, callNumber: e.target.value }))}
+                placeholder="Dubey Calling Number"
+                className="w-full border border-slate-300 rounded-md p-2 text-sm"
+              />
               <input
                 type="text"
                 value={dubeyContactSettings.contactNumber}

@@ -8,17 +8,19 @@ interface BlurredReportProps {
   result: ReturnType<typeof getRecommendedStream>;
   onRestart: () => void;
   language?: 'hinglish' | 'english';
-  contactNumber?: string;
+  callNumber?: string;
+  whatsappNumber?: string;
   whatsappMessage?: string;
 }
 
-const BlurredReport = ({ userData, result, onRestart, language = 'hinglish', contactNumber = '7784873873', whatsappMessage = 'Hello, I want to get my career counselling report on WhatsApp.' }: BlurredReportProps) => {
+const BlurredReport = ({ userData, result, onRestart, language = 'hinglish', callNumber = '7784873873', whatsappNumber = '7784873873', whatsappMessage = 'Hello, I want to get my career counselling report on WhatsApp.' }: BlurredReportProps) => {
   const isEn = language === 'english';
-  const cleanContactNumber = String(contactNumber || '').replace(/\D/g, '').slice(0, 15) || '7784873873';
-  const displayContactNumber = cleanContactNumber.length > 10 ? cleanContactNumber.slice(-10) : cleanContactNumber;
+  const cleanCallNumber = String(callNumber || '').replace(/\D/g, '').slice(0, 15) || '7784873873';
+  const displayCallNumber = cleanCallNumber.length > 10 ? cleanCallNumber.slice(-10) : cleanCallNumber;
+  const cleanWhatsappNumber = String(whatsappNumber || '').replace(/\D/g, '').slice(0, 15) || '7784873873';
   const encodedMessage = encodeURIComponent(String(whatsappMessage || 'Hello, I want to get my career counselling report on WhatsApp.').trim() || 'Hello, I want to get my career counselling report on WhatsApp.');
-  const whatsappHref = `https://wa.me/${cleanContactNumber}?text=${encodedMessage}`;
-  const callHref = `tel:${cleanContactNumber}`;
+  const whatsappHref = `https://wa.me/${cleanWhatsappNumber}?text=${encodedMessage}`;
+  const callHref = `tel:${cleanCallNumber}`;
   const streamDetails = {
     science: {
       title: "Science Stream",
@@ -212,7 +214,7 @@ const BlurredReport = ({ userData, result, onRestart, language = 'hinglish', con
             className="mb-3 flex items-center justify-center gap-2 w-full max-w-[280px] mx-auto rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-800 shadow-sm"
           >
             <Phone className="w-4 h-4 text-emerald-600" />
-            <span>{isEn ? `Call now: ${displayContactNumber}` : `Call now: ${displayContactNumber}`}</span>
+            <span>{isEn ? `Call now: ${displayCallNumber}` : `Call now: ${displayCallNumber}`}</span>
           </motion.a>
           
           <div className="relative inline-block w-full max-w-[280px]">
