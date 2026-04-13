@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Sparkles, Users, Award, ChevronRight, Star, CheckCircle, Zap, Target, BookOpen, TrendingUp } from 'lucide-react';
+import { Sparkles, Award, ChevronRight, Star, CheckCircle, Zap, Target, BookOpen, TrendingUp } from 'lucide-react';
 
 interface LandingSectionProps {
   onStart: () => void;
