@@ -60,6 +60,8 @@ const LandingSection = ({ onStart, language = 'hinglish' }: LandingSectionProps)
             { icon: BookOpen, text: isEn ? 'Detailed career path breakdown for your stream' : 'Detailed career path breakdown for your stream' },
             { icon: TrendingUp, text: isEn ? 'Top colleges & courses aligned with your interests' : 'Top colleges & courses aligned with your interests' },
             { icon: Award, text: isEn ? 'Expert-curated FREE career report in 5 minutes' : 'Expert-curated FREE career report in 5 minutes' },
+            { icon: CheckCircle, text: isEn ? 'Creating Plan' : 'Plan Banana' },
+            { icon: Zap, text: isEn ? 'Execution' : 'Amal (Execution)' },
           ].map((item, i) => (
             <motion.div
               key={i}
@@ -128,32 +130,20 @@ const LandingSection = ({ onStart, language = 'hinglish' }: LandingSectionProps)
       <div className="flex-1 md:flex-none md:w-[460px] xl:w-[500px] flex flex-col bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/30 md:shadow-2xl md:shadow-slate-400/30 overflow-hidden">
 
       {/* Top Urgency Bar */}
-      <motion.div
-        initial={{ y: -30, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        className="bg-gradient-to-r from-rose-500 to-pink-500 py-2 px-3 flex-shrink-0"
-      >
-        <div className="flex items-center justify-center gap-2 text-white text-xs font-semibold">
-          <Zap className="w-3 h-3 fill-white" />
-          <span>Limited Slots!</span>
-          <span className="bg-white/20 px-2 py-0.5 rounded-full text-[10px]">
-            Only 5 Left Today
-          </span>
-        </div>
-      </motion.div>
 
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05 }}
-        className="flex items-center justify-center gap-2 py-3 bg-white/70 border-b border-blue-50"
+        className="flex items-center justify-center gap-3 py-4 bg-white/80 border-b border-blue-50 shadow-sm"
       >
-        <img src="/ednovate-mark.svg" alt="Ednovate" className="w-5 h-5 object-contain" />
-        <p className="text-[11px] font-semibold text-slate-500 tracking-wide">Powered by Ednovate</p>
+        <img src="/ednovate-mark.svg" alt="Ednovate" className="w-9 h-9 object-contain" />
+        <p className="text-lg font-extrabold text-blue-700 tracking-wide drop-shadow-sm">Powered by Ednovate</p>
       </motion.div>
 
       {/* Main Content - Scrollable if needed */}
-      <div className="flex-1 flex flex-col px-6 py-6 max-w-md mx-auto w-full overflow-y-auto no-scrollbar">
+      <div className="flex-1 flex flex-col px-6 pt-10 pb-6 max-w-md mx-auto w-full overflow-y-auto no-scrollbar">
+        <div className="flex-1 flex flex-col justify-start">
         {/* Badge */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -163,7 +153,7 @@ const LandingSection = ({ onStart, language = 'hinglish' }: LandingSectionProps)
         >
           <div className="inline-flex items-center gap-2 bg-blue-100 rounded-full px-4 py-2">
             <Sparkles className="w-4 h-4 text-blue-600" />
-            <span className="text-sm font-semibold text-blue-700">{isEn ? 'What After 10th Class?' : '10th Class Ke Baad Kya?'}</span>
+            <span className="text-sm font-semibold text-blue-700">{isEn ? 'What after Class 10?' : '10th Class Ke Baad Kya?'}</span>
           </div>
         </motion.div>
 
@@ -207,31 +197,6 @@ const LandingSection = ({ onStart, language = 'hinglish' }: LandingSectionProps)
         </motion.div>
 
         {/* Stats Row */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
-          className="flex justify-center gap-4 mb-6"
-        >
-          <div className="flex items-center gap-2 bg-white rounded-xl px-4 py-2.5 shadow-card border border-slate-50">
-            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-              <Users className="w-4 h-4 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-base font-bold text-slate-900">10K+</p>
-              <p className="text-[11px] text-slate-500 font-medium">Students</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 bg-white rounded-xl px-4 py-2.5 shadow-card border border-slate-50">
-            <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
-              <Award className="w-4 h-4 text-emerald-600" />
-            </div>
-            <div>
-              <p className="text-base font-bold text-slate-900">98%</p>
-              <p className="text-[11px] text-slate-500 font-medium">Success</p>
-            </div>
-          </div>
-        </motion.div>
 
         {/* Benefits - Compact but larger */}
         <motion.div
@@ -245,7 +210,9 @@ const LandingSection = ({ onStart, language = 'hinglish' }: LandingSectionProps)
               'FREE Career Report',
               'Expert Guidance',
               'Stream Analysis',
-              'College Pathway'
+              'College Pathway',
+              'Creating Plan',
+              'Execution'
             ].map((benefit, index) => (
               <motion.div
                 key={index}
@@ -260,13 +227,14 @@ const LandingSection = ({ onStart, language = 'hinglish' }: LandingSectionProps)
             ))}
           </div>
         </motion.div>
+        </div>
 
         {/* CTA Button */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="mt-auto space-y-4"
+          className="mt-auto space-y-4 pb-4"
         >
           <motion.button
             onClick={onStart}
@@ -281,7 +249,7 @@ const LandingSection = ({ onStart, language = 'hinglish' }: LandingSectionProps)
 
           
           <p className="text-center text-[11px] text-slate-400">
-            Takes ~5 mins • Trusted by 10,000+ Students
+            Takes only 5 minutes
           </p>
         </motion.div>
       </div>
