@@ -187,7 +187,7 @@ const LeadForm = ({ onSubmit, onBack, selectedLanguage, onLanguageChange }: Lead
                 transition={{ delay: index * 0.05 }}
               >
                 <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                  {field.label} <span className="text-xs text-slate-400 font-normal">(nearby station)</span> <span className="text-rose-500">*</span>
+                  {field.label} {field.key === 'location' && <span className="text-xs text-slate-400 font-normal">(nearby station)</span>} <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute left-4 top-1/2 -translate-y-1/2">
