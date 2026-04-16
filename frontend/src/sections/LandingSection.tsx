@@ -78,52 +78,7 @@ const LandingSection = ({ onStart, language = 'hinglish' }: LandingSectionProps)
           ))}
         </motion.div>
 
-        {/* Testimonial card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 relative z-10 max-w-md border border-white/20 mb-8"
-        >
-          <div className="flex gap-1 mb-2">
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-            ))}
-          </div>
-          <p className="text-white/90 text-sm italic mb-3">
-            {isEn ? '"This test helped me realize I should choose Commerce. Now I\'m preparing for CA!"' : '"Is test ki wajah se mujhe pata chala ki mujhe Commerce lena chahiye tha. Abhi CA ki taiyari kar raha hu!"'}
-          </p>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white font-bold text-sm">R</div>
-            <div>
-              <p className="text-white text-sm font-semibold">Rahul Sharma</p>
-              <p className="text-blue-200 text-xs">Class 11, Delhi</p>
-            </div>
-          </div>
-        </motion.div>
 
-        {/* Stats row */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="flex items-center gap-8 relative z-10"
-        >
-          <div>
-            <p className="text-2xl font-extrabold text-white">10K+</p>
-            <p className="text-blue-200 text-xs">Students Helped</p>
-          </div>
-          <div className="w-px h-10 bg-white/20" />
-          <div>
-            <p className="text-2xl font-extrabold text-white">98%</p>
-            <p className="text-blue-200 text-xs">Satisfaction Rate</p>
-          </div>
-          <div className="w-px h-10 bg-white/20" />
-          <div>
-            <p className="text-2xl font-extrabold text-white">5 min</p>
-            <p className="text-blue-200 text-xs">To Complete</p>
-          </div>
-        </motion.div>
       </div>
 
       {/* ===== RIGHT PANEL — Mobile full / Desktop card ===== */}
@@ -144,52 +99,7 @@ const LandingSection = ({ onStart, language = 'hinglish' }: LandingSectionProps)
       {/* Main Content - Scrollable if needed */}
       <div className="flex-1 flex flex-col px-6 pt-10 pb-6 max-w-md mx-auto w-full overflow-y-auto no-scrollbar">
         <div className="flex-1 flex flex-col justify-start">
-        {/* Badge */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="flex justify-center mb-4"
-        >
-          <div className="inline-flex items-center gap-2 bg-blue-100 rounded-full px-4 py-2">
-            <Sparkles className="w-4 h-4 text-blue-600" />
-            <span className="text-sm font-semibold text-blue-700">{isEn ? 'What after Class 10?' : '10th Class Ke Baad Kya?'}</span>
-          </div>
-        </motion.div>
-
-        {/* Hero Image - Bigger */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.15 }}
-          className="flex justify-center mb-6"
-        >
-          <div className="relative">
-            <img
-              src="/hero-student.png"
               alt="Career"
-              className="w-40 h-40 object-contain drop-shadow-xl"
-            />
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.4, type: "spring" }}
-              className="absolute top-0 -right-2 bg-emerald-500 rounded-full p-1.5"
-            >
-              <Star className="w-4 h-4 text-white fill-white" />
-            </motion.div>
-          </div>
-        </motion.div>
-
-        {/* Headline */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="text-center mb-6"
-        >
-          <h1 className="text-3xl font-extrabold text-slate-900 leading-tight">
-            {isEn ? <>Discover Your <br /><span className="text-blue-600">Perfect Career!</span></> : <>Apna Perfect <br /><span className="text-blue-600">Career Discover Karo!</span></>}
           </h1>
           <p className="text-slate-600 text-sm mt-3 px-2">
             {isEn ? 'Find out whether Science, Commerce or Arts is best for you with professional analysis.' : 'Professional analysis se jaano Science, Commerce ya Arts mein aapke liye best kya hai.'}
