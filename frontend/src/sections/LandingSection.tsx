@@ -176,9 +176,8 @@ const LandingSection = ({ onStart, language = 'hinglish' }: LandingSectionProps)
           </p>
         </motion.div>
       </div>
-      </div>
     </div>
   );
-};
+}
 
 export default LandingSection;
