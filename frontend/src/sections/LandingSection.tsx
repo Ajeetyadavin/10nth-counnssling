@@ -99,12 +99,25 @@ const LandingSection = ({ onStart, language = 'hinglish' }: LandingSectionProps)
       {/* Main Content - Scrollable if needed */}
       <div className="flex-1 flex flex-col px-6 pt-10 pb-6 max-w-md mx-auto w-full overflow-y-auto no-scrollbar">
         <div className="flex-1 flex flex-col justify-start">
-              alt="Career"
-          </h1>
-          <p className="text-slate-600 text-sm mt-3 px-2">
-            {isEn ? 'Find out whether Science, Commerce or Arts is best for you with professional analysis.' : 'Professional analysis se jaano Science, Commerce ya Arts mein aapke liye best kya hai.'}
-          </p>
-        </motion.div>
+          {/* Headline */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-center mb-6"
+          >
+            <h1 className="text-3xl font-extrabold text-slate-900 leading-tight">
+              {isEn ? <>
+                Discover Your <br /><span className="text-blue-600">Perfect Career!</span>
+              </> : <>
+                Apna Perfect <br /><span className="text-blue-600">Career Discover Karo!</span>
+              </>}
+            </h1>
+            <p className="text-slate-600 text-sm mt-3 px-2">
+              {isEn ? 'Find out whether Science, Commerce or Arts is best for you with professional analysis.' : 'Professional analysis se jaano Science, Commerce ya Arts mein aapke liye best kya hai.'}
+            </p>
+          </motion.div>
+        </div>
 
         {/* Stats Row */}
 
