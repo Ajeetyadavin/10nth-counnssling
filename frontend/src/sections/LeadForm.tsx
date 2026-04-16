@@ -102,7 +102,7 @@ const LeadForm = ({ onSubmit, onBack, selectedLanguage, onLanguageChange }: Lead
     { key: 'name' as const, label: isEn ? 'Full Name' : 'Full Name', placeholder: isEn ? 'Your name' : 'Apna naam', icon: User, type: 'text', autoComplete: 'name', name: 'name' },
     { key: 'mobile' as const, label: isEn ? 'Mobile Number' : 'Mobile Number', placeholder: isEn ? '10 digit number' : '10 digit number', icon: Phone, type: 'tel', maxLength: 10, autoComplete: 'tel', name: 'mobile' },
     { key: 'email' as const, label: isEn ? 'Email' : 'Email', placeholder: isEn ? 'email@example.com' : 'email@example.com', icon: Mail, type: 'email', autoComplete: 'email', name: 'email' },
-    { key: 'location' as const, label: isEn ? 'City' : 'City', placeholder: isEn ? 'Enter your city...' : 'Mumbai Station Name...', icon: MapPin, type: 'text', autoComplete: 'address-level2', name: 'city' }
+    { key: 'location' as const, label: isEn ? 'Location' : 'Location', placeholder: 'Mumbai Station Name...', icon: MapPin, type: 'text', autoComplete: 'address-level2', name: 'city' }
   ];
 
   return (
@@ -187,7 +187,7 @@ const LeadForm = ({ onSubmit, onBack, selectedLanguage, onLanguageChange }: Lead
                 transition={{ delay: index * 0.05 }}
               >
                 <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                  {field.label} <span className="text-rose-500">*</span>
+                  {field.label} <span className="text-xs text-slate-400 font-normal">(nearby station)</span> <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute left-4 top-1/2 -translate-y-1/2">
